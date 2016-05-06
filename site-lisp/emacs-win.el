@@ -810,27 +810,6 @@ This command does not push erased text to kill-ring."
 (autoload 'pymacs-exec "pymacs" nil t)
 (autoload 'pymacs-load "pymacs" nil t)
 
-;; ;; surekli gereken dizinler onceden acilip buffer'a konuyor.
-;; ;; boylece ikidebir oraya dired'den gezerek gitmek gerekmez
-;; ;;
-(find-file-other-window "C:/Users/burak/AppData/Local/Temp")
-(find-file-other-window "c:/Users/burak/Downloads")
-(find-file-other-window "c:/Users/burak/Documents/classnotes/app_math/dict")
-(find-file-other-window "c:/Users/burak/Documents/Dropbox")
-(find-file-other-window "c:/Users/burak/Documents/Dropbox/Public/skfiles")
-(find-file-other-window "c:/Users/burak/Documents/Dropbox/TODO.txt")
-(find-file-other-window "c:/Users/burak/Documents/classnotes")
-(find-file-other-window "c:/Users/burak/Documents/classnotes/stat")
-(find-file-other-window "c:/Users/burak/Documents/classnotes/tser")
-(find-file-other-window "c:/Users/burak/Documents")
-(find-file-other-window "c:/Users/burak/Documents/kod/books/Systematic_Trading/pysystemtrade/syscore")
-(find-file-other-window "c:/Users/burak/Documents/kod")
-(find-file-other-window "c:/Users/burak/Documents/kod/books/Systematic_Trading/pysystemtrade/examples/introduction")
-(find-file-other-window "c:/Users/burak/Documents/mindmeld")
-
-(switch-to-buffer "*scratch*")
-(delete-other-windows)
-
 (pymacs-load "c:/Users/burak/Documents/kod/site-lisp/deascify")
 (global-unset-key "\M-]")
 (global-set-key "\C-x\]" 'deascify-convert)
@@ -897,4 +876,22 @@ This command does not push erased text to kill-ring."
 	grep-program ""
 	))
 
+;; ;; open files / directories beforehand so they are already in the buffer
+;;
+(find-file-other-window "C:/Users/burak/AppData/Local/Temp")
+(find-file-other-window "c:/Users/burak/Downloads")
+(find-file-other-window "c:/Users/burak/Documents/classnotes/app_math/dict")
+(find-file-other-window "c:/Users/burak/Documents/Dropbox")
+(find-file-other-window "c:/Users/burak/Documents/Dropbox/TODO.txt")
+(find-file-other-window "c:/Users/burak/Documents/classnotes")
+(find-file-other-window "c:/Users/burak/Documents/classnotes/tser")
+(find-file-other-window "c:/Users/burak/Documents")
+(find-file-other-window "c:/Users/burak/Documents/kod/books/Systematic_Trading/pysystemtrade/syscore")
+(find-file-other-window "c:/Users/burak/Documents/kod")
+(find-file-other-window "c:/Users/burak/Documents/kod/foam")
+(find-file-other-window "c:/Users/burak/Documents/kod/books/Systematic_Trading/pysystemtrade/examples/introduction")
+(find-file-other-window "c:/Users/burak/Documents/mindmeld")
+
+(switch-to-buffer "*scratch*")
+(delete-other-windows)
 
