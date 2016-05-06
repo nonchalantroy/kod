@@ -6,7 +6,7 @@ Created on 21 Jan 2016
 
 import pandas as pd
 import numpy as np
-import datetime, logging
+import datetime
 from scipy.optimize import minimize
 from copy import copy
 import random
@@ -66,8 +66,7 @@ class GenericOptimiser(object):
     
         ## de-pool pooled data    
         data=df_from_list(data)    
-
-        logging.debug ("frequency=" + str(frequency))
+            
         ## resample, indexing before and differencing after (returns, remember)
         data=data.cumsum().resample(frequency, how="last").diff()
     
@@ -84,10 +83,10 @@ class GenericOptimiser(object):
         ## create a class object for each period
         opt_results=[]
         
-        logging.debug("Optimising...")
-        logging.debug("fit_dates " + str(fit_dates))
+        log.terse("Optimising...")
+        
         for fit_period in fit_dates:
-            logging.debug("Optimising for data from %s to %s" % (str(fit_period.period_start), str(fit_period.period_end)))
+            log.msg("Optimising for data from %s to %s" % (str(fit_period.period_start), str(fit_period.period_end)))
             ## Do the optimisation for one period, using a particular optimiser instance
             results_this_period=optSinglePeriod(self, data, fit_period, optimiser, cleaning)
 
@@ -180,13 +179,14 @@ class optimiserWithParams(object):
 
         try:        
             opt_func=fit_method_dict[fit_method]
-            logging.debug ("fit_method_dict[fit_method]=" + str(fit_method_dict[fit_method]))
-            
+    
         except KeyError:
             raise Exception("Fitting method %s unknown; try one of: %s " % (fit_method, ", ".join(fit_method_dict.keys())))
 
-        setattr(self, "opt_func", resolve_function(opt_func))        
-        setattr(self, "params", optimise_params)        
+        setattr(self, "opt_func", resolve_function(opt_func))
+        
+        setattr(self, "params", optimise_params)
+        
         setattr(self, "moments_estimator", moments_estimator)
         
     def call(self, optimise_data, cleaning, must_haves):
@@ -197,32 +197,34 @@ class optimiserWithParams(object):
 class optSinglePeriod(object):
     def __init__(self, parent, data, fit_period, optimiser, cleaning):
 
-        logging.debug("fit_period.no_data " + str(fit_period.no_data))
         if cleaning:
             ### Generate 'must have' from the period we need
             ###  because if we're bootstrapping could be completely different periods
             current_period_data=data[fit_period.period_start:fit_period.period_end] 
-            must_haves=must_have_item(current_period_data)        
+            must_haves=must_have_item(current_period_data)
+        
         else:
             must_haves=None
 
         
         if fit_period.no_data:
-            ## no data to fit with            
-            diag=None            
+            ## no data to fit with
+            
+            diag=None
+            
             size=current_period_data.shape[1]
             weights_with_nan=[np.nan/size]*size
             weights=weights_with_nan
+
             if cleaning:
                 weights=clean_weights(weights, must_haves)
             
         else:
             ## we have data
             subset_fitting_data=data[fit_period.fit_start:fit_period.fit_end]
-            logging.debug(fit_period.fit_start)
-            logging.debug(fit_period.fit_end)
+    
+
             (weights, diag)=optimiser.call(subset_fitting_data, cleaning, must_haves)
-            logging.debug(optimiser.call)
             
         ##
         setattr(self, "diag", diag)
@@ -618,9 +620,9 @@ def sigma_from_corr_and_std(stdev_list, corrmatrix):
 
 
 def bootstrap_portfolio(subset_data, moments_estimator,
-                        cleaning, must_haves,
-                        monte_runs=100, bootstrap_length=50,
-                        **other_opt_args):
+                cleaning, must_haves,
+                  monte_runs=100, bootstrap_length=50,
+                  **other_opt_args):
     """
     Given dataframe of returns; returns_to_bs, performs a bootstrap optimisation
     
@@ -652,11 +654,8 @@ def bootstrap_portfolio(subset_data, moments_estimator,
     :returns: float
     
     """
-    logging.debug("inside bootstrap port")
-    logging.debug ("subset_data.head()=" + str(subset_data.head()))
-    logging.debug ("subset_data.tail()=" + str(subset_data.tail()))
-    logging.debug ("monte_runs=" + str(monte_runs))
-    
+
+                
     all_results=[bs_one_time(subset_data, moments_estimator,
                             cleaning, must_haves, 
                             bootstrap_length,

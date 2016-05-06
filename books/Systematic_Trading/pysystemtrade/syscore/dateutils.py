@@ -1,7 +1,7 @@
 """
 Various routines to do with dates
 """
-import datetime, logging
+import datetime
 import numpy as np
 import pandas as pd
 
@@ -115,7 +115,7 @@ def generate_fitting_dates(data, date_method, rollyears=20):
     
     if 'rolling' then use rollyears variable  
     """
-    logging.debug ("date_method=" + str(date_method))
+
     if date_method not in ["in_sample","rolling", "expanding"]:
         raise Exception("don't recognise date_method %s should be one of in_sample, expanding, rolling" % date_method)
     

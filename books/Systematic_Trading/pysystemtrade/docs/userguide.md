@@ -11,9 +11,7 @@ Although the project is intended mainly for working with trading systems, it's p
 
 ## How do I....Create a standard futures backtest
 
-This creates the staunch systems trader example defined in chapter 15
-of my book, using the csv data that is provided, and gives you the
-position in the Eurodollar market:
+This creates the staunch systems trader example defined in chapter 15 of my book, using the csv data that is provided, and gives you the position in the Eurodollar market:
 
 ```python
 from systems.provided.futures_chapter15.basesystem import futures_system
@@ -25,10 +23,7 @@ See [standard futures system](#futures_system) for more.
 
 ## How do I....Create a futures backtest which estimates parameters
 
-This creates the staunch systems trader example defined in chapter 15
-of my book, using the csv data that is provided, and estimates
-forecast scalars, instrument and forecast weights, and instrument and
-forecast diversification multipliers:
+This creates the staunch systems trader example defined in chapter 15 of my book, using the csv data that is provided, and estimates forecast scalars, instrument and forecast weights, and instrument and forecast diversification multipliers:
 
 ```python
 from systems.provided.futures_chapter15.estimatedsystem import futures_system
@@ -38,17 +33,12 @@ system.portfolio.get_notional_position("EDOLLAR")
 
 See [estimated futures system](#futures_system).
 
-Warning: Be careful about changing a system from estimated to non
-estimated 'on the fly' by varying the estimation parameters (in the
-form use_*_estimates). See [persistence of 'switched' stage
-objects](#switch_persistence) for more information.
+Warning: Be careful about changing a system from estimated to non estimated 'on the fly' by varying the estimation parameters (in the form use_*_estimates). See [persistence of 'switched' stage objects](#switch_persistence) for more information.
 
 
 ## How do I....See intermediate results from a backtest
 
-This will give you the raw forecast (before scaling and capping) of
-one of the EWMAC rules for Eurodollar futures in the standard futures
-backtest:
+This will give you the raw forecast (before scaling and capping) of one of the EWMAC rules for Eurodollar futures in the standard futures backtest:
 
 ```python
 from systems.provided.futures_chapter15.basesystem import futures_system
@@ -56,11 +46,8 @@ system=futures_system()
 system.rules.get_raw_forecast("EDOLLAR", "ewmac64_256")
 ```
 
-For a complete list of possible intermediate results, see [this
-table](#table_system_stage_methods) and look for rows marked with
-**D** for diagnostic. Alternatively type `system` to get a list of
-stages, and `system.stagename.methods()` to get a list of methods for
-a stage (insert the name of the stage, not stagename).
+For a complete list of possible intermediate results, see [this table](#table_system_stage_methods) and look for rows marked with **D** for diagnostic. Alternatively type `system` to get a list of stages, and `system.stagename.methods()` to get a list of methods for a stage (insert the name of the stage, not stagename).
+
 
 ## How do I....See how profitable a backtest was
 
@@ -73,8 +60,9 @@ system.accounts.portfolio().pandl_for_instrument("US10").stats() ## produce stat
 system.accounts.pandl_for_instrument_forecast("EDOLLAR", "carry").sharpe() ## Sharpe for a specific trading rule variation
 ```
 
-For more information on what statistics are available, see the
-[relevant guide section](#standard_accounts_stage).
+For more information on what statistics are available, see the [relevant guide section](#standard_accounts_stage).
+
+
  
 <a name="change_backtest_parameters">
 ## How do I....Change backtest parameters 
@@ -85,30 +73,22 @@ The backtest looks for its configuration information in the following places:
 1. Elements in the configuration object
 2. If not found, in: Project defaults 
 
-Configuration objects can be loaded from [yaml](http://pyyaml.org/)
-files, or created with a dictionary. This suggests that you can modify
-the systems behaviour in any of the following ways:
+Configuration objects can be loaded from [yaml](http://pyyaml.org/) files, or created with a dictionary. This suggests that you can modify the systems behaviour in any of the following ways:
 
 1. Change or create a configuration yaml file, read it in, and create a new system
 2. Change a configuration object in memory, and create a new system with it.
 3. Change a configuration object within an existing system (advanced)
 4. Change the project defaults (definitely not recommended)
 
-For a list of all possible configuration options, see [this
-table](#Configuration_options).
+For a list of all possible configuration options, see [this table](#Configuration_options).
 
-If you use options 2 or 3, you can [save the config](#save_config) to
-a yaml file.
+If you use options 2 or 3, you can [save the config](#save_config) to a yaml file.
 
 ### Option 1: Change the configuration file
 
 Configurations in this project are stored in [yaml](http://pyyaml.org) files. Don't worry if you're not familiar with yaml; it's just a nice way of creating nested dicts, lists and other python objects in plain text. Just be aware that indentations are important, just in like python, to create nesting.
 
-You can make a new config file by copying this
-[one](/systems/provided/futures_chapter15/futuresconfig.yaml), and
-modifying it. Best practice is to save this as
-`pysystemtrade/private/this_system_name/config.yaml` (you'll need to
-create a couple of directories first).
+You can make a new config file by copying this [one](/systems/provided/futures_chapter15/futuresconfig.yaml), and modifying it. Best practice is to save this as `pysystemtrade/private/this_system_name/config.yaml` (you'll need to create a couple of directories first).
 
 You should then create a new system which points to the new config file:
 
@@ -122,8 +102,7 @@ system=futures_system(config=my_config)
 
 ### Option 2: Change the configuration object; create a new system
 
-We can also modify a configuration object from a loaded system
-directly, and then create a new system with it:
+We can also modify a configuration object from a loaded system directly, and then create a new system with it:
 
 ```python
 from systems.provided.futures_chapter15.basesystem import futures_system
@@ -149,19 +128,16 @@ system=futures_system(config=new_config)
 This is useful if you're experimenting interactively 'on the fly'.
 
 
-### Option 3: Change the configuration object within an existing
-    system (not recommended - advanced)
+### Option 3: Change the configuration object within an existing system (not recommended - advanced)
 
-If you opt for (3) you will need to understand about [system
-caching](#caching) and [how defaults are handled](#defaults_how). To
-modify the configuration object in the system directly:
+If you opt for (3) you will need to understand about [system caching](#caching) and [how defaults are handled](#defaults_how). To modify the configuration object in the system directly:
 
 ```python
 from systems.provided.futures_chapter15.basesystem import futures_system
 system=futures_system()
 
-## Anything we do with the system may well be cached and will need to
-   be cleared before it sees the new value...
+## Anything we do with the system may well be cached and will need to be cleared before it sees the new value...
+
 
 new_idm=1.1 ## new IDM
 system.config.instrument_div_multiplier=new_idm
@@ -181,30 +157,20 @@ Because we don't create a new system and have to recalculate everything from scr
 
 ### Option 4: Change the project defaults (definitely not recommended)
 
-I don't recommend changing the defaults, but should you want to more
-information is given [here](#defaults).
+I don't recommend changing the defaults, but should you want to more information is given [here](#defaults).
+
 
 ## How do I....Run a backtest on a different set of instruments
 
-Fixed instrument weights: You need to change the instrument weights in
-the configuration. Only instruments with weights have positions
-produced for them.  Estimated instrument weights: You need to change
-the instruments section of the configuration.
+Fixed instrument weights: You need to change the instrument weights in the configuration. Only instruments with weights have positions produced for them. 
+Estimated instrument weights: You need to change the instruments section of the configuration.
 
-There are two easy ways to do this - change the config file, or the
-config object already in the system (for more on changing config
-parameters see ['change backtest
-parameters'](#change_backtest_parameters) ). You also need to ensure
-that you have the data you need for any new instruments. See ['use my
-own data'](#create_my_own_data) below.
+There are two easy ways to do this - change the config file, or the config object already in the system (for more on changing config parameters see ['change backtest parameters'](#change_backtest_parameters) ). You also need to ensure that you have the data you need for any new instruments. See ['use my own data'](#create_my_own_data) below.
+
 
 ### Change instruments: Change the configuration file
 
-You should make a new config file by copying this
-[one](/systems/provided/futures_chapter15/futuresconfig.yaml). Best
-practice is to save this as
-`pysystemtrade/private/this_system_name/config.yaml` (you'll need to
-create this directory).
+You should make a new config file by copying this [one](/systems/provided/futures_chapter15/futuresconfig.yaml). Best practice is to save this as `pysystemtrade/private/this_system_name/config.yaml` (you'll need to create this directory).
 
 For fixed weights, you can then change this section of the config:
 
@@ -230,9 +196,8 @@ forecast_weights:
      carry: 0.50
 ```
 
-*At this stage you'd also need to recalculate the diversification
- multiplier (see chapter 11 of my book). See [estimating the forecast
- diversification multiplier](#divmult).
+
+*At this stage you'd also need to recalculate the diversification multiplier (see chapter 11 of my book). See [estimating the forecast diversification multiplier](#divmult).
 
 For estimated instrument weights you'd change this section:
 
@@ -242,8 +207,7 @@ instruments: ["EDOLLAR", "US10", "EUROSTX", "V2X", "MXP", "CORN"]
 
 (The IDM will be re-estimated automatically)
 
-You may also need to change this section, if you have different rules
-for each instrument:
+You may also need to change this section, if you have different rules for each instrument:
 
 ```
 rule_variations:
@@ -299,13 +263,17 @@ new_config.rule_variations=dict(SP500=['ewmac16_64','carry'], KR10=['ewmac32_128
 system=futures_system(config=new_config)
 
 ```
+
+
 <a name="how_do_i_write_rules">
 ## How do I....Create my own trading rule
 </a>
 
 At some point you should read the relevant guide section ['rules'](#TradingRules) as there is much more to this subject than I will explain briefly here.
 
+
 ### Writing the function
+
 
 A trading rule consists of:
 
@@ -348,39 +316,15 @@ from systems.futures.rules import ewmac
 
 Can also be referenced like so: `systems.futures.rules.ewmac`
 
-Also note that the list of data for the rule will also be in the form
-of string references to methods in the system object. So for example
-to get the daily price we'd use the method
-`system.rawdata.daily_prices(instrument_code)` (for a list of all the
-data methods in a system see [stage
-methods](#table_system_stage_methods) or type
-`system.rawdata.methods()` and `system.rawdata.methods()). In the
-trading rule specification this would be shown as
-"rawdata.daily_prices".
+Also note that the list of data for the rule will also be in the form of string references to methods in the system object. So for example to get the daily price we'd use the method `system.rawdata.daily_prices(instrument_code)` (for a list of all the data methods in a system see [stage methods](#table_system_stage_methods) or type `system.rawdata.methods()` and `system.rawdata.methods()). In the trading rule specification this would be shown as "rawdata.daily_prices". 
 
-If no data is included, then the system will default to passing a
-single data item - the price of the instrument. Finally if any or all
-the `other_arg` keyword arguments are missing then the function will
-use it's own defaults.
+If no data is included, then the system will default to passing a single data item - the price of the instrument. Finally if any or all the `other_arg` keyword arguments are missing then the function will use it's own defaults.
  
-At this stage we can also remove any trading rules that we don't
-want. We also ought to modify the forecast scalars (See [forecast
-scale estimation](#scalar_estimate]), forecast weights and probably
-the forecast diversification multiplier ( see [estimating the forecast
-diversification multiplier](#divmult)). If you're estimating weights
-and scalars (i.e. in the pre-baked estimated futures system provided)
-this will be automatic.
+At this stage we can also remove any trading rules that we don't want. We also ought to modify the forecast scalars (See [forecast scale estimation](#scalar_estimate]), forecast weights and probably the forecast diversification multiplier ( see [estimating the forecast diversification multiplier](#divmult)). If you're estimating weights and scalars (i.e. in the pre-baked estimated futures system provided) this will be automatic.
 
-*If you're using fixed values (the default) then if you don't include
- a forecast scalar for the rule, it will use a value of 1.0. If you
- don't include forecast weights in your config then the system will
- default to equally weighting. But if you include forecast weights,
- but miss out the new rule, then it won't be used to calculate the
- combined forecast.*
+*If you're using fixed values (the default) then if you don't include a forecast scalar for the rule, it will use a value of 1.0. If you don't include forecast weights in your config then the system will default to equally weighting. But if you include forecast weights, but miss out the new rule, then it won't be used to calculate the combined forecast.*
 
-Here's an example for a new variation of the EWMAC rule. This rule
-uses two types of data - the price (stitched for futures), and a
-precalculated estimate of volatility.
+Here's an example for a new variation of the EWMAC rule. This rule uses two types of data - the price (stitched for futures), and a precalculated estimate of volatility.
 
 YAML: (example) 
 ```
@@ -462,6 +406,8 @@ Once we've got the new config, by which ever method, we just use it in our syste
 from systems.provided.futures_chapter15.basesystem import futures_system
 system=futures_system(config=config)
 ```
+
+
 <a name="create_my_own_data">
 ## How do I....Use different data or instruments
 </a>
@@ -490,28 +436,16 @@ Notice that we use python style "." internal references within a project, we don
 
 There is more detail about using .csv files [here](#csv).
 
-If you want to get data from a different place (eg a database, yahoo
-finance, broker, quandl...) you'll need to [create your own Data
-object](#create_data). Note that I intend to add support for sqlite
-database, HDF5, Interactive brokers and quandl data in the future.
+If you want to get data from a different place (eg a database, yahoo finance, broker, quandl...) you'll need to [create your own Data object](#create_data). Note that I intend to add support for sqlite database, HDF5, Interactive brokers and quandl data in the future.
 
-If you want to use a different set of data values (eg equity EP
-ratios, interest rates...) you'll need to [create your own Data
-object](#create_data).
+If you want to use a different set of data values (eg equity EP ratios, interest rates...) you'll need to [create your own Data object](#create_data).
+
 
 ## How do I... Save my work
 
-To remain organised it's good practice to save any work into a
-directory like `pysystemtrade/private/this_system_name/` (you'll need
-to create a couple of directories first). If you plan to contribute to
-github, just be careful to avoid adding 'private' to your commit (
-[you may want to read
-this](https://24ways.org/2013/keeping-parts-of-your-codebase-private-on-github/)
-).
+To remain organised it's good practice to save any work into a directory like `pysystemtrade/private/this_system_name/` (you'll need to create a couple of directories first). If you plan to contribute to github, just be careful to avoid adding 'private' to your commit ( [you may want to read this](https://24ways.org/2013/keeping-parts-of-your-codebase-private-on-github/) ). 
 
-Because instances of **System()** encapsulate the data and functions
-you need, you can *pickle* them at least in theory (but you might want
-to read about [system caching](#caching) before you reload them).
+Because instances of **System()** encapsulate the data and functions you need, you can *pickle* them at least in theory (but you might want to read about [system caching](#caching) before you reload them). 
 
 ```python
 from systems.provided.futures_chapter15.basesystem import futures_system
@@ -524,15 +458,15 @@ with open(filename, 'wb') as outfile:
    pickle.dump(system)    
 ```
 
-[This is the theory. In practice pickling complex objects seems to
-cause bad things to happen and the results may be unreliable]
+[This is the theory. In practice pickling complex objects seems to cause bad things to happen and the results may be unreliable]
 
-You can also save a config object into a yaml file - see [saving
-configuration](#save_config).
+You can also save a config object into a yaml file - see [saving configuration](#save_config).
+
 
 <a name="guide">
 # Guide
 </a>
+
 
 The guide section explains in more detail how each part of the system works: 
 
@@ -541,30 +475,23 @@ The guide section explains in more detail how each part of the system works:
 3. [System](#system) objects, 
 4. [Stages](#stage_general) within a system. 
 
-Each section is split into parts that get progressively trickier;
-varying from using the standard objects that are supplied up to
-writing your own.
+Each section is split into parts that get progressively trickier; varying from using the standard objects that are supplied up to writing your own.
 
 <a name="data">
 ## Data 
 </a>
 
-A data object is used to feed data into a system. Data objects work
-with a particular **kind** of data (normally asset class specific, eg
-futures) from a particular **source** (for example .csv files,
-databases and so on).
+A data object is used to feed data into a system. Data objects work with a particular **kind** of data (normally asset class specific, eg futures) from a particular **source** (for example .csv files, databases and so on).
 
 ### Using the standard data objects
 
-Only one kind of specific data object is provided with the system in
-the current version - `csvFutures`.
+Only one kind of specific data object is provided with the system in the current version - `csvFutures`. 
 
 #### Generic data objects
 
 You can get use data objects directly:
 
-*These commands will work with all data objects - the `csvFutures`
- version is used as an example.*
+*These commands will work with all data objects - the `csvFutures` version is used as an example.*
 
 ```python
 from sysdata.csvdata import csvFuturesData
@@ -596,8 +523,9 @@ system=futures_system(data=data)
 system.data.get_instrument_currency(instrument_code) # and so on
 ```
 
-(Note that when specifying a data item within a trading [rule](#rules)
-you should omit the system eg `data.get_instrument_price`)
+(Note that when specifying a data item within a trading [rule](#rules) you should omit the system eg `data.get_instrument_price`)
+
+
 
 <a name="csvdata">
 #### The [csvFuturesData](/sysdata/csvdata.py) object 
@@ -632,50 +560,24 @@ The pathname must contain .csv files of the following four types (where code is 
 4. Currency data - `ccy1ccy2fx.csv` (eg AUDUSDfx.csv) headings: DATETIME, FXRATE
 5. Cost data - 'costs_analysis.csv' headings: Instrument, Slippage, PerBlock, Percentage, PerTrade. See ['costs'](#costs) for more detail.
 
-DATETIME should be something that `pandas.to_datetime` can parse. Note
-that the price in (2) is the continously stitched price (see
-[volatility calculation](#vol_calc) ), whereas the price in (3) is the
-price of the contract we're currently trading.
+DATETIME should be something that `pandas.to_datetime` can parse. Note that the price in (2) is the continously stitched price (see [volatility calculation](#vol_calc) ), whereas the price in (3) is the price of the contract we're currently trading. 
 
-At a minimum we need to have a currency file for each instrument's
-currency against the default (defined as "USD"); and for the currency
-of the account we're trading in (i.e. for a UK investor you'd need a
-`GBPUSDfx.csv` file). If cross rate files are available they will be
-used; otherwise the USD rates will be used to work out implied cross
-rates.
+At a minimum we need to have a currency file for each instrument's currency against the default (defined as "USD"); and for the currency of the account we're trading in (i.e. for a UK investor you'd need a `GBPUSDfx.csv` file). If cross rate files are available they will be used; otherwise the USD rates will be used to work out implied cross rates.
 
 See [pysystem/sysdata/legacycsv](/sysdata/legacycsv) for files you can modify.
 
 
 ### Creating your own data objects
 
-You should be familiar with the python object orientated idiom before
-reading this section.
+You should be familiar with the python object orientated idiom before reading this section.
 
-The [`Data()`](/sysdata/data) object is the base class for data. From
-that we inherit data type specific classes such as the
-[`FuturesData`](/sysdata/futuresdata) object. These in turn are
-inherited from for specific data sources, such as
-[`csvFuturesData`](/sysdata/csvdata).
+The [`Data()`](/sysdata/data) object is the base class for data. From that we inherit data type specific classes such as the [`FuturesData`](/sysdata/futuresdata) object. These in turn are inherited from for specific data sources, such as [`csvFuturesData`](/sysdata/csvdata).
 
-So the FuturesData object is defined `class FuturesData(Data)`, and
-csvFuturesData as `class csvFuturesData(FuturesData)`. It would also
-be helpful if this naming scheme was adhered to: sourceTypeData. For
-example if we had some single equity data stored in a database we'd do
-`class EquitiesData(Data)`, and `class dbEquitiesData(EquitiesData)`.
+So the FuturesData object is defined `class FuturesData(Data)`, and csvFuturesData as `class csvFuturesData(FuturesData)`. It would also be helpful if this naming scheme was adhered to: sourceTypeData. For example if we had some single equity data stored in a database we'd do `class EquitiesData(Data)`, and `class dbEquitiesData(EquitiesData)`.
 
-So, you should consider whether you need a new type of data, a new
-source of data or both. You may also wish to extend an existing
-class. For example if you wished to add some fundamental data for
-futures you might define: `class
-FundamentalFutures(FuturesData)`. You'd then need to inherit from that
-for a specific source.
+So, you should consider whether you need a new type of data, a new source of data or both. You may also wish to extend an existing class. For example if you wished to add some fundamental data for futures you might define: `class FundamentalFutures(FuturesData)`. You'd then need to inherit from that for a specific source.
 
-This might seem a hassle, and it's tempting to skip and just inherit
-from `Data()` directly, however once your system is up and running it
-is very convenient to have the possibility of multiple data sources
-and this process ensures they keep a consistent API for a given data
-type.
+This might seem a hassle, and it's tempting to skip and just inherit from `Data()` directly, however once your system is up and running it is very convenient to have the possibility of multiple data sources and this process ensures they keep a consistent API for a given data type.
 
 #### The Data() class
 
@@ -692,8 +594,7 @@ You should not override `get_fx_for_instrument`, or any of the other private fx 
 
 Neither should you override 'daily_prices'.
  
-Finally data methods should not do any caching. [Caching](#caching) is
-done within the system class.
+Finally data methods should not do any caching. [Caching](#caching) is done within the system class.
 
 #### Creating a new type of data (or extending an existing one)
 
@@ -719,9 +620,7 @@ class FuturesData(Data):
 
 #### Creating a new data source (or extending an existing one)
 
-Here is an annotated extract of the `csvFuturesData` class,
-illustrating how it extends `FuturesData` and `Data` for a specific
-source:
+Here is an annotated extract of the `csvFuturesData` class, illustrating how it extends `FuturesData` and `Data` for a specific source:
 
 ```python
 class csvFuturesData(FuturesData):
@@ -831,9 +730,7 @@ optionthree:
    - 2.0
 ```
 
-Note that as with python the indentation in a yaml file shows how
-things are nested. If you want to learn more about yaml check [this
-out.](http://pyyaml.org/wiki/PyYAMLDocumentation#YAMLsyntax).
+Note that as with python the indentation in a yaml file shows how things are nested. If you want to learn more about yaml check [this out.](http://pyyaml.org/wiki/PyYAMLDocumentation#YAMLsyntax).
 
 ```python
 from sysdata.configdata import Config

@@ -1,4 +1,3 @@
-import sys; sys.path.append('../..')
 '''
 Created on 20 Jan 2016
 

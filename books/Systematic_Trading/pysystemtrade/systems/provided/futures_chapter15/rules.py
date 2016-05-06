@@ -83,3 +83,6 @@ def carry(daily_ann_roll, vol, smooth_days=90):
 
     return smooth_carry
 
+if __name__ == '__main__':
+    import doctest
+    doctest.testmod()

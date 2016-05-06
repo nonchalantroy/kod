@@ -2,9 +2,11 @@
 Correlations are important and used a lot
 '''
 from copy import copy
+
+
 import numpy as np
 import pandas as pd
-import logging
+
 from syscore.genutils import str2Bool, group_dict_from_natural
 from syscore.dateutils import generate_fitting_dates
 from syscore.pdutils import df_from_list, must_have_item
@@ -122,7 +124,6 @@ def clean_correlation(corrmat, corr_with_no_data, must_haves=None):
 def correlation_single_period(data_for_estimate, 
                               using_exponent=True, min_periods=20, ew_lookback=250,
                               floor_at_zero=True):
-
     """
     We generate a correlation from eithier a pd.DataFrame, or a list of them if we're pooling
     
@@ -145,11 +146,10 @@ def correlation_single_period(data_for_estimate,
     :param floor_at_zero: remove negative correlations before proceeding
     :type floor_at_zero: bool or str
     
-    :returns: 2-dim square np.array    
-    """
+    :returns: 2-dim square np.array
 
-    #logging.debug ("in correlation_single_period")
-        
+    
+    """
     ## These may come from config as str
     using_exponent=str2Bool(using_exponent)
             
@@ -165,15 +165,11 @@ def correlation_single_period(data_for_estimate,
         
         ## only want the final one
         corrmat=corrmat.values[-1]
-        #raise RuntimeError("error1")
     else:
         ## Use normal correlation
         ## Usual use for bootstrapping when only have sub sample
         corrmat=data_for_estimate.corr(min_periods=min_periods)
         corrmat=corrmat.values
-        #data_for_estimate.to_csv('out.csv')        
-        #logging.debug (corrmat)
-        #raise RuntimeError("error2")
 
     if floor_at_zero:
         corrmat[corrmat<0]=0.0
@@ -223,14 +219,15 @@ class CorrelationList(object):
     
 
 class CorrelationEstimator(CorrelationList):
-    '''We generate a correlation list from eithier a pd.DataFrame, or a
-    list of them if we're pooling
+    '''
+    
+    We generate a correlation list from eithier a pd.DataFrame, or a list of them if we're pooling
     
     The default is to generate correlations annually, from weekly
     
-    It's important that forward filling, or index / ffill / diff has
-    been done before we begin
+    It's important that forward filling, or index / ffill / diff has been done before we begin
 
+    
     '''
 
 
@@ -278,26 +275,30 @@ class CorrelationEstimator(CorrelationList):
             
         ### Generate time periods
         fit_dates = generate_fitting_dates(data, date_method=date_method, rollyears=rollyears)
-        logging.debug('fit dates' + str(fit_dates))
-        
+
         size=len(column_names)
         corr_with_no_data=boring_corr_matrix(size, offdiag=boring_offdiag)
         
         ## create a list of correlation matrices
         corr_list=[]
         
-        logging.debug("Correlation estimate")        
+        log.terse("Correlation estimate")
+        
         ## Now for each time period, estimate correlation
         for fit_period in fit_dates:
-            logging.debug("Estimating from %s to %s" % (fit_period.period_start, fit_period.period_end))
+            log.msg("Estimating from %s to %s" % (fit_period.period_start, fit_period.period_end))
             
             if fit_period.no_data:
                 ## no data to fit with
                 corr_with_nan=boring_corr_matrix(size, offdiag=np.nan, diag=np.nan)
-                corrmat=corr_with_nan                
-            else:                
-                data_for_estimate=data[fit_period.fit_start:fit_period.fit_end]                 
-                corrmat=correlation_single_period(data_for_estimate, **kwargs)
+                corrmat=corr_with_nan
+                
+            else:
+                
+                data_for_estimate=data[fit_period.fit_start:fit_period.fit_end] 
+                
+                corrmat=correlation_single_period(data_for_estimate, 
+                                                     **kwargs)
 
             if cleaning:
                 current_period_data=data[fit_period.fit_start:fit_period.fit_end] 

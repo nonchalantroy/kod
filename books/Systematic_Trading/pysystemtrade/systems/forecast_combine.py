@@ -1,6 +1,6 @@
-import pandas as pd, sys
+import pandas as pd
 from copy import copy
-import logging
+
 
 from syscore.genutils import str2Bool
 from syscore.pdutils import multiply_df, fix_weights_vs_pdm, apply_cap
@@ -241,7 +241,8 @@ class ForecastCombineFixed(SystemStage):
         2015-12-11      0.5     0.5
         """
         def _get_raw_forecast_weights(system, instrument_code, this_stage):
-            logging.debug("Calculating raw forecast weights for %s" % (instrument_code))
+            this_stage.log.msg("Calculating raw forecast weights for %s" % (instrument_code),
+                               instrument_code=instrument_code)
 
             # Let's try the config
             if "forecast_weights" in dir(system.config):
@@ -259,7 +260,7 @@ class ForecastCombineFixed(SystemStage):
 
                 warn_msg="WARNING: No forecast weights  - using equal weights of %.4f over all %d trading rules in system" %(weight, len(rules))
 
-                logging.debug(warn_msg)
+                this_stage.log.warn(warn_msg, instrument_code=instrument_code)
 
                 fixed_weights = dict([(rule_name, weight)
                                       for rule_name in rules])
@@ -333,7 +334,8 @@ class ForecastCombineFixed(SystemStage):
         """
         def _get_forecast_weights(system, instrument_code, this_stage):
 
-            logging.debug("Calculating forecast weights for %s" % (instrument_code))
+            this_stage.log.msg("Calculating forecast weights for %s" % (instrument_code),
+                               instrument_code=instrument_code)
 
             forecast_weights = this_stage.get_raw_forecast_weights(
                 instrument_code)
@@ -390,7 +392,8 @@ class ForecastCombineFixed(SystemStage):
         2015-12-11    1
         """
         def _get_forecast_div_multiplier(system, instrument_code, this_stage):
-            logging.debug("Calculating diversification multiplier for %s" % (instrument_code))
+            this_stage.log.msg("Calculating diversification multiplier for %s" % (instrument_code),
+                               instrument_code=instrument_code)
 
             # Let's try the config
             if hasattr(system.config, "forecast_div_multiplier"):
@@ -403,14 +406,14 @@ class ForecastCombineFixed(SystemStage):
                         instrument_code]
                 else:
                     error_msg="FDM in config needs to be eithier float, or dict with instrument_code keys"
-                    logging.debug(error_msg)
+                    this_stage.log.critical(error_msg, instrument_code=instrument_code)
 
             elif "forecast_div_multiplier" in system_defaults:
                 # try defaults
                 fixed_div_mult = system_defaults['forecast_div_multiplier']
             else:
                 error_msg="Need to specify FDM in config or system_defaults"
-                logging.debug(error_msg)
+                this_stage.log.critical(error_msg, instrument_code=instrument_code)
 
             # Now we have a dict, fixed_weights.
             # Need to turn into a timeseries covering the range of forecast dates
@@ -463,7 +466,8 @@ class ForecastCombineFixed(SystemStage):
         2015-12-11             21
         """
         def _get_combined_forecast(system, instrument_code, this_stage):
-            logging.debug("Calculating combined forecast for %s" % (instrument_code))
+            this_stage.log.msg("Calculating combined forecast for %s" % (instrument_code),
+                               instrument_code=instrument_code)
 
             forecast_weights = this_stage.get_forecast_weights(instrument_code)
             rule_variation_list = list(forecast_weights.columns)
@@ -634,7 +638,7 @@ class ForecastCombineEstimated(ForecastCombineFixed):
         """
         def _get_forecast_correlation_matrices(system, NotUsed1, NotUsed2, this_stage, 
                                                codes_to_use, corr_func, **corr_params):
-            logging.debug("Calculating forecast correlations over %s" % ", ".join(codes_to_use))
+            this_stage.log.terse("Calculating forecast correlations over %s" % ", ".join(codes_to_use))
 
             forecast_data=[this_stage.get_all_forecasts(code) for code in codes_to_use]
             
@@ -716,7 +720,7 @@ class ForecastCombineEstimated(ForecastCombineFixed):
         """
         def _get_forecast_div_multiplier(system, instrument_code, this_stage):
 
-            logging.debug("Calculating forecast div multiplier for %s" % instrument_code,
+            this_stage.log.terse("Calculating forecast div multiplier for %s" % instrument_code,
                                  instrument_code=instrument_code)
             
             ## Get some useful stuff from the config
@@ -768,7 +772,7 @@ class ForecastCombineEstimated(ForecastCombineFixed):
         def _calculation_of_raw_forecast_weights(system, NotUsed1, NotUsed2, this_stage, 
                                       codes_to_use, weighting_func, **weighting_params):
 
-            logging.debug("Calculating raw forecast weights over %s" % ", ".join(codes_to_use))
+            this_stage.log.terse("Calculating raw forecast weights over %s" % ", ".join(codes_to_use))
 
             if hasattr(system, "accounts"):
                 pandl_forecasts=[this_stage.pandl_for_instrument_rules_unweighted(code)
@@ -776,7 +780,7 @@ class ForecastCombineEstimated(ForecastCombineFixed):
                 
             else:
                 error_msg="You need an accounts stage in the system to estimate forecast weights"
-                logging.debug(error_msg)
+                this_stage.log.critical(error_msg)
 
             output=weighting_func(pandl_forecasts,  log=self.log.setup(call="weighting"), **weighting_params)
 
@@ -859,7 +863,8 @@ class ForecastCombineEstimated(ForecastCombineFixed):
         """
 
         def _get_raw_forecast_weights(system, instrument_code, this_stage):
-            logging.debug("Calculating raw forecast weights for %s" % instrument_code)
+            this_stage.log.msg("Calculating raw forecast weights for %s" % instrument_code,
+                               instrument_code=instrument_code)
 
             return this_stage.calculation_of_raw_forecast_weights(instrument_code).weights
 
@@ -898,12 +903,14 @@ class ForecastCombineEstimated(ForecastCombineFixed):
         2015-12-11  0.441024  0.256879  0.302097
         """
         def _get_forecast_weights(system, instrument_code, this_stage):
-            logging.debug("Calculating forecast weights for %s" % instrument_code)
+            this_stage.log.msg("Calculating forecast weights for %s" % instrument_code,
+                               instrument_code=instrument_code)
 
             ## Get some useful stuff from the config
             weighting_params=copy(system.config.forecast_weight_estimate)  
 
-            forecast_weights = this_stage.get_raw_forecast_weights(instrument_code)
+            forecast_weights = this_stage.get_raw_forecast_weights(
+                instrument_code)
             rule_variation_list = list(forecast_weights.columns)
             forecasts = this_stage.get_all_forecasts(instrument_code, rule_variation_list)
 

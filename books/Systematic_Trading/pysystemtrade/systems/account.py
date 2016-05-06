@@ -1,5 +1,5 @@
-import pandas as pd, sys
-import logging
+import pandas as pd
+
 from syscore.accounting import accountCurve, accountCurveGroup
 from systems.stage import SystemStage
 from systems.basesystem import ALL_KEYNAME
@@ -640,7 +640,8 @@ class Account(SystemStage):
         def _pandl_for_subsystem(
                 system, instrument_code, this_stage, percentage, delayfill, roundpositions):
 
-            logging.debug("Calculating pandl for subsystem for instrument %s" % instrument_code)
+            this_stage.log.msg("Calculating pandl for subsystem for instrument %s" % instrument_code,
+                               instrument_code=instrument_code)
 
             
             price = this_stage.get_daily_price(instrument_code)
@@ -758,7 +759,7 @@ class Account(SystemStage):
         def _get_buffered_position(
                 system, instrument_code, this_stage,  roundpositions):
 
-            logging.debug("Calculating buffered positions")
+            this_stage.log.msg("Calculating buffered positions")
             optimal_position=this_stage.get_notional_position(instrument_code)
             pos_buffers=this_stage.get_buffers_for_position(instrument_code)
             trade_to_edge=system.config.buffer_trade_to_edge
@@ -838,7 +839,8 @@ class Account(SystemStage):
         def _pandl_for_instrument(
                 system, instrument_code, this_stage, percentage, delayfill, roundpositions):
 
-            logging.debug("Calculating pandl for instrument for %s" % instrument_code)
+            this_stage.log.msg("Calculating pandl for instrument for %s" % instrument_code,
+                               instrument_code=instrument_code)
 
             price = this_stage.get_daily_price(instrument_code)
             positions = this_stage.get_buffered_position(instrument_code, roundpositions = roundpositions)
@@ -903,7 +905,7 @@ class Account(SystemStage):
         def _pandl_for_trading_rule(
                 system, instrument_code_unused,  this_stage, rule_variation_name, delayfill):
 
-            logging.debug("Calculating pandl for trading rule %s" % rule_variation_name)
+            this_stage.log.terse("Calculating pandl for trading rule %s" % rule_variation_name)
             
             instrument_list=system.get_instrument_list()
             instrument_list=[instr_code for instr_code in instrument_list 
@@ -946,7 +948,7 @@ class Account(SystemStage):
         def _pandl_for_trading_rule_unweighted(
                 system, instrument_code_unused,  this_stage, rule_variation_name, delayfill):
 
-            logging.debug("Calculating pandl for trading rule (unweighted) %s" % rule_variation_name)
+            this_stage.log.terse("Calculating pandl for trading rule (unweighted) %s" % rule_variation_name)
             
             instrument_list=system.get_instrument_list()
             instrument_list=[instr_code for instr_code in instrument_list 
@@ -1000,11 +1002,16 @@ class Account(SystemStage):
         def _pandl_for_instrument_rules_unweighted(
                 system, instrument_code,  this_stage, delayfill):
 
-            logging.debug("Calculating pandl for instrument rules for %s" % instrument_code)
+            this_stage.log.terse("Calculating pandl for instrument rules for %s" % instrument_code,
+                                 instrument_code=instrument_code)
             
-            forecast_rules=this_stage.get_trading_rule_list(instrument_code)
-            pandl_rules=[this_stage.pandl_for_instrument_forecast(instrument_code, rule_variation_name, delayfill = delayfill,weighting=None) \
-                         for rule_variation_name in forecast_rules ]
+            forecast_rules=this_stage.get_trading_rule_list(instrument_code
+                                                                     )
+            pandl_rules=[this_stage.pandl_for_instrument_forecast(
+                                            instrument_code, rule_variation_name, delayfill = delayfill,
+                                            weighting=None)
+                              for rule_variation_name in forecast_rules   
+                            ]
             
             
             pandl_rules = accountCurveGroup(pandl_rules, forecast_rules)
@@ -1048,7 +1055,8 @@ class Account(SystemStage):
         def _pandl_for_instrument_rules(
                 system, instrument_code,  this_stage, delayfill):
 
-            logging.debug("Calculating pandl for instrument rules for %s" % instrument_code)
+            this_stage.log.terse("Calculating pandl for instrument rules for %s" % instrument_code,
+                                 instrument_code=instrument_code)
             
             forecast_rules=this_stage.get_trading_rule_list(instrument_code
                                                                      )
@@ -1140,10 +1148,12 @@ class Account(SystemStage):
         ## NOT CACHED - this is deliberate - as we call with different weights...
         this_stage=self
         
-        logging.debug("Calculating pandl for instrument forecast for %s %s" % (instrument_code, rule_variation_name))
+        this_stage.log.msg("Calculating pandl for instrument forecast for %s %s" % (instrument_code, rule_variation_name),
+                           instrument_code=instrument_code, rule_variation_name=rule_variation_name)
 
         price = this_stage.get_daily_price(instrument_code)
-        forecast = this_stage.get_capped_forecast(instrument_code, rule_variation_name)
+        forecast = this_stage.get_capped_forecast(
+            instrument_code, rule_variation_name)
         get_daily_returns_volatility = this_stage.get_daily_returns_volatility(
             instrument_code)
 
@@ -1189,7 +1199,7 @@ class Account(SystemStage):
         def _portfolio(system, not_used, this_stage,
                        percentage, delayfill, roundpositions):
 
-            logging.debug("Calculating pandl for portfolio")
+            this_stage.log.terse("Calculating pandl for portfolio")
 
             instruments = this_stage.get_instrument_list()
             port_pandl = [
