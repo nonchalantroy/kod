@@ -39,6 +39,7 @@ def download_data(chunk=1,chunk_size=1,downloader=web_download,
 
     connection = MongoClient()
     db = connection.foam
+    tickers = db.tickers
     
     for year in years:
         for month in months:
@@ -47,8 +48,20 @@ def download_data(chunk=1,chunk_size=1,downloader=web_download,
                 try:
                     print contract
                     df = downloader(contract,start,end)
-                    print df.head()
-                    print df.columns
+                    for srow in df.iterrows():
+                        dt = str(srow[0])[0:10]
+                        dt = int(dt.replace("-",""))
+                        new_row = {"_id": {"sym": contract, "dt": dt },
+                                   "o": srow[1].Open,
+                                   "h": srow[1].High,
+                                   "l": srow[1].Low,
+                                   "la": srow[1].Last,
+                                   "s": srow[1].Settle,
+                                   "v": srow[1].Volume,
+                                   "oi": srow[1]['Prev. Day Open Interest']
+                        }
+                        tickers.save(new_row)
+                    
                 except Quandl.Quandl.DatasetNotFound:
                     print "No dataset"
                 exit()
