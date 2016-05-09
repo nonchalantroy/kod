@@ -25,6 +25,7 @@ def web_download(contract,start,end):
 def systemtoday():
     return datetime.datetime.today()
 
+
 def download_data(chunk=1,chunk_size=1,downloader=web_download,
                   today=systemtoday,db="foam"):
 
@@ -38,8 +39,7 @@ def download_data(chunk=1,chunk_size=1,downloader=web_download,
     print start, end
 
     connection = MongoClient()
-    db = connection.foam
-    tickers = db.tickers
+    tickers = connection[db].tickers
     
     for year in years:
         for month in months:
