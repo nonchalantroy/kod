@@ -52,12 +52,9 @@ def download_data(chunk=1,chunk_size=1,downloader=web_download,
                         dt = str(srow[0])[0:10]
                         dt = int(dt.replace("-",""))
                         new_row = {"_id": {"sym": contract, "dt": dt },
-                                   "o": srow[1].Open,
-                                   "h": srow[1].High,
-                                   "l": srow[1].Low,
-                                   "la": srow[1].Last,
-                                   "s": srow[1].Settle,
-                                   "v": srow[1].Volume,
+                                   "o": srow[1].Open,"h": srow[1].High,
+                                   "l": srow[1].Low,"la": srow[1].Last,
+                                   "s": srow[1].Settle,"v": srow[1].Volume,
                                    "oi": srow[1]['Prev. Day Open Interest']
                         }
                         tickers.save(new_row)
