@@ -41,15 +41,15 @@ Most short term interest rate futures, including LIBOR and EURIBOR,
 have these long tails of liquidity into the future, although none is
 quite as good as Eurodollar.
 
-![](case_2_1.png)
+![](case_2_2.png)
 
 #Case 3
-
-![](case_3.png)
 
 A lot of commodity (agricultural, energy) contracts are strongly
 influenced by the season of their delivery month. This also has an
 impact on their liquidity patterns. Here is crude oil:
+
+![](case_3.png)
 
 The pattern of good, but gradually declining, liquidity in a summer
 (June) and winter (December) contracts continues after this, with

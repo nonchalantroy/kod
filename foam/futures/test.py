@@ -1,3 +1,6 @@
+# F - Jan, G - Feb, H - Mar, J - Apr, K - May, M - Jun
+# N - Jul, Q - Aug, U - Sep, V - Oct, W - Nov, Z - Dec
+#
 import Quandl, os, itertools
 
 fname = '%s/.quandl' % os.environ['HOME']
@@ -9,7 +12,8 @@ auth = open(fname).read()
 base_dir = "c:/Users/burak/Downloads/futures" 
 
 years = range(1984,2022)
-months = ['F', 'G', 'H', 'J', 'K', 'M', 'N', 'Q', 'U', 'V', 'W', 'Z']
+months = ['F', 'G', 'H', 'J', 'K', 'M',
+          'N', 'Q', 'U', 'V', 'W', 'Z']
 #instruments = [('oil','CL')]
 instruments = [('coffee','KC')]
 
@@ -30,3 +34,5 @@ for year in years:
                 continue
             print fout
             df.to_csv(fout)
+
+            

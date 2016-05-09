@@ -41,3 +41,6 @@ In January I'd want to be in April Gold, so I can measure rolldown off
 February. 70 days before April Gold expires I would then switch to
 June Gold. 70 days before June Gold expires I would move to August
 Gold, and so on.
+
+F - Jan, G - Feb, H - Mar, J - Apr, K - May, M - Jun
+N - Jul, Q - Aug, U - Sep, V - Oct, W - Nov, Z - Dec

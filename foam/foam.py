@@ -23,8 +23,6 @@ def web_load(symbol, backend, start, end):
             return data.DataReader(market + ":" + symbol, backend, start, end)
         if backend == "yahoo":
             return data.DataReader(symbol, backend, start, end)
-        if backend == "futures":
-            return Quandl.get(symbol,trim_start=start, trim_end=end,returns="pandas", authtoken=auth) 
     except IOError:
         logging.debug("cant find " + symbol)
 
@@ -70,30 +68,7 @@ def do_download(items):
         
         logging.debug("%s %s" % (symbol, name))
         s = None; last_date_in_db = None
-        if market == "futures":
-            start = beginning_of_time
-            end = today
-            last_date = get_last_date_in_db(symbol, db, today)
-            logging.debug('last %s' % last_date)
-            logging.debug('today %s' % today)
-            if last_date and last_date >= today:
-                logging.debug('no need')
-                continue            
-            if last_date: start = last_date            
-            s = web_load(symbol, market, beginning_of_time, today)
-            if 'DataFrame' not in str(type(s)): continue
-            for srow in s.iterrows():
-                dt = int(srow[0].strftime('%Y%m%d') )
-                new_row = {"_id": {"sym": symbol, "dt": dt }}
-                d = srow[1].to_dict()
-                # transfer all columns to new_row, whatever they are
-                for k in d.keys(): new_row[k] = d[k]
-                try: 
-                    tickers.save(new_row)
-                except Exception:
-                    logging.debug("cannot save " + symbol)
-
-        elif market == "fred":
+        if market == "fred":
             last_date = get_last_date_in_db(symbol, db, today)
             logging.debug('last %s' % last_date)
             logging.debug('today %s' % today)
