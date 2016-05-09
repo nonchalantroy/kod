@@ -25,13 +25,14 @@ def web_download(contract,start,end):
 def systemtoday():
     return datetime.datetime.today()
 
-def get(contract, dt, db="foam"):
+def get(market, sym, month, year, dt, db="foam"):
     """
     Returns all data for symbol in a pandas dataframe
     """
     connection = MongoClient()
     db = connection[db]
-    q = {"$query" :{"_id": {"sym": contract, "dt": dt }}}
+    q = {"$query" :{"_id": {"sym": sym, "market": market, "month": month,
+                            "year": year, "dt": dt }} }
     res = list(db.tickers.find( q ))
     print res
 
@@ -60,12 +61,13 @@ def download_data(chunk=1,chunk_size=1,downloader=web_download,
                     for srow in df.iterrows():
                         dt = str(srow[0])[0:10]
                         dt = int(dt.replace("-",""))
-                        new_row = {"_id": {"sym": contract, "dt": dt },
-                                   "o": srow[1].Open,"h": srow[1].High,
-                                   "l": srow[1].Low,"la": srow[1].Last,
-                                   "s": srow[1].Settle,"v": srow[1].Volume,
+                        new_row = {"_id": {"sym": sym, "market": market, "month": month, "year": year, "dt": dt },
+                                   "o": srow[1].Open, "h": srow[1].High,
+                                   "l": srow[1].Low, "la": srow[1].Last,
+                                   "s": srow[1].Settle, "v": srow[1].Volume,
                                    "oi": srow[1]['Prev. Day Open Interest']
                         }
+
                         tickers.save(new_row)
                     
                 except Quandl.Quandl.DatasetNotFound:
