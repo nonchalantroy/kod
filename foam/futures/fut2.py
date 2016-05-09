@@ -15,16 +15,9 @@ def get_quandl_auth():
     auth = open(fname).read()
     return auth
 
-def web_download(contract):
-    df = Quandl.get(contract, returns="pandas",authtoken=get_quandl_auth())
-    return df
-
-def fake_download(contract):
-    f = contract.replace("/","-")
-    f = "./test/%s.csv" % f
-    if not os.path.isfile(f): raise Quandl.Quandl.DatasetNotFound()
-    df = pd.read_csv(f)
-    df = df.set_index("Date")
+def web_download(contract,start,end):
+    df = Quandl.get(contract,trim_start=start,trim_end=end,
+                    returns="pandas",authtoken=get_quandl_auth())
     return df
 
 def download_data(downloader=web_download):
@@ -34,14 +27,15 @@ def download_data(downloader=web_download):
               'N', 'Q', 'U', 'V', 'W', 'Z']
     futcsv = pd.read_csv("../data/futures.csv")
     instruments = zip(futcsv.Symbol,futcsv.Market)
-    
+
+    start="1980-01-01"; end="2016-05-09"
     for year in years:
         for month in months:
             for (sym,market) in instruments:
                 contract = "%s/%s%s%d" % (market,sym,month,year)
                 try:
                     print contract
-                    df = downloader(contract)
+                    df = downloader(contract,start,end)
                     print df.head()
                     print df.columns
                 except Quandl.Quandl.DatasetNotFound:
