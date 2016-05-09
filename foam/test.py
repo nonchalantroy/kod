@@ -1,4 +1,4 @@
-import os, fut3, pandas as pd, datetime
+import os, futures, pandas as pd, datetime
 from pymongo import MongoClient
 import Quandl
 
@@ -23,8 +23,8 @@ def init():
     c[testdb].drop_collection('ticker')
 
 def test_simple():
-    fut3.download_data(downloader=fake_download_1,today=fake_today_1,db=testdb)
-    res = fut3.get(market="CME", sym="CL", month="F", year=1984, dt=19831205, db=testdb)
+    futures.download_data(downloader=fake_download_1,today=fake_today_1,db=testdb)
+    res = futures.get(market="CME", sym="CL", month="F", year=1984, dt=19831205, db=testdb)
     assert res[0]['oi'] == 5027.0
     
 if __name__ == "__main__": 

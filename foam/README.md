@@ -111,40 +111,6 @@ print db.tickers.find( {"_id.sym": "DDD", "_id.dt": 20070101 } ).limit(1).explai
 This should say something about BTrees, and indicate the table is not
 fully scanned. 
 
-## Database Dump
-
-The data dump is from Mongo DB; simply unzip the file below and use
-`mongorestore` to load the files into your local instance. The
-database has ticker data for all stocks in major exchanges, all ETFs,
-all earnings announcement dates per company, after 2016-01-01, for 10+
-years.
-
-https://dl.dropboxusercontent.com/u/1570604/data/dump/foam/system.indexes.bson
-
-https://dl.dropboxusercontent.com/u/1570604/data/dump/foam/tickers.metadata.json
-
-https://dl.dropboxusercontent.com/u/1570604/data/dump/foam/earnings.metadata.json
-
-https://dl.dropboxusercontent.com/u/1570604/data/dump/foam/tickers-aa
-
-https://dl.dropboxusercontent.com/u/1570604/data/dump/foam/tickers-ab
-
-https://dl.dropboxusercontent.com/u/1570604/data/dump/foam/tickers-ac
-
-https://dl.dropboxusercontent.com/u/1570604/data/dump/foam/tickers-ad
-
-https://dl.dropboxusercontent.com/u/1570604/data/dump/foam/tickers-ae
-
-https://dl.dropboxusercontent.com/u/1570604/data/dump/foam/tickers-af
-
-https://dl.dropboxusercontent.com/u/1570604/data/dump/foam/earnings.bson.gz
-
-The `tickers-` files are split pieces of `tickers.bson`, the main
-database file. In order to construct it from the pieces, download the
-files then on Unix simply run `cat tickers-* > tickers.bson.gz`, then
-run gunzip on the result which should give `tickers.bson` file. Now
-`mongorestore` will load all the files.
-
 [1]: https://github.com/burakbayramli/dand
 
 [2]: https://www.stlouisfed.org

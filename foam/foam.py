@@ -1,5 +1,5 @@
 from pymongo import MongoClient
-import logging, Quandl, random, os, hft
+import logging, Quandl, random, os
 import datetime, glob, pandas as pd
 from pandas_datareader import data, wb
 import numpy as np, sys

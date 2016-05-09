@@ -124,7 +124,7 @@ if __name__ == "__main__":
             elif res== 'leftarrow':
                 n2=dt.datetime.now()
                 elapsed += (n2-n1).seconds
-                elapsed -= 3
+                elapsed -= 5
                 print 'rewinding ', elapsed
                 t.term()
                 n1=dt.datetime.now()
@@ -133,7 +133,7 @@ if __name__ == "__main__":
             elif res== 'rightarrow':
                 n2=dt.datetime.now()
                 elapsed += (n2-n1).seconds
-                elapsed += 3
+                elapsed += 5
                 print 'rewinding ', elapsed
                 t.term()
                 n1=dt.datetime.now()
