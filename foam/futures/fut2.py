@@ -20,9 +20,10 @@ def web_download(contract):
     return df
 
 def fake_download(contract):
-    print contract
     f = contract.replace("/","-")
-    df = pd.read_csv("./test/%s.csv" % f)
+    f = "./test/%s.csv" % f
+    if not os.path.isfile(f): raise Quandl.Quandl.DatasetNotFound()
+    df = pd.read_csv(f)
     df = df.set_index("Date")
     return df
 
