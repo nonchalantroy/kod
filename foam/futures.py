@@ -4,7 +4,6 @@
 import Quandl, os, itertools, sys
 from pymongo import MongoClient
 import logging, datetime
-sys.path.append("..")
 import pandas as pd
 from memo import *
 
