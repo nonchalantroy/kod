@@ -1,7 +1,8 @@
 # F - Jan, G - Feb, H - Mar, J - Apr, K - May, M - Jun
 # N - Jul, Q - Aug, U - Sep, V - Oct, W - Nov, Z - Dec
 #
-import Quandl, os, itertools, sys, logging
+import Quandl, os, itertools, sys
+import logging, datetime
 sys.path.append("..")
 import pandas as pd
 from memo import *
@@ -20,7 +21,10 @@ def web_download(contract,start,end):
                     returns="pandas",authtoken=get_quandl_auth())
     return df
 
-def download_data(downloader=web_download):
+def systemtoday():
+    return datetime.datetime.today()
+
+def download_data(downloader=web_download, today=systemtoday):
 
     years = range(1984,2022)
     months = ['F', 'G', 'H', 'J', 'K', 'M',
@@ -29,6 +33,7 @@ def download_data(downloader=web_download):
     instruments = zip(futcsv.Symbol,futcsv.Market)
 
     start="1980-01-01"; end="2016-05-09"
+    print today()
     for year in years:
         for month in months:
             for (sym,market) in instruments:
