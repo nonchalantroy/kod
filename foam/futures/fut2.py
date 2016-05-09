@@ -33,7 +33,7 @@ def download_data(downloader=web_download):
                 contract = "%s/%s%s%d" % (market,sym,month,year)
                 try:
                     print contract
-                    df = web_download(contract)
+                    df = downloader(contract)
                     print df.head()
                     print df.columns
                 except Quandl.Quandl.DatasetNotFound:
