@@ -2,6 +2,7 @@
 # N - Jul, Q - Aug, U - Sep, V - Oct, W - Nov, Z - Dec
 #
 import Quandl, os, itertools, sys
+from pymongo import MongoClient
 import logging, datetime
 sys.path.append("..")
 import pandas as pd
@@ -24,7 +25,8 @@ def web_download(contract,start,end):
 def systemtoday():
     return datetime.datetime.today()
 
-def download_data(chunk=1,chunk_size=1,downloader=web_download, today=systemtoday):
+def download_data(chunk=1,chunk_size=1,downloader=web_download,
+                  today=systemtoday,db="foam"):
 
     years = range(1984,2022)
     months = ['F', 'G', 'H', 'J', 'K', 'M',
@@ -32,8 +34,12 @@ def download_data(chunk=1,chunk_size=1,downloader=web_download, today=systemtoda
     futcsv = pd.read_csv("../data/futures.csv")
     instruments = zip(futcsv.Symbol,futcsv.Market)
 
-    start="1980-01-01"; end="2016-05-09"
-    print today()
+    start="1980-01-01"; end = today().strftime('%Y-%m-%d')
+    print start, end
+
+    connection = MongoClient()
+    db = connection.foam
+    
     for year in years:
         for month in months:
             for (sym,market) in instruments:

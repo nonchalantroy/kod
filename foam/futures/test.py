@@ -1,6 +1,8 @@
 import os, fut3, pandas as pd, datetime
 from pymongo import MongoClient
 
+testdb = "fakedb"
+
 def load_data(contract,subdir):
     f = contract.replace("/","-")
     f = "./test/%s/%s.csv" % (subdir,f)
@@ -17,10 +19,10 @@ def fake_today_1():
 
 def init():
     c = MongoClient()
-    c['futtest'].drop_collection('ticker')
+    c[testdb].drop_collection('ticker')
 
 def test_simple():
-    fut3.download_data(downloader=fake_download_1,today=fake_today_1)
+    fut3.download_data(downloader=fake_download_1,today=fake_today_1,db=testdb)
     
 if __name__ == "__main__": 
     init()
