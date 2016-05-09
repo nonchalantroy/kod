@@ -7,7 +7,7 @@ def init():
     c['futtest'].drop_collection('ticker')
 
 def test_simple():
-    fut2.download_data()
+    fut2.download_data(downloader=fut2.fake_download)
     
 if __name__ == "__main__": 
     init()

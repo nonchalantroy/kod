@@ -19,6 +19,13 @@ def web_download(contract):
     df = Quandl.get(contract, returns="pandas",authtoken=get_quandl_auth())
     return df
 
+def fake_download(contract):
+    print contract
+    f = contract.replace("/","-")
+    df = pd.read_csv("./test/%s.csv" % f)
+    df = df.set_index("Date")
+    return df
+
 def download_data(downloader=web_download):
 
     years = range(1984,2022)
