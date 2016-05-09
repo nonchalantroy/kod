@@ -24,7 +24,7 @@ def web_download(contract,start,end):
 def systemtoday():
     return datetime.datetime.today()
 
-def download_data(downloader=web_download, today=systemtoday):
+def download_data(chunk=1,chunk_size=1,downloader=web_download, today=systemtoday):
 
     years = range(1984,2022)
     months = ['F', 'G', 'H', 'J', 'K', 'M',
@@ -52,8 +52,9 @@ if __name__ == "__main__":
     
     f = '%(asctime)-15s: %(message)s'
     if len(sys.argv) == 3:
-        logging.basicConfig(filename='%s/futures-%d.log' % (os.environ['TEMP'],int(sys.argv[1])),level=logging.DEBUG,format=f)        
-        download_data(int(sys.argv[1]),int(sys.argv[2]))
+        p = (os.environ['TEMP'],int(sys.argv[1]))
+        logging.basicConfig(filename='%s/futures-%d.log' % p,level=logging.DEBUG,format=f)
+        download_data(chunk=int(sys.argv[1]),chunk_size=int(sys.argv[2]))
     else:
         logging.basicConfig(filename='%s/futures.log' % os.environ['TEMP'],level=logging.DEBUG, format=f)
         download_data()
