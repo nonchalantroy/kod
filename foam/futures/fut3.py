@@ -34,7 +34,7 @@ def get(market, sym, month, year, dt, db="foam"):
     q = {"$query" :{"_id": {"sym": sym, "market": market, "month": month,
                             "year": year, "dt": dt }} }
     res = list(db.tickers.find( q ))
-    print res
+    return res
 
 def download_data(chunk=1,chunk_size=1,downloader=web_download,
                   today=systemtoday,db="foam"):
