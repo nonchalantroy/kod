@@ -42,7 +42,7 @@ def download_data(chunk=1,chunk_size=1,downloader=web_download,
     years = range(1984,2022)
     months = ['F', 'G', 'H', 'J', 'K', 'M',
               'N', 'Q', 'U', 'V', 'W', 'Z']
-    futcsv = pd.read_csv("../data/futures.csv")
+    futcsv = pd.read_csv("./data/futures.csv")
     instruments = zip(futcsv.Symbol,futcsv.Market)
 
     start="1980-01-01"; end = today().strftime('%Y-%m-%d')
