@@ -1,5 +1,6 @@
 import os, fut3, pandas as pd, datetime
 from pymongo import MongoClient
+import Quandl
 
 testdb = "fakedb"
 
@@ -23,6 +24,7 @@ def init():
 
 def test_simple():
     fut3.download_data(downloader=fake_download_1,today=fake_today_1,db=testdb)
+    fut3.get("CME/CLF1984", 19831205, db=testdb)
     
 if __name__ == "__main__": 
     init()

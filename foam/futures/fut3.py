@@ -25,6 +25,15 @@ def web_download(contract,start,end):
 def systemtoday():
     return datetime.datetime.today()
 
+def get(contract, dt, db="foam"):
+    """
+    Returns all data for symbol in a pandas dataframe
+    """
+    connection = MongoClient()
+    db = connection[db]
+    q = {"$query" :{"_id": {"sym": contract, "dt": dt }}}
+    res = list(db.tickers.find( q ))
+    print res
 
 def download_data(chunk=1,chunk_size=1,downloader=web_download,
                   today=systemtoday,db="foam"):
@@ -61,7 +70,9 @@ def download_data(chunk=1,chunk_size=1,downloader=web_download,
                     
                 except Quandl.Quandl.DatasetNotFound:
                     print "No dataset"
-                exit()
+                break
+            break
+        break
 
                 
 if __name__ == "__main__":
