@@ -83,6 +83,11 @@ def download_data(chunk=1,chunk_size=1,downloader=web_download,
                     # try to get two years worth of data even for the earliest contract
                     work_items.append([market, sym, month, year])
 
+    # for existing contracts, add to the work queue the download of
+    # additional days that are not there. it's a new day, and for for
+    # existing non-expired contracts we would have new price data.
+    # TBD
+    
     for market, sym, month, year in work_items:
         contract = "%s/%s%s%d" % (market,sym,month,year)
         try:
