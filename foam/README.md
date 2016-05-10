@@ -78,6 +78,26 @@ df = foam.get_multi(['DJIA','GOOG'])
 
 This returns a Pandas dataframe which can be processes, plotted.
 
+A simple query from mongo shell to see all tickers
+
+```
+use foam
+db.tickers.count()
+```
+
+Show a certain amount of tickers
+
+```
+db.tickers.find().limit(10)
+```
+
+Show all records for a symbol and market
+
+```
+db.tickers.find({"_id.sym": "CL", "_id.market": "CME"})
+```
+
+
 To see all earnings announcements for a particular date, use
 
 ```

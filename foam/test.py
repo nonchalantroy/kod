@@ -20,15 +20,14 @@ def fake_today_1():
 
 def init():
     c = MongoClient()
-    c[testdb].drop_collection('ticker')
+    c[testdb].tickers.drop()
 
 def test_simple():
+    init()
     futures.download_data(downloader=fake_download_1,today=fake_today_1,db=testdb)
     res = futures.get(market="CME", sym="CL", month="F", year=1984, dt=19831205, db=testdb)
     assert res[0]['oi'] == 5027.0
     
 if __name__ == "__main__": 
-    init()
     test_simple()
-
     
