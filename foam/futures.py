@@ -54,19 +54,19 @@ def download_data(chunk=1,chunk_size=1,downloader=web_download,
     start="1980-01-01"
     end = today().strftime('%Y-%m-%d')
     print start, end
-    print today().month, today().day, today().year
+    today_month,today_year = today().month, today().year
     
     connection = MongoClient()
     tickers = connection[db].tickers
 
-    
+    work = []    
     for (sym,market) in instruments:
         last = last_contract(sym, market, connection[db])
-        last_year,last_month = (0,'A')
+        last_db_year,last_db_month = (0,'A')
         if len(last) > 0: last_year,last_month = last[0]['_id']['year'], last[0]['_id']['month']
-        print last_year,last_month
+        print last_db_year,last_db_month
         for year in years:
-            for month in months:                
+            for month in months:
                 contract = "%s/%s%s%d" % (market,sym,month,year)
                 try:
                     print contract
