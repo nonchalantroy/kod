@@ -11,9 +11,8 @@ auth = open(fname).read()
 
 base_dir = "c:/Users/burak/Downloads/futures" 
 
-years = range(1984,2022)
-months = ['F', 'G', 'H', 'J', 'K', 'M',
-          'N', 'Q', 'U', 'V', 'W', 'Z']
+years = range(1992,2022)
+months = ['F', 'G', 'H', 'J', 'K', 'M','N', 'Q', 'U', 'V', 'W', 'Z']
 #instruments = ['CME/CL'] # oil
 #instruments = ['CME/KC'] # coffee
 #instruments = ['CME/TY'] # US-10 treasury
