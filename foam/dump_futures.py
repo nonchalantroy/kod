@@ -14,15 +14,16 @@ base_dir = "c:/Users/burak/Downloads/futures"
 years = range(1984,2022)
 months = ['F', 'G', 'H', 'J', 'K', 'M',
           'N', 'Q', 'U', 'V', 'W', 'Z']
-#instruments = [('oil','CL')]
-instruments = [('coffee','KC')]
+#instruments = ['CME/CL'] # oil
+#instruments = ['CME/KC'] # coffee
+#instruments = ['CME/TY'] # US-10 treasury
+instruments = ['CME/ED'] # eurodollar
 
 for year in years:
     for month in months:
-        for (ins,code) in instruments:
-            file = "CME/%s%s%d" % (code,month,year)
-            fout = base_dir + "/%s/%s.csv" % (ins,file)
-            fout = fout.replace("CME/","CME-")
+        for code in instruments:
+            file = "%s%s%d" % (code,month,year)
+            fout = base_dir + "/%s.csv" % file.replace("/","-")
             print file
             if os.path.isfile(fout):
                 print "file exists, skipping..."
