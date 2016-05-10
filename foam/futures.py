@@ -38,13 +38,14 @@ def get(market, sym, month, year, dt, db):
 def last_contract(sym, market, db):
     q = { "$query" : {"_id.sym": "CL", "_id.market": "CME"} }
     res = db.tickers.find(q).sort([("_id.month",-1), (u"_id.year",-1)]).limit(1)
-    return list(res)
+    return list(res) 
 
 def download_data(chunk=1,chunk_size=1,downloader=web_download,
-                  today=systemtoday,db="foam"):
+                  today=systemtoday,db="foam",years=(1984,2022)):
 
-    #years = range(1984,2022)
-    years = range(1984,1985)
+    # a tuple of contract years, defining the beginning
+    # of time and end of time
+    start_year,end_year=years
     months = ['F', 'G', 'H', 'J', 'K', 'M',
               'N', 'Q', 'U', 'V', 'W', 'Z']
     futcsv = pd.read_csv("./data/futures.csv")
@@ -57,10 +58,15 @@ def download_data(chunk=1,chunk_size=1,downloader=web_download,
     
     connection = MongoClient()
     tickers = connection[db].tickers
+
     
-    for year in years:
-        for month in months:
-            for (sym,market) in instruments:
+    for (sym,market) in instruments:
+        last = last_contract(sym, market, connection[db])
+        last_year,last_month = (0,'A')
+        if len(last) > 0: last_year,last_month = last[0]['_id']['year'], last[0]['_id']['month']
+        print last_year,last_month
+        for year in years:
+            for month in months:                
                 contract = "%s/%s%s%d" % (market,sym,month,year)
                 try:
                     print contract
@@ -79,12 +85,7 @@ def download_data(chunk=1,chunk_size=1,downloader=web_download,
                     
                 except Quandl.Quandl.DatasetNotFound:
                     print "No dataset"
-                #break
-            #break
-        #break
-
-    last = last_contract("CL", "CME", connection[db])
-                
+                    
 if __name__ == "__main__":
     
     f = '%(asctime)-15s: %(message)s'
