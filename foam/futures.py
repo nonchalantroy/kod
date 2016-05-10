@@ -51,15 +51,18 @@ def download_data(chunk=1,chunk_size=1,downloader=web_download,
     futcsv = pd.read_csv("./data/futures.csv")
     instruments = zip(futcsv.Symbol,futcsv.Market)
 
-    start="1980-01-01"
-    end = today().strftime('%Y-%m-%d')
-    print start, end
+    str_start = datetime.datetime(start_year-2, 1, 1).strftime('%Y-%m-%d')
+    str_end = today().strftime('%Y-%m-%d')
     today_month,today_year = today().month, today().year
     
     connection = MongoClient()
     tickers = connection[db].tickers
 
-    work = []    
+    work_items = []
+
+    # download non-existing / missing contracts - this is the case of
+    # running for the first time, or a new contract became available
+    # since the last time we ran.
     for (sym,market) in instruments:
         last = last_contract(sym, market, connection[db])
         last_db_year,last_db_month = (0,'A')
@@ -67,24 +70,29 @@ def download_data(chunk=1,chunk_size=1,downloader=web_download,
         print last_db_year,last_db_month
         for year in years:
             for month in months:
-                contract = "%s/%s%s%d" % (market,sym,month,year)
-                try:
-                    print contract
-                    df = downloader(contract,start,end)
-                    for srow in df.iterrows():
-                        dt = str(srow[0])[0:10]
-                        dt = int(dt.replace("-",""))
-                        new_row = {"_id": {"sym": sym, "market": market, "month": month, "year": year, "dt": dt },
-                                   "o": srow[1].Open, "h": srow[1].High,
-                                   "l": srow[1].Low, "la": srow[1].Last,
-                                   "s": srow[1].Settle, "v": srow[1].Volume,
-                                   "oi": srow[1]['Prev. Day Open Interest']
-                        }
+                if last_db_year < end_year or last_db_month < 'Z':
+                    # try to get two years worth of data even for the earliest contract
+                    work_items.append([market, sym, month, year])
 
-                        tickers.save(new_row)
-                    
-                except Quandl.Quandl.DatasetNotFound:
-                    print "No dataset"
+        for market, sym, month, year in work_items:
+            contract = "%s/%s%s%d" % (market,sym,month,year)
+            try:
+                print contract
+                df = downloader(contract,str_start,str_end)
+                for srow in df.iterrows():
+                    dt = str(srow[0])[0:10]
+                    dt = int(dt.replace("-",""))
+                    new_row = {"_id": {"sym": sym, "market": market, "month": month, "year": year, "dt": dt },
+                               "o": srow[1].Open, "h": srow[1].High,
+                               "l": srow[1].Low, "la": srow[1].Last,
+                               "s": srow[1].Settle, "v": srow[1].Volume,
+                               "oi": srow[1]['Prev. Day Open Interest']
+                    }
+
+                    tickers.save(new_row)
+
+            except Quandl.Quandl.DatasetNotFound:
+                print "No dataset"
                     
 if __name__ == "__main__":
     
