@@ -83,25 +83,25 @@ def download_data(chunk=1,chunk_size=1,downloader=web_download,
                     # try to get two years worth of data even for the earliest contract
                     work_items.append([market, sym, month, year])
 
-        for market, sym, month, year in work_items:
-            contract = "%s/%s%s%d" % (market,sym,month,year)
-            try:
-                print contract
-                df = downloader(contract,str_start,str_end)
-                for srow in df.iterrows():
-                    dt = str(srow[0])[0:10]
-                    dt = int(dt.replace("-",""))
-                    new_row = {"_id": {"sym": sym, "market": market, "month": month, "year": year, "dt": dt },
-                               "o": srow[1].Open, "h": srow[1].High,
-                               "l": srow[1].Low, "la": srow[1].Last,
-                               "s": srow[1].Settle, "v": srow[1].Volume,
-                               "oi": srow[1]['Prev. Day Open Interest']
-                    }
+    for market, sym, month, year in work_items:
+        contract = "%s/%s%s%d" % (market,sym,month,year)
+        try:
+            print contract
+            df = downloader(contract,str_start,str_end)
+            for srow in df.iterrows():
+                dt = str(srow[0])[0:10]
+                dt = int(dt.replace("-",""))
+                new_row = {"_id": {"sym": sym, "market": market, "month": month, "year": year, "dt": dt },
+                           "o": srow[1].Open, "h": srow[1].High,
+                           "l": srow[1].Low, "la": srow[1].Last,
+                           "s": srow[1].Settle, "v": srow[1].Volume,
+                           "oi": srow[1]['Prev. Day Open Interest']
+                }
 
-                    tickers.save(new_row)
+                tickers.save(new_row)
 
-            except Quandl.Quandl.DatasetNotFound:
-                print "No dataset"
+        except Quandl.Quandl.DatasetNotFound:
+            print "No dataset"
                     
 if __name__ == "__main__":
     
