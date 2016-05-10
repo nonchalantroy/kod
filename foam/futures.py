@@ -80,19 +80,21 @@ def download_data(chunk=1,chunk_size=1,downloader=web_download,
         for year in years:
             for month in months:
                 if last_db_year < end_year or last_db_month < 'Z':
-                    # try to get two years worth of data even for the earliest contract
-                    work_items.append([market, sym, month, year])
+                    # for non-existing contracts, get as much as possible
+                    # from str_start (two years from the beginning of time)
+                    # until the end of time
+                    work_items.append([market, sym, month, year, str_start])
 
     # for existing contracts, add to the work queue the download of
     # additional days that are not there. it's a new day, and for for
     # existing non-expired contracts we would have new price data.
     # TBD
     
-    for market, sym, month, year in work_items:
+    for market, sym, month, year, work_start in work_items:
         contract = "%s/%s%s%d" % (market,sym,month,year)
         try:
             print contract
-            df = downloader(contract,str_start,str_end)
+            df = downloader(contract,work_start,str_end)
             for srow in df.iterrows():
                 dt = str(srow[0])[0:10]
                 dt = int(dt.replace("-",""))
