@@ -1,4 +1,10 @@
 Symbol,Engine,Name
+IBB,yahoo,iShares Nasdaq Biotechnology Index Fund
+GLD,yahoo,SPDR Gold Trust
+GOOGL,yahoo,Alphabet Inc
+FB,yahoo,Facebook Inc
+NFLX,yahoo,Netflix
+AMZN,yahoo,Amazon
 DEXUSEU,fred,U.S. / Euro Foreign Exchange Rate
 CPIAUCSL,fred,Consumer Price Index for All Urban Consumers: All Items
 INDPRO,fred,Industrial Production Index
@@ -13,9 +19,3 @@ DCOILWTICO,fred,Crude Oil Prices: West Texas Intermediate (WTI)
 IPG211111CN,fred,Industrial Production: Mining: Crude oil
 USALFTOTMDSMEI,fred,Civilian Labor Force: All Persons in the United States
 DFF,fred,Effective Federal Funds Rate
-IBB,yahoo,iShares Nasdaq Biotechnology Index Fund
-GLD,yahoo,SPDR Gold Trust
-GOOGL,yahoo,Alphabet Inc
-FB,yahoo,Facebook Inc
-NFLX,yahoo,Netflix
-AMZN,yahoo,Amazon
