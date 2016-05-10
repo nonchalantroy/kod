@@ -128,6 +128,13 @@ To check indexing is working properly
 print db.tickers.find( {"_id.sym": "DDD", "_id.dt": 20070101 } ).limit(1).explain()
 ```
 
+Drop database
+
+```
+use foam
+db.dropDatabase()
+```
+
 This should say something about BTrees, and indicate the table is not
 fully scanned. 
 
