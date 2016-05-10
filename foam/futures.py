@@ -24,7 +24,7 @@ def web_download(contract,start,end):
 def systemtoday():
     return datetime.datetime.today()
 
-def get(market, sym, month, year, dt, db="foam"):
+def get(market, sym, month, year, dt, db):
     """
     Returns all data for symbol in a pandas dataframe
     """
@@ -47,10 +47,8 @@ def download_data(chunk=1,chunk_size=1,downloader=web_download,
     start="1980-01-01"
     end = today().strftime('%Y-%m-%d')
     print start, end
-    tmp = today()
-    print tmp.month, tmp.day
-    exit()
-
+    print today().month, today().day, today().year
+    
     connection = MongoClient()
     tickers = connection[db].tickers
     
@@ -79,6 +77,12 @@ def download_data(chunk=1,chunk_size=1,downloader=web_download,
             break
         break
 
+    print last_contract("CL", "CME", connection[db])
+
+def last_contract(sym, market, db):
+    q = {"$query" :{"_id": {"sym": sym, "market": market}}}
+    res = list(db.tickers.find(q).limit(1))
+    return res
                 
 if __name__ == "__main__":
     
