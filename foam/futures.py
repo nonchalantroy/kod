@@ -7,6 +7,8 @@ import logging, datetime
 import pandas as pd
 from memo import *
 
+contract_month_codes = ['F', 'G', 'H', 'J', 'K', 'M','N', 'Q', 'U', 'V', 'W', 'Z']
+
 @memo                                    
 def get_quandl_auth():
     fname = '%s/.quandl' % os.environ['HOME']
@@ -36,9 +38,17 @@ def get(market, sym, month, year, dt, db):
     return res
 
 def last_contract(sym, market, db):
-    q = { "$query" : {"_id.sym": "CL", "_id.market": "CME"} }
+    q = { "$query" : {"_id.sym": sym, "_id.market": market} }
     res = db.tickers.find(q).sort([("_id.month",-1), (u"_id.year",-1)]).limit(1)
     return list(res) 
+
+def existing_nonexpired_contracts(sym, market, db, today):
+    q = { "$query" : {"_id.sym": sym, "_id.market": market,
+                      "_id.month": {"$gte": contract_month_codes[today.month] },
+                      "_id.year": {"$gte": today.year } }
+    }
+    res = db.tickers.find(q)
+    return list(res)
 
 def download_data(chunk=1,chunk_size=1,downloader=web_download,
                   today=systemtoday,db="foam",years=(1984,2022)):
@@ -65,9 +75,8 @@ def download_data(chunk=1,chunk_size=1,downloader=web_download,
     # since the last time we ran.
     for (sym,market) in instruments:
         last = last_contract(sym, market, connection[db])
-        last_db_year,last_db_month = (0,'A')
+        last_db_year,last_db_month = (0,'A') # init values
         if len(last) > 0: last_year,last_month = last[0]['_id']['year'], last[0]['_id']['month']
-        print last_db_year,last_db_month
         for year in years:
             for month in months:
                 if last_db_year < end_year or last_db_month < 'Z':

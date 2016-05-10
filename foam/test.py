@@ -18,6 +18,9 @@ def fake_download_1(contract,start,end):
 def fake_today_1():
     return datetime.datetime(2016, 5, 1) 
 
+def fake_today_2():
+    return datetime.datetime(1984, 1, 1) 
+
 def init():
     c = MongoClient()
     c[testdb].tickers.drop()
@@ -32,7 +35,12 @@ def test_simple():
     res = futures.get(market="CME", sym="CL", month="G", year=1984, dt=19830624, db=testdb)
     assert res[0]['oi'] == 5.0
     res = futures.last_contract("CL","CME", db)
-    assert res[0]['_id']['month'] == 'G' 
+    assert res[0]['_id']['month'] == 'G'
+
+    res = futures.existing_nonexpired_contracts("CL","CME", db,fake_today_1())
+    assert len(res) == 0
+    res = futures.existing_nonexpired_contracts("CL","CME", db,fake_today_2())
+    assert len(res) > 0
     
 if __name__ == "__main__": 
     test_simple()
