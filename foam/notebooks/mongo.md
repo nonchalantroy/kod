@@ -5,8 +5,9 @@
 from pymongo import MongoClient
 import pandas as pd
 connection = MongoClient()
-db = connection.foam
+db = connection.fakedb
 ```
+
 
 ```python
 q = {"$query" :{"_id.sym": "GOOG", "_id.dt": 20160205} }

@@ -95,8 +95,8 @@ Show all records for a symbol and market
 
 ```
 db.tickers.find({"_id.sym": "CL", "_id.market": "CME"})
+db.tickers.find({"_id.sym": "CL", "_id.market": "CME"}).sort({ "_id.month": 1 })
 ```
-
 
 To see all earnings announcements for a particular date, use
 

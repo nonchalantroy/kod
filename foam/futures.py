@@ -35,10 +35,16 @@ def get(market, sym, month, year, dt, db):
     res = list(db.tickers.find( q ))
     return res
 
+def last_contract(sym, market, db):
+    q = { "$query" : {"_id.sym": "CL", "_id.market": "CME"} }
+    res = db.tickers.find(q).sort([("_id.month",-1), (u"_id.year",-1)]).limit(1)
+    return list(res)
+
 def download_data(chunk=1,chunk_size=1,downloader=web_download,
                   today=systemtoday,db="foam"):
 
-    years = range(1984,2022)
+    #years = range(1984,2022)
+    years = range(1984,1985)
     months = ['F', 'G', 'H', 'J', 'K', 'M',
               'N', 'Q', 'U', 'V', 'W', 'Z']
     futcsv = pd.read_csv("./data/futures.csv")
@@ -73,16 +79,11 @@ def download_data(chunk=1,chunk_size=1,downloader=web_download,
                     
                 except Quandl.Quandl.DatasetNotFound:
                     print "No dataset"
-                break
-            break
-        break
+                #break
+            #break
+        #break
 
-    print last_contract("CL", "CME", connection[db])
-
-def last_contract(sym, market, db):
-    q = {"$query" :{"_id": {"sym": sym, "market": market}}}
-    res = list(db.tickers.find(q).limit(1))
-    return res
+    last = last_contract("CL", "CME", connection[db])
                 
 if __name__ == "__main__":
     

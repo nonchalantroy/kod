@@ -21,12 +21,17 @@ def fake_today_1():
 def init():
     c = MongoClient()
     c[testdb].tickers.drop()
+    return c[testdb]
 
 def test_simple():
-    init()
+    db = init()
     futures.download_data(downloader=fake_download_1,today=fake_today_1,db=testdb)
     res = futures.get(market="CME", sym="CL", month="F", year=1984, dt=19831205, db=testdb)
     assert res[0]['oi'] == 5027.0
+    res = futures.get(market="CME", sym="CL", month="G", year=1984, dt=19830624, db=testdb)
+    assert res[0]['oi'] == 5.0
+    res = futures.last_contract("CL","CME", db)
+    assert res[0]['_id']['month'] == 'G' 
     
 if __name__ == "__main__": 
     test_simple()
