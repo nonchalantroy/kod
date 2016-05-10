@@ -44,8 +44,12 @@ def download_data(chunk=1,chunk_size=1,downloader=web_download,
     futcsv = pd.read_csv("./data/futures.csv")
     instruments = zip(futcsv.Symbol,futcsv.Market)
 
-    start="1980-01-01"; end = today().strftime('%Y-%m-%d')
+    start="1980-01-01"
+    end = today().strftime('%Y-%m-%d')
     print start, end
+    tmp = today()
+    print tmp.month, tmp.day
+    exit()
 
     connection = MongoClient()
     tickers = connection[db].tickers
