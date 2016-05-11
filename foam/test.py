@@ -59,6 +59,7 @@ def test_incremental():
     futures.download_data(downloader=fake_download_2,today=fake_today_3,
                           db=testdb, years=(1984,1985))
     assert futures.last_date_in_contract("CL","CME","F", 1984, db) == 19830726
+    print 'first set entered'
     futures.download_data(downloader=fake_download_3,today=fake_today_4,
                           db=testdb, years=(1984,1985))
     
