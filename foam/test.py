@@ -15,11 +15,20 @@ def load_data(contract,subdir):
 def fake_download_1(contract,start,end):
     return load_data(contract, "data_1")
 
+def fake_download_2(contract,start,end):
+    return load_data(contract, "data_2")
+
 def fake_today_1():
     return datetime.datetime(2016, 5, 1) 
 
 def fake_today_2():
     return datetime.datetime(1984, 1, 1) 
+
+def fake_today_3():
+    return datetime.datetime(1983, 7, 26) 
+
+def fake_today_4():
+    return datetime.datetime(1983, 7, 27) 
 
 def init():
     c = MongoClient()
@@ -41,7 +50,14 @@ def test_simple():
     assert len(res) == 0
     res = futures.existing_nonexpired_contracts("CL","CME", db,fake_today_2())
     assert len(res) > 0
+
+def test_incremental():
+    db = init()
+    futures.download_data(downloader=fake_download_2,today=fake_today_3,
+                          db=testdb, years=(1984,1985))
+
     
 if __name__ == "__main__": 
-    test_simple()
+    #test_simple()
+    test_incremental()
     
