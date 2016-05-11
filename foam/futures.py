@@ -8,6 +8,8 @@ import pandas as pd
 from memo import *
 
 contract_month_codes = ['F', 'G', 'H', 'J', 'K', 'M','N', 'Q', 'U', 'V', 'W', 'Z']
+contract_month_dict = dict(zip(contract_month_codes,range(len(contract_month_codes))))
+print contract_month_dict
 
 @memo                                    
 def get_quandl_auth():
@@ -32,8 +34,9 @@ def get(market, sym, month, year, dt, db):
     """
     connection = MongoClient()
     db = connection[db]
+    monthyear = "%d%d" % (year,contract_month_dict[month])
     q = {"$query" :{"_id": {"sym": sym, "market": market, "month": month,
-                            "year": year, "dt": dt }} }
+                            "year": year, "monthyear": monthyear, "dt": dt }} }
     res = list(db.tickers.find( q ))
     return res
 
@@ -43,12 +46,20 @@ def last_contract(sym, market, db):
     return list(res) 
 
 def existing_nonexpired_contracts(sym, market, db, today):
+    print 
+    monthyear = "%d%d" % (today.year,today.month)
     q = { "$query" : {"_id.sym": sym, "_id.market": market,
-                      "_id.month": {"$gte": contract_month_codes[today.month] },
-                      "_id.year": {"$gte": today.year } }
+                      "_id.monthyear": {"$gte": monthyear } }
     }
     res = db.tickers.find(q)
     return list(res)
+
+def last_date_in_contract(sym, market, month, year, db):
+    q = { "$query" : {"_id.sym": sym, "_id.market": market, "_id.month": month, "_id.year": year} }
+    res = db.tickers.find(q).sort([("_id.dt",-1)]).limit(1)
+    res = list(res)
+    if len(res) > 0: return res[0]['_id']['dt']
+
 
 def download_data(chunk=1,chunk_size=1,downloader=web_download,
                   today=systemtoday,db="foam",years=(1984,2022)):
@@ -85,10 +96,12 @@ def download_data(chunk=1,chunk_size=1,downloader=web_download,
                     # until the end of time
                     work_items.append([market, sym, month, year, str_start])
 
-    # for existing contracts, add to the work queue the download of
-    # additional days that are not there. if today is a new day, and
-    # for for existing non-expired contracts we would have new price
-    # data.  TBD
+        # for existing contracts, add to the work queue the download of
+        # additional days that are not there. if today is a new day, and
+        # for for existing non-expired contracts we would have new price
+        # data.  TBD
+        #for contract in existing_nonexpired_contracts(sym, market, connection[db], today()):
+        #    print contract['_id']
     
     for market, sym, month, year, work_start in work_items:
         contract = "%s/%s%s%d" % (market,sym,month,year)
@@ -98,10 +111,11 @@ def download_data(chunk=1,chunk_size=1,downloader=web_download,
             # sometimes oi is in Prev Days Open Interest sometimes just Open Interest
             # use whichever is there
             oicol = [x for x in df.columns if 'Open Interest' in x][0]
+            monthyear = "%d%d" % (year,contract_month_dict[month])
             for srow in df.iterrows():
                 dt = str(srow[0])[0:10]
                 dt = int(dt.replace("-",""))
-                new_row = {"_id": {"sym": sym, "market": market, "month": month, "year": year, "dt": dt },
+                new_row = {"_id": {"sym": sym, "market": market, "month": month, "year": year, "monthyear": monthyear, "dt": dt },
                            "o": srow[1].Open, "h": srow[1].High,
                            "l": srow[1].Low, "la": srow[1].Last,
                            "s": srow[1].Settle, "v": srow[1].Volume,
