@@ -888,7 +888,7 @@ This command does not push erased text to kill-ring."
 (find-file-other-window "c:/Users/burak/Documents")
 (find-file-other-window "c:/Users/burak/Documents/kod/books/Systematic_Trading/pysystemtrade/syscore")
 (find-file-other-window "c:/Users/burak/Documents/kod")
-(find-file-other-window "c:/Users/burak/Documents/kod/foam")
+(find-file-other-window "c:/Users/burak/Documents/quant_at/data")
 (find-file-other-window "c:/Users/burak/Documents/kod/books/Systematic_Trading/pysystemtrade/examples/introduction")
 (find-file-other-window "c:/Users/burak/Documents/mindmeld")
 
