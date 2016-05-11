@@ -63,6 +63,6 @@ def test_incremental():
                           db=testdb, years=(1984,1985))
     
 if __name__ == "__main__": 
-    test_simple()
+    #test_simple()
     test_incremental()
     

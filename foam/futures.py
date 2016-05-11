@@ -46,12 +46,11 @@ def last_contract(sym, market, db):
     return list(res) 
 
 def existing_nonexpired_contracts(sym, market, db, today):
-    print 
     monthyear = "%d%d" % (today.year,today.month)
     q = { "$query" : {"_id.sym": sym, "_id.market": market,
                       "_id.monthyear": {"$gte": monthyear } }
     }
-    res = db.tickers.find(q)
+    res = db.tickers.find(q).limit(1)
     return list(res)
 
 def last_date_in_contract(sym, market, month, year, db):
@@ -100,8 +99,8 @@ def download_data(chunk=1,chunk_size=1,downloader=web_download,
         # additional days that are not there. if today is a new day, and
         # for for existing non-expired contracts we would have new price
         # data.  TBD
-        #for contract in existing_nonexpired_contracts(sym, market, connection[db], today()):
-        #    print contract['_id']
+        for contract in existing_nonexpired_contracts(sym, market, connection[db], today()):
+            print contract['_id']
     
     for market, sym, month, year, work_start in work_items:
         contract = "%s/%s%s%d" % (market,sym,month,year)
