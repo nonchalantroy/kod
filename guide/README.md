@@ -71,6 +71,20 @@ print mindmeld.calculate_mb(ans)
 Run this code and you will get the MBTI result of the questionaire.
 
 
+# Blood Type Diet
+
+Some food ingredients are good for some blood types, bad for
+others. See the file `data/food.dat` for the whole list. The column
+A_S for example carries the ingredient's benefit status for blood type
+A (secretor). For non-secretor it would be A_NS. For details on
+secretor / non-secreators see the file
+`doc/details/btype/secretor.txt`. Sec status determination apparently
+requires a blood test but it is possible to guess it. For your blood
+type find a food item that has different statuses for sec / non-sec,
+and ask yourself if you like that food item. If the sec/non-sec
+statuses are BENEFICIAL, AVOID and you like that food, it probably
+means you are a secretor.
+
 ##Lewi Files
 
 Now some implementation details; There are some reference files
@@ -99,18 +113,3 @@ In sum, `mindmeld` calculates the following:
 * Chinese Astrology
 
 * Myers-Briggs Test
-
-# Blood Type Diet
-
-Some food ingredients are good for some blood types, bad for
-others. See the file `data/food.dat` for the whole list. The column
-A_S for example carries the ingredient's benefit status for blood type
-A (secretor). For non-secretor it would be A_NS. For details on
-secretor / non-secreators see the file
-`doc/details/btype/secretor.txt`. Sec status determination apparently
-requires a blood test but it is possible to guess it. For your blood
-type find a food item that has different statuses for sec / non-sec,
-and ask yourself if you like that food item. If the sec/non-sec
-statuses are NEUTRAL, AVOID and you like that food, it probably means
-you are a non-secretor. 
-
