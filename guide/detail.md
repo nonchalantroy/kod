@@ -32,7 +32,7 @@ All data files required for ML are under 'data' folder. If one wants
 to recreate the main file for training on celebrities, rerunning
 `mineprep.py` is enough.
 
-Script `scrape.py` will take celebrity mbti types from a known Web
+Script `scrape_mbti.py` will take celebrity mbti types from a known Web
 site, and write its output under /tmp. I already ran this once, copied
 its output under data. This is the main data I used to train the
 regressor. The file is `data/myer-briggs.txt`, then once mineprep.py

@@ -24,4 +24,3 @@ for mbti in ['estp','esfp','estj','esfj','entj','entp','enfj','enfp',
         fout.flush()
 
 fout.close()
-

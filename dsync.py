@@ -8,7 +8,6 @@ if sys.argv[1] == "d":
     os.system("python rsync.py c:\\Users\\burak\\Documents\\kod D:\\archive\\kod --delete")
     os.system("python rsync.py c:\\Users\\burak\\Documents\\book_idx D:\\archive\\book_idx --delete")
     os.system("python rsync.py c:\\Users\\burak\\Documents\\quant_at D:\\archive\\quant_at --delete")
-    os.system("python rsync.py c:\\Users\\burak\\Documents\\mindmeld D:\\archive\\mindmeld --delete")
 
 if sys.argv[1] == "e":
     os.system("python rsync.py c:\\Users\\burak\\Documents\\classnotes E:\\classnotes --delete")
