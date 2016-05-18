@@ -879,7 +879,7 @@ This command does not push erased text to kill-ring."
 ;; ;; open files / directories beforehand so they are already in the buffer
 ;;
 (find-file-other-window "C:/Users/burak/AppData/Local/Temp")
-(find-file-other-window "c:/Users/burak/Documents/mindmeld")
+(find-file-other-window "c:/Users/burak/Documents/kod/guide")
 (find-file-other-window "c:/Users/burak/Documents/classnotes/app_math/dict")
 (find-file-other-window "c:/Users/burak/Documents/Dropbox")
 (find-file-other-window "c:/Users/burak/Documents/Dropbox/TODO.txt")

@@ -1,12 +1,13 @@
 ## What it is
 
-Mindmeld aims to combine all working parts of numerology, psychology
-and astrology (yes!). The methods we utilize here are mostly unknown
-to the general public; most people know about sun signs (Capricorn,
-Taurus, blah) which has 1 out of 12 possibilities. One method here
-uses (G. Lewi's) all sun and moon combinations which has 12x12 =
-144 character possibilities. Lewi method also looks at other planet
-combinations that can supply additional information. 
+Mindmeld aims to combine all working parts of blood type diet,
+numerology, psychology and astrology (yes!). The methods we utilize
+here are mostly unknown to the general public; most people know about
+sun signs (Capricorn, Taurus, blah) which has 1 out of 12
+possibilities. One method here uses (G. Lewi's) all sun and moon
+combinations which has 12x12 = 144 character possibilities. Lewi
+method also looks at other planet combinations that can supply
+additional information.
 
 Jan Spiller method looks at moon readings differently; the result is
 another in-depth character reading. The accuracy of this reading can
@@ -98,4 +99,11 @@ In sum, `mindmeld` calculates the following:
 * Chinese Astrology
 
 * Myers-Briggs Test
+
+# Blood Type Diet
+
+Some food ingredients are good for some blood types, bad for
+others. See the file `data/food.dat`, the column A_S for example
+carries that ingredient's benefit status for blood type A (secretor). For details
+on secretor / non-secreators see `doc/details/btype/secretor.txt`. 
 
