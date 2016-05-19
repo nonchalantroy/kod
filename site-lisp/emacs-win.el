@@ -64,6 +64,8 @@
       (call-process ev-exe nil 0 nil file))
     (when (equal (file-name-extension file) "html")
       (call-process chrome-exe nil 0 nil file))
+    (when (equal (file-name-extension file) "htm")
+      (call-process chrome-exe nil 0 nil file))
     ))
 
 ;; Make all yes-or-no questions as y-or-n
