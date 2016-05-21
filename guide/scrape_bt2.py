@@ -8,15 +8,16 @@ from datetime import timedelta
 from urllib import FancyURLopener
 
 def extract(content):
-    res = re.findall("\s(AVOID|NEUTRAL|BENEFICIAL)", content)
+    res = re.findall("\s\s(AVOID|NEUTRAL|BENEFICIAL)", content)
     res = ";".join(res)
-    return res
+    t = re.findall("\s>>\s(.*?)\s>>", content)
+    return t[0] + ";" + res
     
     
 if __name__ == "__main__": 
  
     fout = open("%s/food.dat" % os.environ['TEMP'],"w")
-    fout.write("Dadamo_Site_Id;Food;A_S;A_NS;B_S;B_NS;AB_S;AB_NS;O_S;O_NS\n")
+    fout.write("Dadamo_Site_Id;Food;Type;A_S;A_NS;B_S;B_NS;AB_S;AB_NS;O_S;O_NS\n")
     files = glob.glob("c:/Users/burak/www.dadamo.com/typebase4/*.pl*")
     
     for g in files:
