@@ -4,7 +4,7 @@
 \begin{minted}[fontsize=\footnotesize]{python}
 import pandas as pd
 df = pd.read_csv('./data/food.dat',sep=';')
-df = df[df.B_S == 'BENEFICIAL']
+df = df[df.B_S == 'BENEFICIAL'].sort_index(by='Type')
 df[['Type','Food']].to_csv('c:/Users/burak/Downloads/B.csv',index=None)
 \end{minted}
 
