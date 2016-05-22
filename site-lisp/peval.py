@@ -1,8 +1,12 @@
 # -*- coding: utf-8 -*-
 #
-# Simple evaluation of one line of python code. Only eval() is called
-# on the current line, and the result is displayed 2 line below,
-# nothing else.
+# Simple evaluation of python code in any buffer, no markup is
+# required. Function pexec calls eval() on the current line, and the
+# result is displayed 2 line below. If line contains "import" or "="
+# statements, eval is called differently. Another feature is selecting
+# an entire region and calling M-x peval-pexec-region. The results of
+# all these calls are remembered / are sticky and persists accross
+# peval calls.
 from Pymacs import lisp
 import re, random
 from turkish.deasciifier import Deasciifier
@@ -26,7 +30,6 @@ def pexec():
     if "=" in content or "import" in content:
         c = compile(source=content,filename="",mode="single")
         eval(c,glob)
-        print 'eval done'
     else:
         c = compile(source=content,filename="",mode="eval")
         res = eval(c,glob)
@@ -36,6 +39,18 @@ def pexec():
         lisp.insert("\n")
         lisp.insert(str(res))
     lisp.goto_char(remember_where)
-            
+
+def pexec_region():
+    global glob
+    start, end = lisp.point(), lisp.mark(lisp.t)
+    content = lisp.buffer_substring(start, end)
+    lines = content.split("\n")
+    for line in lines:
+        line = line.replace("\n","")
+        if line != "":
+            c = compile(source=line,filename="",mode="single")
+            eval(c,glob)
+    
 interactions[pexec] = ''
+interactions[pexec_region] = ''
 
