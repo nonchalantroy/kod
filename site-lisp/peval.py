@@ -8,7 +8,7 @@
 # all these calls are remembered / are sticky and persists accross
 # peval calls.
 from Pymacs import lisp
-import re, random
+import re, random, time
 from turkish.deasciifier import Deasciifier
 
 interactions = {}
@@ -25,6 +25,7 @@ def get_block_content(start_tag, end_tag):
 
 def pexec():
     global glob
+    start = time.time()
     remember_where = lisp.point()
     block_begin, block_end, content = get_block_content("\n","\n")
     if "=" in content or "import" in content:
@@ -39,9 +40,12 @@ def pexec():
         lisp.insert("\n")
         lisp.insert(str(res))
     lisp.goto_char(remember_where)
+    elapsed = (time.time() - start)
+    lisp.message("Ran in " + str(elapsed) + " seconds")
 
 def pexec_region():
     global glob
+    start = time.time()
     start, end = lisp.point(), lisp.mark(lisp.t)
     content = lisp.buffer_substring(start, end)
     lines = content.split("\n")
@@ -50,6 +54,8 @@ def pexec_region():
         if line != "":
             c = compile(source=line,filename="",mode="single")
             eval(c,glob)
+    elapsed = (time.time() - start)
+    lisp.message("Ran in " + str(elapsed) + " seconds")
     
 interactions[pexec] = ''
 interactions[pexec_region] = ''
