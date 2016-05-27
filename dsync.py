@@ -1,4 +1,4 @@
-import os, sys, shutil, rsync
+import os, sys, shutil, rsync, re
 
 if len(sys.argv) < 2: print "Usage dsync.py [letter]"; exit()
 
@@ -19,5 +19,7 @@ if sys.argv[1] == "ed":
     os.system("python rsync.py E:\\kitaplar D:\\archive\\kitaplar")
     
 if sys.argv[1] == "systematic":
-    os.system("python rsync.py c:\\Users\\burak\\Downloads\\pysystemtrade c:\\Users\\burak\\Documents\\kod\\books\\Systematic_Trading\\pysystemtrade")
-    rsync.deleteDir("c:\\Users\\burak\\Documents\\kod\\books\\Systematic_Trading\\pysystemtrade\\.git")
+    #os.system("python rsync.py c:\\Users\\burak\\Downloads\\pysystemtrade c:\\Users\\burak\\Documents\\kod\\books\\Systematic_Trading\\pysystemtrade")
+    #rsync.deleteDir("c:\\Users\\burak\\Documents\\kod\\books\\Systematic_Trading\\pysystemtrade\\.git")
+    rsync.purge("c:\\Users\\burak\\Documents\\kod\\books\\Systematic_Trading\\pysystemtrade","\.pch")
+    

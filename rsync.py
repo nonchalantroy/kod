@@ -8,7 +8,7 @@
 
 # python rsync.py c:\Users\burak\Documents\a c:\Users\burak\Documents\b
 
-import sys, glob, os, shutil
+import sys, glob, os, shutil, re
 
 def deleteDir(path):
     """deletes the path entirely"""
@@ -55,6 +55,11 @@ def ls(d):
             files.append((path, os.path.getsize(path)))
     return dirs, files
 
+def purge(dir, pattern):
+    for f in os.listdir(dir):
+    	if re.search(pattern, f):
+    		os.remove(os.path.join(dir, f))
+                
 def copy_files_and_dirs(fr,to):    
     frdirs,frfiles =  ls(fr)
     todirs,tofiles = ls(to)
@@ -96,7 +101,8 @@ def del_not_in_from(fr, to, frdirs, todirs):
         if x_fr not in frfilesdict:
             print 'deleting', x
             deleteFile(x)
-    
+
+            
 if __name__ == "__main__":
     
     if len(sys.argv) < 3:
