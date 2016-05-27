@@ -1,9 +1,11 @@
 import pandas as pd
 from copy import copy
 
+from syscore.accounting import decompose_group_pandl
+
 from systems.stage import SystemStage
 from systems.basesystem import ALL_KEYNAME
-from syscore.pdutils import multiply_df_single_column, fix_weights_vs_pdm, add_df_single_column
+from syscore.pdutils import  fix_weights_vs_pdm
 from syscore.objects import update_recalc, resolve_function
 from syscore.genutils import str2Bool
 
@@ -282,7 +284,7 @@ class PortfoliosFixed(SystemStage):
             weight_ts = this_stage.get_instrument_weights().index
 
             ts_idm = pd.Series([div_mult] * len(weight_ts),
-                               index=weight_ts).to_frame("idm")
+                               index=weight_ts)
 
             return ts_idm
 
@@ -326,16 +328,13 @@ class PortfoliosFixed(SystemStage):
                 instrument_code)
 
             inst_weight_this_code = instr_weights[
-                instrument_code].to_frame("weight")
+                instrument_code]
 
             inst_weight_this_code = inst_weight_this_code.reindex(
                 subsys_position.index).ffill()
             idm = idm.reindex(subsys_position.index).ffill()
 
-            multiplier = multiply_df_single_column(inst_weight_this_code, idm)
-            notional_position = multiply_df_single_column(
-                subsys_position, multiplier)
-            notional_position.columns = ['pos']
+            notional_position = subsys_position * inst_weight_this_code * idm
 
             return notional_position
 
@@ -410,6 +409,7 @@ class PortfoliosFixed(SystemStage):
                                instrument_code=instrument_code)
             
             buffer_size=system.config.buffer_size
+            position = this_stage.get_notional_position(instrument_code)
             
             idm = this_stage.get_instrument_diversification_multiplier()
             instr_weights = this_stage.get_instrument_weights()
@@ -417,20 +417,17 @@ class PortfoliosFixed(SystemStage):
                 instrument_code)
 
             inst_weight_this_code = instr_weights[
-                instrument_code].to_frame("weight")
+                instrument_code]
 
             inst_weight_this_code = inst_weight_this_code.reindex(
-                vol_scalar.index).ffill()
-            idm = idm.reindex(vol_scalar.index).ffill()
-
-            multiplier = multiply_df_single_column(inst_weight_this_code, idm)
-            average_position = multiply_df_single_column(
-                vol_scalar, multiplier)
+                position.index).ffill()
+            idm = idm.reindex(position.index).ffill()
+            vol_scalar = vol_scalar.reindex(position.index).ffill()
+        
+            average_position =  vol_scalar * inst_weight_this_code * idm
             
             buffer = average_position * buffer_size
             
-            buffer.columns=["buffer"]
-
             return buffer
 
         buffer = self.parent.calc_or_cache(
@@ -475,13 +472,13 @@ class PortfoliosFixed(SystemStage):
                 this_stage.log.critical("Buffer method %s not recognised - not buffering" % buffer_method)
                 position = this_stage.get_notional_position(instrument_code)
                 max_max_position= float(position.abs().max())*10.0
-                buffer = pd.DataFrame([max_max_position] * position.shape[0], index=position.index)
+                buffer = pd.Series([max_max_position] * position.shape[0], index=position.index)
             
             position = this_stage.get_notional_position(instrument_code)
             
-            top_position = add_df_single_column(position, buffer, ffill=(False, True))
+            top_position = position + buffer.ffill()
             
-            bottom_position = add_df_single_column(position, -buffer, ffill=(False,True))
+            bottom_position = position - buffer.ffill()
 
             pos_buffers = pd.concat([top_position, bottom_position], axis=1)
             pos_buffers.columns = ["top_pos", "bot_pos"]
@@ -527,6 +524,23 @@ class PortfoliosEstimated(PortfoliosFixed):
 
         setattr(self, "description", "Estimated")
     
+        nopickle=["calculation_of_raw_instrument_weights"]
+        setattr(self, "_nopickle", nopickle)
+
+    def get_instrument_subsystem_SR_cost(self, instrument_code):
+        """
+        Get the SR cost of a subsystem
+
+        :param instrument_code: instrument to get values for
+        :type instrument_code: str
+
+        :returns: float
+
+        KEY INPUT
+        """
+        
+        ## do not round positions as will over inflate costs for small accounts
+        return self.parent.accounts.subsystem_SR_costs(instrument_code, roundpositions=False)
     
     def get_instrument_correlation_matrix(self):
         """
@@ -565,7 +579,7 @@ class PortfoliosEstimated(PortfoliosFixed):
             instrument_codes=system.get_instrument_list()
 
             if hasattr(system, "accounts"):
-                pandl=this_stage.pandl_across_subsystems()
+                pandl=this_stage.pandl_across_subsystems().to_frame()
             else:
                 error_msg="You need an accounts stage in the system to estimate instrument correlations"
                 this_stage.log.critical(error_msg)
@@ -633,8 +647,6 @@ class PortfoliosEstimated(PortfoliosFixed):
             weight_df=this_stage.get_instrument_weights()
 
             ts_idm=idm_func(correlation_list_object, weight_df, **div_mult_params)
-
-            ts_idm.columns=['IDM']
 
             return ts_idm
 
@@ -749,10 +761,19 @@ class PortfoliosEstimated(PortfoliosFixed):
         :param instrument_code:
         :type str:
 
-        :returns: TxN pd.DataFrame
+        :returns: accountCurveGroup object
         """
         
-        return self.parent.accounts.pandl_across_subsystems(percentage=True).to_frame()
+        return self.parent.accounts.pandl_across_subsystems(percentage=True)
+
+    def _get_all_subsystem_positions(self):
+        instrument_codes=self.parent.get_instrument_list()
+
+        positions=[self.get_subsystem_position(instr_code) for instr_code in instrument_codes]
+        positions=pd.concat(positions, axis=1)
+        positions.columns=instrument_codes
+
+        return positions
 
     def calculation_of_raw_instrument_weights(self):
         """
@@ -770,15 +791,31 @@ class PortfoliosEstimated(PortfoliosFixed):
             this_stage.log.terse("Calculating raw instrument weights")
 
             instrument_codes=system.get_instrument_list()
-            if hasattr(system, "accounts"):
-                pandl=this_stage.pandl_across_subsystems()
-            else:
-                error_msg="You need an accounts stage in the system to estimate instrument weights"
-                this_stage.log.critical(error_msg)
 
-            instrument_weight_results=weighting_func(pandl,  log=self.log.setup(call="weighting"), **weighting_params)
+            weight_func=weighting_func(log=this_stage.log.setup(call="weighting"), **weighting_params)
+            if weight_func.need_data():
+    
+                if hasattr(system, "accounts"):
+                    pandl=this_stage.pandl_across_subsystems()
+                    (pandl_gross, pandl_costs) = decompose_group_pandl([pandl])
+                    
+                    weight_func.set_up_data(data_gross = pandl_gross, data_costs = pandl_costs)
+
+                else:
+                    error_msg="You need an accounts stage in the system to estimate instrument weights"
+                    this_stage.log.critical(error_msg)
+
+            else:
+                ## equal weights doesn't need data
+
+                positions=this_stage._get_all_subsystem_positions()                
+                weight_func.set_up_data(weight_matrix=positions)
+
+            SR_cost_list = [this_stage.get_instrument_subsystem_SR_cost(instr_code) for instr_code in instrument_codes]
+
+            weight_func.optimise(ann_SR_costs=SR_cost_list)
         
-            return instrument_weight_results
+            return weight_func
 
 
         ## Get some useful stuff from the config

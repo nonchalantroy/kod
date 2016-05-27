@@ -1,30 +1,88 @@
 # Release notes
 
+## Version 0.10.3
+
+* More speed up, couple of tweaks...
+
+
+## Version 0.10.2
+
+* Split up optimiser class so can selectively check if need data for equal weights; speed up
+
+## Version 0.10.01
+* Fixed bugs introduced in last version
+
+## Version 0.10.0 
+* Refactored optimisation with costs code, changed configuration slightly (read [this revised blog post for more](http://qoppac.blogspot.co.uk/2016/05/optimising-weights-with-costs.html) )
+* Introduced method to cope with pooling on both costs and gross returns, so doesn't recalculate several times
+* Moved pre-screening for expensive assets to an earlier stage
+* New optimisation method "equal_weights" for equal weights; means that eg expensive forecasts can be removed and then take an equal weight on the rest
+
+
+## Version 0.10.0 
+
+* Optimisation: 
+   * Replaced slow divide, multiply methods in syscore.pdutils with straightforward division; also means:
+      * Replaced Tx1 pd.DataFrames with pd.Series except where stricly necessary
+      * Removed a lot of defensive reindexing code where things should already be on same timestamp
+      * Replaced remaining reindexing code with pandas native .align methods
+   * accounting p&l doesn't have to work out trades, then go back to positions, if no trades provided.
+
+## Version 0.9.0 
+
+* Changed / added the following methods to `system.accounts`: `pandl_for_instrument_forecast_weighted`, `pandl_for_trading_rule_weighted`, `pandl_for_all_trading_rules`, `pandl_for_trading_rule`, `pandl_for_trading_rule_unweighted`, `pandl_for_all_trading_rules_unweighted` See [/docs/userguide.md#weighted_acg] for more detail.
+* Added `get_capital_in_rule`, `get_instrument_forecast_scaling_factor` to help calculate these.
+* fixed error in user guide
+
+
+## Version 0.8.1 
+
+* Fixed small bug with shrinkage
+* Added references to blog post on costs
+
+## Version 0.8.0 
+
+* introduced methods for optimisation with costs. See [this blog post for more](http://qoppac.blogspot.co.uk/2016/05/optimising-weights-with-costs.html)
+* made a lot of tweaks to optimisation code; mainly shrinkage now shrinks towards target Sharpe ratio, equalising SR does the same; consistent annualisation 
+* introduced new parameter for optimisation `ann_target_SR`
+* `system.combForecast.calculation_of_raw_forecast_weights` (estimated version) no longer stores nested weights.
+
+## Version 0.7.0 
+
+* ability to pickle and unpickle cache (`system.pickle_cache`, `system.unpickle_cache`)
+* included breakout rule (example is being written)
+* seperate out weighting calculation so instrument forecast pandl can be cached
+* csv data is now daily and updated to present day
+* Fixed bug with loading data from private module
+* Changed raw cost data so returns dict not tuple
+* Added 'flags' to cache identifier to replace horrors like 'portfolio__percentageTdelayfillTroundpositionsT'
+* p&l for trading rules now nested in caches rather than using special identifier
+
 ## Version 0.6.6
 
-* Added method accounts.pandl_for_instrument_rules
+* Added method `accounts.pandl_for_instrument_rules`
 
 
 ## Version 0.6.5
 
-* Renamed method accounts.pandl_for_instrument_rules to pandl_for_instrument_rules.unweighted
+* Renamed method `accounts.pandl_for_instrument_rules` to `pandl_for_instrument_rules.unweighted`
 * Fixed bug with portfolio and instrument account curves overstating costs by adding cost weightings
 
 
 ## Version 0.6.4
 
 * Fixed weighting of account curves and introduced explicit flag for weighting
-* Added pandl_for_trading_rule_unweighted method to accounts object.
+* Added `pandl_for_trading_rule_unweighted` method to accounts object.
 
 
 ## Version 0.6.3
 
-* Added pandl_for_trading_rule method to accounts object.
+* Added `pandl_for_trading_rule` method to accounts object.
 
 
 ## Version 0.6.2
 
-* Added t_test method to accountCurve (and all that inherit from her)
+* Added t_test method to `accountCurve` (and all that inherit from her)
 
 
 ## Version 0.6.1
@@ -123,16 +181,14 @@
 
 # Bugs to fix
 
-* none
+* none are known
 
 # Features to add - later releases
 
 * Simulation:
-
-  * remove weighting from instrument forecast pandl so can be cached
-  * pickle and unpickle cache
-  * add cross sectional carry rule and breakout rule
+   
   * vol targeting with capital adjustment
+  * add other trading rules (some in private...?) - cross sectional carry
   * quandl data
   * stitch futures contracts 
   * add new data from unstitched contracts (with explanatory post, include explanation for Nth contract stitching)

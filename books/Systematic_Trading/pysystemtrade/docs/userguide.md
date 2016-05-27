@@ -445,20 +445,22 @@ If you want to use a different set of data values (eg equity EP ratios, interest
 
 To remain organised it's good practice to save any work into a directory like `pysystemtrade/private/this_system_name/` (you'll need to create a couple of directories first). If you plan to contribute to github, just be careful to avoid adding 'private' to your commit ( [you may want to read this](https://24ways.org/2013/keeping-parts-of-your-codebase-private-on-github/) ). 
 
-Because instances of **System()** encapsulate the data and functions you need, you can *pickle* them at least in theory (but you might want to read about [system caching](#caching) before you reload them). 
+You can save the contents of a system cache to avoid having to redo calculations when you come to work on the system again (but you might want to read about [system caching and pickling](#caching) before you reload them). 
 
 ```python
 from systems.provided.futures_chapter15.basesystem import futures_system
-import pickle
-from syscore.fileutils import get_filename_for_package
 
-filename=get_filename_for_package("systems.private.this_system_name.system.pck")
+system = futures_system(log_level="on")
+system.accounts.portfolio().sharpe() ## does a whole bunch of calculations that will be saved in the cache
 
-with open(filename, 'wb') as outfile:
-   pickle.dump(system)    
+system.pickle_cache("systems.private.this_system_name.system.pck") ## use any file extension you like
+
+## In a new session
+system = futures_system(log_level="on")
+system.unpickle_cache("systems.private.this_system_name.system.pck")
+system.accounts.portfolio().sharpe() ## this will run much faster and reuse previous calculations
+
 ```
-
-[This is the theory. In practice pickling complex objects seems to cause bad things to happen and the results may be unreliable]
 
 You can also save a config object into a yaml file - see [saving configuration](#save_config).
 
@@ -586,7 +588,7 @@ Methods that you'll probably want to override:
 - `get_instrument_price` Returns Tx1 pandas data frame
 - `get_instrument_list` Returns list of str
 - `get_value_of_block_price_move` Returns float
-- 'get_raw_cost_data' Returns 4 tuple of cost data
+- 'get_raw_cost_data' Returns a dict cost data
 - `get_instrument_currency`: Returns str
 - `_get_fx_data(currency1, currency2)`  Returns Tx1 pandas data frame of exchange rates
 
@@ -1113,7 +1115,7 @@ Currently system only has two methods of it's own (apart from those used for cac
 `system.log` and `system.set_logging_level()` provides access to the system's log. See [logging](#logging) for more details.
 
 <a name="caching">
-### System Caching
+### System Caching and pickling
 </a>
 
 Pulling in data and calculating all the various stages in a system can be a time consuming process. So the code supports caching. When we first ask for some data by calling a stage method, like `system.portfolio.get_notional_position("EDOLLAR")`, the system first checks to see if it has already pre-calculated this figure. If not then it will calculate the figure from scratch. This in turn may involve calculating preliminary figures that are needed for this position, unless they've already been pre-calculated. So for example to get a combined forecast, we'd already need to have all the individual forecasts from different trading rule variations for a particular instrument. Once we've calculated a particular data point, which could take some time, it is stored in the system object cache (along with any intermediate results we also calculated). The next time we ask for it will be served up immediately. 
@@ -1132,7 +1134,7 @@ system.combForecast.get_combined_forecast("EDOLLAR")
 ## What's in the cache?
 system.get_items_for_instrument("EDOLLAR")
 
-## Note cache items are labelled with tuples: (stagename, itemname)
+## Note cache items are labelled with tuples: (stagename, itemname, flags). Flags are used when we can have more than one kind of data for a particular item, eg accounting data as a percentage or not.
 
 ## Let's make a change to the config:
 system.config.forecast_div_multiplier=0.1
@@ -1151,6 +1153,43 @@ system.combForecast.get_combined_forecast("EDOLLAR")
 
 
 ```
+
+### Pickling and unpickling saved cache data
+
+It can take a while to backtest a large system. It's quite useful to be able to save the contents of the cache and reload it later. I use the python pickle module to do this.
+
+For boring python related reasons not all elements in the cache will be saved. The accounting information, and the optimisation functions used when estimating weights, will be excluded and won't be reloaded.
+
+
+```python
+from systems.provided.futures_chapter15.basesystem import futures_system
+
+system = futures_system(log_level="on")
+system.accounts.portfolio().sharpe() ## does a whole bunch of calculations that will be saved in the cache. A bit slow...
+
+system.get_itemnames_for_stage("accounts") ## includes ('accounts', 'portfolio', 'percentageTdelayfillTroundpositionsT')
+
+## To see what won't be saved down in the cache
+system.get_no_pickle_items() ## includes ('accounts', 'portfolio', 'percentageTdelayfillTroundpositionsT'); this won't be pickled
+
+## save it down
+system.pickle_cache("systems.private.this_system_name.system.pck") ## Using the 'dot' method to identify files in the workspace. use any file extension you like
+
+
+## Now in a new session
+system = futures_system(log_level="on")
+system.get_items_with_data() ## check empty cache
+
+system.unpickle_cache("systems.private.this_system_name.system.pck")
+
+system.get_items_with_data() ## Cache is now populated. Any existing data would have been removed.
+system.get_itemnames_for_stage("accounts") ## now doesn't include ('accounts', 'portfolio', 'percentageTdelayfillTroundpositionsT')
+
+system.accounts.portfolio().sharpe() ## this will run much faster and reuse previous calculations
+
+```
+
+
 
 ### Advanced caching
 
@@ -1286,7 +1325,8 @@ You should cache as early as possible; so that all the subsequent stages that ne
 
 The cache 'lives' in the parent system object in the attribute `system._cache`, *not* the stage with the relevant method. There are standard functions which will check to see if an item is cached in the system, and then call a function to calculate it if required (see below). To make this easier when a stage object joins a system it gains an attribute self.parent, which will be the 'parent' system. 
 
-The cache is a dictionary, whose keys are 2 tuples of strings: (stage name, item name). Item names should be the same as the methods that call them, eg `system.portfolio.get_notional_position()` caches to `system._cache[('portfolio', 'get_notional_position')]`. Within each item element must be dictionaries, the keys of which are instrument codes. You can also nest dictionaries, as when we store forecasts for each instrument and trading rule variation.
+The cache is a dictionary, whose keys are 3 tuples of strings: (stage name, item name, flags). Item names should be the same as the methods that call them, eg `system.portfolio.get_notional_position()` caches to `system._cache[('portfolio', 'get_notional_position')]`. The flags element defaults to an empty string, but is used mainly by the accounts .
+Within each item element must be dictionaries, the keys of which are instrument codes. You can also nest dictionaries, as when we store forecasts for each instrument and trading rule variation. 
 
 Think carefully about wether your method should create data that is protected from casual cache deletion. As a rule anything that cuts across instruments and / or changes slowly should be protected. Here are the current list of protected items:
 
@@ -1299,6 +1339,8 @@ Think carefully about wether your method should create data that is protected fr
 - Instrument correlations
 
 To this list I'd add any cross sectional data, and anything that measures portfolio risk (not yet implemented in this project).
+
+Also think about whether you're going to cache any complex objects that `pickle` might have trouble with, like class instances. You need to flag these up as problematic.
 
 Let's look at the [`forecast_combine.py`](/systems/forecast_combine.py) file for an example of how to write caching code. This code is an annotated extract:
 
@@ -1326,8 +1368,17 @@ class ForecastCombineFixed(SystemStage):
         protected=['_forecast_weights','_forecast_div_multiplier']
         
         setattr(self, "_protected", protected)
-	
-    
+
+	"""
+	We also include anything that can't be pickled
+
+	Here it's the complex calculation methods
+	"""	
+        
+        nopickle=["calculation_of_raw_forecast_weights"]
+
+        setattr(self, "_nopickle", nopickle)
+
     def get_capped_forecast(self, instrument_code, rule_variation_name):
         """
         Get the capped forecast from the previous module
@@ -1357,6 +1408,7 @@ class ForecastCombineFixed(SystemStage):
         ## Notice the caching method takes as arguments the item name (same as the method), instrument code, private function to call 
             if we need to calculate, and the system stage (self)
         ##  There can be additional arguments
+        ## note if we want to identify something with a flag we'd also included flags="flagname". Look at 
 
         combined_forecast=self.parent.calc_or_cache( 'get_combined_forecast', instrument_code,  _get_combined_forecast, self)
         return combined_forecast
@@ -1367,38 +1419,45 @@ class ForecastCombineFixed(SystemStage):
 
 And here is the [`calc_or_cache function`](/systems/basesystem.py). If it doesn't find the dictname as an attribute then it calls the calculation function (`_get_combined_forecast`) in this case, for which the stage object (self) is the only *arg (and which then becomes this_stage in the calculation function).
 
-```python
-    def calc_or_cache(self, itemname, instrument_code, func, this_stage, *args, **kwargs):
+```python 	
+    def calc_or_cache(self, itemname, instrument_code, func, this_stage,  *args, flags="", **kwargs):
         """
         Assumes that self._cache has an attribute itemname, and that is a dict
-        
-        If self._cache.itemname[instrument_code] exists return it. Else call func with *args and **kwargs
-        if the latter updates the dictionary
-    
-        :param itemname: attribute of object containing a dict 
-        :type itemname: str
-    
-        :param instrument_code: keyname to look for in dict 
-        :type instrument_code: str
-        
-        :param func: function to call if missing from cache. will take self and instrument_code as first two args
-        :type func: function
-    
-        :param args, kwargs: also passed to func if called
-        
-        :returns: contents of dict or result of calling function
-        
-        
-        """
-        cache_ref=(this_stage.name, itemname)
 
-        value=self.get_item_from_cache(cache_ref, instrument_code)
-        
-        if value is None:
+        If self._cache.itemname[instrument_code] exists return it. Else call
+        func with *args and **kwargs if the latter updates the dictionary
+
+        :param itemname: attribute of object containing a dict
+        :type itemname: str
+
+        :param instrument_code: keyname to look for in dict
+        :type instrument_code: str
+
+        :param func: function to call if missing from cache. will take self and
+            instrument_code as first two args
+        :type func: function
+
+        :param this_stage: stage within system that is calling us
+        :type this_stage: system stage
+
+        :param flags: Optional further descriptor for cache item (included in kwargs)
+        :type flags: str
+
+        :param args, kwargs: also passed to func if called
+
+        :returns: contents of dict or result of calling function
+
+
+        """
+        #flags=kwargs.pop("flags", "")
             
-            value=func(self, instrument_code, this_stage, *args, **kwargs)
+        cache_ref=(this_stage.name, itemname, flags)
+        value = self.get_item_from_cache(cache_ref, instrument_code)
+
+        if value is None:
+            value = func(self, instrument_code, this_stage,  *args, **kwargs)
             self.set_item_in_cache(value, cache_ref, instrument_code)
-        
+
         return value
 ```
 
@@ -1439,44 +1498,50 @@ Again if a calculation function (like `_get_forecast_scalar`) needs the current 
 For reference here is [`calc_or_cache_nested`](/systems/basesystem.py). Notice that in the example above keyname is the rule_variation_name and there are no *args.
 
 ```python
-    def calc_or_cache_nested(self, itemname, instrument_code, keyname, func, this_stage, *args, **kwargs):
+    def calc_or_cache_nested(self, itemname, instrument_code, keyname, func, this_stage, 
+                             *args, **kwargs):
         """
         Assumes that self._cache has a key itemname, and that is a nested dict
-        
-        If itemname[instrument_code][keyname] exists return it. 
-        Else call func with arguments: self, instrument_code, keyname, *args and **kwargs
-        if we have to call the func updates the dictionary with it's value
-    
-        Used for cache within various kinds of objects like config, price, data, system...
-    
-        :param itemname: cache item to look for 
-        :type itemname: str
-    
-        :param instrument_code: keyname to look for in dict 
-        :type instrument_code: str
-    
-        :param keyname: keyname to look for in nested dict 
-        :type keyname: valid dict key
-    
-        :param func: function to call if missing from cache. will take self and instrument_code, keyname as first three args
-        :type func: function
-    
-        :param args, kwargs: also passed to func if called
-        
-        :returns: contents of dict or result of calling function
-        
-        
-        """
-        cache_ref=(this_stage.name, itemname)
 
-        value=self.get_item_from_cache(cache_ref, instrument_code, keyname)
-        
-        if value is None:        
-            value=func(self, instrument_code, keyname, this_stage, *args, **kwargs)
+        If itemname[instrument_code][keyname] exists return it.
+        Else call func with arguments: self, instrument_code, keyname, *args
+        and **kwargs if we have to call the func updates the dictionary with
+        it's value
+
+        Used for cache within various kinds of objects like config, price,
+        data, system...
+
+        :param itemname: cache item to look for
+        :type itemname: str
+
+        :param instrument_code: keyname to look for in dict
+        :type instrument_code: str
+
+        :param keyname: keyname to look for in nested dict
+        :type keyname: valid dict key
+
+        :param func: function to call if missing from cache. will take self and
+            instrument_code, keyname as first three args
+        :type func: function
+
+        :param this_stage: stage within system that is calling us
+        :type this_stage: system stage
+
+        :param args, kwargs: also passed to func if called
+
+        :returns: contents of dict or result of calling function
+        """
+        flags=kwargs.pop("flags", "")
+
+        cache_ref=(this_stage.name, itemname, flags)
+
+        value = self.get_item_from_cache(cache_ref, instrument_code, keyname)
+
+        if value is None:
+            value = func(self, instrument_code, keyname, this_stage, *args, **kwargs)
             self.set_item_in_cache(value, cache_ref, instrument_code, keyname)
-        
+
         return value
-    
 
 ```
 
@@ -1745,6 +1810,7 @@ If you're going to write a new stage (completely new, or to replace an existing 
 4. Modified stages should use the same name as their parent, or the wiring will go haywire. They should however use a different description, which goes in the attribute `description` attribute.
 5. Consider using a [*switching*](#switch_persistence) stage like [class `ForecastCombine`](/systems/forecast_combine.py) (there are similar switches for forecast scaling and portfolios).
 6. Think about whether you need to protect part of the system cache for this stage output [system caching](#caching). To do this create a list in the attribute `_protected` with the item names you wish to protect.
+6a. Similarly if you're going to cache complex objects that won't pickle easily (like accountCurve objects) you need to add the item name to the attribute '_nopickle'.
 7. If you're inheriting from another stage be sure to add to it's list of protected items, rather than replacing it.
 8. Use non-cached input methods to get data from other stages. Be wary of accessing internal methods in other stages; try to stick to output methods only. 
 9. Use cached input methods to get data from the system data object (since this is the first time it will be cached). Again only access public methods of the system data object.
@@ -2757,15 +2823,19 @@ The final stage is the all important accounting stage, which calculates p&l.
 
 The standard accounting class includes several useful methods:
 
-- `portfolio`: works out the p&l for the whole system
-- `pandl_for_instrument`: the contribution of a particular instrument to the p&l
-- `pandl_for_subsystem`: work out how an instrument has done in isolation
-- `pandl_across_subsystems`: group together all subsystem p&l (not the same as portfolio! Instrument weights aren't used)
-- `pandl_for_trading_rule`: how a trading rule has done agggregated over all instruments, using instrument weights and IDM to weight.
-- `pandl_for_trading_rule_unweighted`: how a trading rule has done over all instruments, unweighted
-- `pandl_for_instrument_rules`: how all trading rules have done for a particular instrument 
-- `pandl_for_instrument_rules_unweighted`: how all trading rules have done for one instrument, unweighted
-- `pandl_for_instrument_forecast`: work out how well a particular trading rule variation has done with a particular instrument
+- `portfolio`: works out the p&l for the whole system (returns accountCurve)
+- `pandl_for_instrument`: the contribution of a particular instrument to the p&l (returns accountCurve)
+- `pandl_for_subsystem`: work out how an instrument has done in isolation (returns accountCurve)
+- `pandl_across_subsystems`: group together all subsystem p&l (not the same as portfolio! Instrument weights aren't used)  (returns accountCurveGroup)
+- `pandl_for_trading_rule`: how a trading rule has done agggregated over all instruments (returns accountCurveGroup)
+- `pandl_for_trading_rule_weighted`: how a trading rule has done over all instruments as a proportion of total capital  (returns accountCurveGroup)
+- `pandl_for_trading_rule_unweighted`: how a trading rule has done over all instruments, unweighted  (returns accountCurveGroup)
+- `pandl_for_all_trading_rules`: how all trading rules have done over all instruments (returns nested accountCurveGroup)
+- `pandl_for_all_trading_rules_unweighted`: how all trading rules have done over all instruments, unweighted (returns nested accountCurveGroup)
+- `pandl_for_instrument_rules`: how all trading rules have done for a particular instrument  (returns accountCurveGroup)
+- `pandl_for_instrument_rules_unweighted`: how all trading rules have done for one instrument, unweighted (returns accountCurveGroup)
+- `pandl_for_instrument_forecast`: work out how well a particular trading rule variation has done with a particular instrument (returns accountCurve)
+- `pandl_for_instrument_forecast_weighted`: work out how well a particular trading rule variation has done with a particular instrument as a proportion of total capital (returns accountCurve)
 
 
 (Note that [buffered](#buffer) positions are only used at the final portfolio stage; the positions for forecasts and subsystems are not buffered. So their trading costs may be a little overstated).
@@ -2778,7 +2848,7 @@ These classes share some useful arguments (all boolean):
 - `roundpositions`: Round positions to nearest instrument block. Defaults to True for portfolios and instruments, defaults to False for subsystems. Not used in `pandl_for_instrument_forecast` or `pandl_for_trading_rule` (always False)
 - `percentage`: Return the p&l as a percentage of notional capital, rather than in cash amounts. Defaults to True. Not used in in `pandl_for_instrument_forecast` or `pandl_for_trading_rule`(always False)
 
-All p&l methods return an object of type `accountCurve` (for instruments, subsystems and instrument forecasts) or `accountCurveGroup` (for portfolio and trading rule). This inherits from a pandas data frame, so it can be plotted, averaged and so on. It also has some special methods. To see what they are use the `stats` method:
+All p&l methods return an object of type `accountCurve` (for instruments, subsystems and instrument forecasts) or `accountCurveGroup` (for portfolio and trading rule), or even nested `accountCurveGroup` (`pandl_for_all_trading_rules`, `pandl_for_all_trading_rules_unweighted`). This inherits from a pandas data frame, so it can be plotted, averaged and so on. It also has some special methods. To see what they are use the `stats` method:
 
 ```python
 from systems.provided.futures_chapter15.basesystem import futures_system
@@ -2957,22 +3027,54 @@ boot.net.get_stats("sharpe").pvalue() ## all this kind of stuff works. Time weig
 
 Note if you have a large number of instruments this code will probably fail. It's more useful when you have a small number, and are concerned about statistical robustness.
 
+
+#### A nested `accountCurveGroup` 
+
+A nested `accountCurveGroup`, is the output you get from `pandl_for_all_trading_rules` and `pandl_for_all_trading_rules_unweighted`. For example:
+
+```python
+nested_acc_curve_group=system.accounts.pandl_for_all_trading_rules()
+```
+
+This is an account curve group, whose elements are the performance of each trading rule eg this kind of thing works:
+
+```python
+ewmac64_acc=system.accounts.pandl_for_all_trading_rules()['ewmac64_256']
+```
+
+However this is also an accountCurveGroup! So you can, for example display how each instrument within this trading rule contributed to performance as a data frame:
+
+```python
+ewmac64_acc.to_frame()
+```
+
+
 <a name="weighted_acg">
 ##### Weighted and unweighted account curve groups
 </a>
 
 There are two types of account curve; weighted and unweighted. Weighted curves include returns for each instrument (or trading rule) as a proportion of the total capital at risk. Unweighted curves show each instrument or trading rule in isolation. 
 
-- `portfolio`: works out the p&l for the whole system (weighted group - elements are `pandl_for_instrument`)
-- `pandl_for_instrument`: the contribution of a particular instrument to the p&l  (weighted individual curve for one instrument)
-- `pandl_for_trading_rule`: how a trading rule has done over all instruments (weighted group -elements are `pandl_for_instrument_forecast` across instruments)
--`pandl_for_instrument_rules`: how all trading rules have done for a particular instrument (weighted group - elements are `pandl_for_instrument_forecast` across trading rules)  
+Weighted:
+- `portfolio`: works out the p&l for the whole system (weighted group - elements are `pandl_for_instrument` - effective weights are instrument weights * IDM)
+- `pandl_for_instrument`: the contribution of a particular instrument to the p&l  (weighted individual curve for one instrument - effective weight is instrument weight * IDM)
+-`pandl_for_instrument_rules`: how all trading rules have done for a particular instrument (weighted group - elements are `pandl_for_instrument_forecast` across trading rules; effective weights are forecast weights * FDM)  
+- `pandl_for_instrument_forecast_weighted`: work out how well a particular trading rule variation has done with a particular instrument as a proportion of total capital (weighted individual curve - weights are forecast weight * FDM * instrument weight * IDM)
+- `pandl_for_trading_rule_weighted`: how a trading rule has done over all instruments as a proportion of total capital (weighted group -elements are `pandl_for_instrument_forecast_weighted` across instruments - effective weights are risk contribution of instrument to trading rule)
+- `pandl_for_all_trading_rules`: how all trading rules have done over all instruments (weighted group -elements are `pandl_for_trading_rule_weighted` across variations - effective weight is risk contribution of each trading rule) 
 
+Partially weighted (see below):
+- `pandl_for_trading_rule`: how a trading rule has done over all instruments (weighted group -elements are `pandl_for_instrument_forecast_weighted` across instruments, weights are risk contribution of each instrument to trading rule)
+
+Unweighted:
 - `pandl_across_subsystems`: works out the p&l for all subsystems (unweighted group - elements are `pandl_for_subsystem`)
 - `pandl_for_subsystem`: work out how an instrument has done in isolation (unweighted individual curve for one instrument)
-- `pandl_for_instrument_rules_unweighted`: how all trading rules have done for a particular instrument (unweighted group - elements are `pandl_for_instrument_forecast` across trading rules) 
-- `pandl_for_trading_rule_unweighted`: how a trading rule has done over all instruments (unweighted group -elements are `pandl_for_instrument_forecast` across instruments)
 - `pandl_for_instrument_forecast`: work out how well a particular trading rule variation has done with a particular instrument (unweighted individual curve)
+- `pandl_for_instrument_rules_unweighted`: how all trading rules have done for a particular instrument (unweighted group - elements are `pandl_for_instrument_forecast` across trading rules) 
+- `pandl_for_trading_rule_unweighted`: how a trading rule has done over all instruments (unweighted group -elements are `pandl_for_instrument_forecast` 
+across instruments)
+- `pandl_for_all_trading_rules_unweighted`: how all trading rules have done over all instruments (unweighted group -elements are `pandl_for_trading_rule` across instruments - effective weight is risk contribution of each trading rule) 
+
 
 Note that `pandl_across_subsystems` / `pandl_for_subsystem`  are effectively the unweighted versions of `portfolio` / `pandl_for_instrument`.
 
@@ -2983,12 +3085,28 @@ The difference is important for a few reasons.
 - The portfolio level aggregate returns of unweighted group curves will make no sense. They will be equally weighted, whereas we'd normally have different weights. 
 - Also for portfolios of unweighted groups risk will usually fall over time as markets are added and diversification effects appear. Again this is more problematic for groups of instruments (within a portfolio, or within a trading rule)
 
+Weighting for trading rules p&l is a *little* complicated. 
+
+*`pandl_for_instrument_forecast`:* If I want the p&l of a single trading rule for one instrument in isolation, then I use `pandl_for_instrument_forecast`. *`pandl_for_trading_rule_unweighted`*: If I aggregate these across instruments then I get `pandl_for_trading_rule_unweighted`. The individiual unweighted curves are instrument p&l for each instrument and forecast.
+
+*`pandl_for_instrument_forecast_weighted`:* The weighted p&l of a single trading rule for one instrument, as a proportion of the *entire system's capital*, will be it's individual p&l in isolation (`pandl_for_instrument_forecast`) multiplied by the product of the instrument and forecast weights, and the IDM and FDM (this ignores the effect of total forecast capping and position buffering or inertia). 
+
+*`pandl_for_trading_rule_weighted`:* The weighted p&l of a single trading rule across individual instruments, as a proportion of the *entire system's capital*, will be the group of `pandl_for_instrument_forecast_weighted` of these for a given rule. You can get this with `pandl_for_trading_rule_weighted`. The individual curves within this will be instrument p&l for the relevant trading rule, effectively weighted by the product of instrument, forecast weights, FDM and IDM. The risk of the total curve will be equal to the risk of the rule as part of the total capital, so will be lower than you'd expect. 
+
+*`pandl_for_all_trading_rules`:* If I group the resulting curves across trading rules, then I get `pandl_for_all_trading_rules`. The individual curves will be individual trading rules, weighted by their contribution to total risk. The total curve is the entire system; it will look close to but not exactly like a `portfolio` account curve because of the non linear effects of combined forecast capping, and position buffering or inertia, and rounding if that's used for the portfolio curve.
+
+*`pandl_for_trading_rule`:*  If I want the performance of a given trading rule across individual instruments in isolation, then I need to take `pandl_for_trading_rule_weighted` and normalise it so that the returns are as a proportion of the sum of all the relevant forecast weight * FDM * instrument weight * IDM; this is equivalent to the rules risk contribution within the system. . This is an unweighted curve in one sense (it's not a proportion of total capital), but it's weighted in another (the indiviaul curves when added up give the group curve). The total account curve will have the same target risk as the entire system. The individual curves within it are for each instrument, weighted by their contribution to risk. 
+
+*`pandl_for_all_trading_rules_unweighted`:* If I group *these* curves together, then I get `pandl_for_all_trading_rules_unweighted`. The individual curves will be individual trading rules but not weighted; so each will have it's own risk target. This is an unweighted group in the truest sense; the total curve won't make sense.
+
+
 To summarise:
 
 - Individual account curves eithier in, or outside, a weighted group should be treated with caution. But the entire portfolio curve is fine.
 - The portfolio level account curve for an unweighted group should be treated with caution. But the individual curves are fine.
+- With the exception of `pandl_for_trading_rule` the portfolio level curve for a weighted group is a proportion of the entire system capital.
 
-The attribute `weighted_flag` is set to eithier True (for weighted curves) or False (otherwise). All curve __repr__ methods also show eithier weighted or unweighted status.
+The attribute `weighted_flag` is set to eithier True (for weighted curves including `pandl_for_trading_rule`) or False (otherwise). All curve __repr__ methods also show eithier weighted or unweighted status.
 
 #### Testing account curves
 
@@ -3009,9 +3127,9 @@ I work out costs in two different ways:
 - by applying a constant drag calculated according to the standardised cost in Sharpe ratio terms and the estimated turnover (see chapter 12 of my book)
 - using the actual costs for each trade.
 
-The former method is always used for costs derived from forecasts (`pandl_for_instrument_forecast`, `pandl_for_trading_rule`, `pandl_for_trading_rule_unweighted`, `pandl_for_instrument_rules_unweighted`, and `pandl_for_instrument_rules`).
+The former method is always used for costs derived from forecasts (`pandl_for_instrument_forecast`, `pandl_for_instrument_forecast_weighted`, `pandl_for_trading_rule`, `pandl_for_all_trading_rules`, `pandl_for_all_trading_rules_unweighted`, `pandl_for_trading_rule_unweighted`, `pandl_for_trading_rule_weighted`, `pandl_for_instrument_rules_unweighted`, and `pandl_for_instrument_rules`).
 
-The latter method is optional for costs derived from actual positions. Set `config.use_SR_costs = False` to use it. It is useful for comparing with live trading history, but I do not recommend it for historical purposes as I don't think it is accurate in the past.
+The latter method is optional for costs derived from actual positions (everything else). Set `config.use_SR_costs = False` to use it for these methods. It is useful for comparing with live trading history, but I do not recommend it for historical purposes as I don't think it is accurate in the past.
 
 Costs that can be included are:
 
@@ -3026,6 +3144,14 @@ To see the turnover that has been estimated use:
 system.accounts.subsystem_turnover(instrument_code) ### Annualised turnover of subsystem
 system.accounts.instrument_turnover(instrument_code) ### Annualised turnover of portfolio level position
 system.accounts.forecast_turnover(instrument_code, rule_variation_name) ## Annualised turnover of forecast
+```
+
+For calculating forecast costs (`pandl_for_instrument_forecast`... and so on. Note these are used for estimating forecast weights) I offer the option to pool costs across instruments. You can eithier pool the estimate of turnovers (which I recommend), or pool the average of cost * turnover (which I don't recommend). Averaging in the pooling process is always done with more weight given to instruments that have more history.
+
+```
+forecast_cost_estimate:
+   use_pooled_costs: False
+   use_pooled_turnover: True
 ```
 
 
@@ -3106,7 +3232,7 @@ This has the advantage of keeping the original log attributes intact. If you wan
 ## Optimisation
 </a>
 
-See [my blog post](http://qoppac.blogspot.co.uk/2016/01/correlations-weights-multipliers.html)
+See my blog posts on optimisation: [without](http://qoppac.blogspot.co.uk/2016/01/correlations-weights-multipliers.html) and [with costs](http://qoppac.blogspot.co.uk/2016/05/optimising-weights-with-costs.html).
 
 I use an optimiser to calculate both forecast and instrument weights. The process is almost identical for both. 
 
@@ -3114,14 +3240,54 @@ I use an optimiser to calculate both forecast and instrument weights. The proces
 
 From the config
 ```
-forecast_weight_estimate:
-   func: syscore.optimisation.GenericOptimiser
-   pool_instruments: True ##
+forecast_weight_estimate: ## can also be applied to instrument weights
+   func: syscore.optimisation.GenericOptimiser ## this is the only function provided
+   pool_instruments: True ## not used for instrument weights
    frequency: "W" ## other options: D, M, Y
 
 ```
 
-I recommend using weekly data, since it speeds things up and doesn't affect out of sample performance. Pooling instruments also makes sense, although in a future version I'll modify this to allow for different costs.
+I recommend using weekly data, since it speeds things up and doesn't affect out of sample performance. 
+
+### Removing expensive assets (forecast weights only)
+
+Again I recommend you check out this [blog post](http://qoppac.blogspot.co.uk/2016/05/optimising-weights-with-costs.html). 
+
+```
+forecast_weight_estimate:
+   ceiling_cost_SR: 0.13 ## Max cost to allow for assets, annual SR units.  
+```
+
+See ['costs'](#costs) to see how to configure pooling when estimating the costs of forecasts.
+
+
+### Pooling gross returns (forecast weights only)
+
+Pooling across instruments is only available when calculating forecast weights. Again I recommend you check out this [blog post](http://qoppac.blogspot.co.uk/2016/05/optimising-weights-with-costs.html). Only instruments whose rules have survived the application of a ceiling cost will be included in the pooling process.
+
+
+```
+forecast_weight_estimate:
+   pool_gross_returns: True ## pool gross returns for estimation
+forecast_cost_estimate:
+   use_pooled_costs: False  ### use weighted average of [SR cost * turnover] across instruments with the same set of trading rules
+   use_pooled_turnover: True ### Use weighted average of turnover across instruments with the same set of trading rules
+```
+
+See ['costs'](#costs) to see how to configure pooling when estimating the costs of forecasts. Notice if pool_gross_returns is True, and use_pooled_costs is True, then a single optimisation will be run across all instruments with a common set of trading rules. Otherwise each instrument is optimised individually, which is slower.
+
+
+### Working out net costs (both instrument and forecast weights)
+
+Again I recommend you check out this [blog post](http://qoppac.blogspot.co.uk/2016/05/optimising-weights-with-costs.html). 
+
+```
+forecast_weight_estimate:  ## can also be applied to instrument weights
+   equalise_gross: False ## equalise gross returns so that only costs are used for optimisation
+   cost_multiplier: 0.0 ## multiply costs by this number. Zero means grosss returns used. Higher than 1 means costs will be inflated. Use zero if apply_cost_weight=True (see later)
+```
+Notice if equalise_gross is True, and use_pooled_costs is True, then a single optimisation will be run across all instruments with a common set of trading rules (regardless of the value of pool_gross_returns).
+
 
 ### Time periods
 
@@ -3141,6 +3307,7 @@ To do an optimisation we need estimates of correlations, means, and standard dev
 From the config
 
 ```
+forecast_weight_estimate:  ## can also be applied to instrument weights
    correlation_estimate:
      func: syscore.correlations.correlation_single_period
      using_exponent: False
@@ -3165,57 +3332,79 @@ If you're using shrinkage or single period optimisation I'd suggest using an exp
 
 ### Methods
 
-There are three methods provided to optimise with in the function I've included. Personally I'd use shrinkage if I wanted a quick answer, then bootstrapping.
+There are four methods provided to optimise with in the function I've included. Personally I'd use shrinkage if I wanted a quick answer, then bootstrapping.
+
+#### Equal weights
+
+This will give everything in the optimisation equal weights.
+
+```
+   method: equal_weights
+```
+
+This differs from the "fixed" flavour of forecast combination which gives equal weight to all trading rules; because here any trading rules that are too expensive for a particular instrument will not be included, and effectively have a zero weight.
 
 
 #### One period (not recommend)
 
-This is the classic Markowitz optimisation with the option to equalise means (makes things more stable) and volatilities. Since we're dealing with things that should have the same volatility anyway the latter is something I recommend doing.
+This is the classic Markowitz optimisation with the option to equalise Sharpe Ratios (makes things more stable) and volatilities. Since we're dealing with things that should have the same volatility anyway the latter is something I recommend doing.
 
 ```
    method: one_period
-   equalise_means: True
+   equalise_SR: True
+   ann_target_SR: 0.5  ## Sharpe we head to if we're equalising
    equalise_vols: True
 ```
+
+Notice that if you equalise Sharpe then this will override the effect of any pooling or changes to cost calculation.
 
 #### Bootstrapping (recommended, but slow)
 
 Here we're bootstrapping, by default drawing 50 weeks of data at a time, 100 times.
 
-For greater stability I recommend equalising the means, although this shouldn't be done once you're working with post cost returns.
 
 ```
 method: bootstrap
    monte_runs: 100
    bootstrap_length: 50
-   equalise_means: True
+   equalise_SR: False
+   ann_target_SR: 0.5  ## Sharpe we head to if we're shrinking or equalising
    equalise_vols: True
 
 ```
 
+Notice that if you equalise Sharpe then this will override the effect of any pooling or changes to cost calculation.
+
 #### Shrinkage
 
-This is a basic shrinkage towards a prior of equal sharpe ratios, and equal correlations; with priors equal to the average of estimates from the data.
+This is a basic shrinkage towards a prior of equal sharpe ratios, and equal correlations; with priors equal to the average of estimates from the data. Shrinkage of 1.0 means we use the priors, 0.0 means we use the empirical estimates.
 
 ```
    method: shrinkage 
    shrinkage_SR: 0.90
+   ann_target_SR: 0.5  ## Sharpe we head to if we're shrinking 
    shrinkage_corr: 0.50
    equalise_vols: True
 
 ```
 
+Notice that if you equalise Sharpe by shrinking with a factor of 1.0, then this will override the effect of any pooling or changes to cost calculation.
+
 
 ### Post processing
+
+If we haven't accounted for costs earlier (eg by setting `cost_multiplier=0`) then we can adjust our portfolio weights according to costs after they've been calculated. See this blog post [blog post](http://qoppac.blogspot.co.uk/2016/05/optimising-weights-with-costs.html). 
 
 If weights are *cleaned*, then in a fitting period when we need a weight, but none has been calculated (due to insufficient data for example), an instrument is given a share of the weight.
 
 We also smooth weights with an EWMA to avoid trading when they change.
 
 ```
+   apply_cost_weight: True
    ewma_span: 125
    cleaning: True
 ```
+
 
 <a name="divmult">
 ## Estimating correlations and diversification multipliers
@@ -3432,27 +3621,41 @@ Inputs:
 | `accounts.get_buffers_for_position`| Standard |  `instrument_code` | I | `portfolio.get_buffers_for_position`|
 | `accounts.get_instrument_diversification_multiplier`| Standard |   | I | `portfolio.get_instrument_diversification_multiplier`|
 | `accounts.get_instrument_weights`| Standard |   | I | `portfolio.get_instrument_weights`|
-| `accounts.get_trading_rules_used`| Standard |   | I | `combForecast.get_trading_rule_list`|
+| `accounts.get_trading_rules_list`| Standard | `instrument_code`  | I | `combForecast.get_trading_rule_list`|
+| `accounts.has_same_rules_as_code`| Standard |  `instrument_code` | I | `combForecast._has_same_rules_as_code`|
 
-Diagnostics / Outputs:
+
+Diagnostics:
 
 | Call                              | Standard?| Arguments       | Type | Description                                                    |
 |:-------------------------:|:---------:|:---------------:|:----:|:--------------------------------------------------------------:|
+| `accounts.get_entire_trading_rule_list`| Standard |   | D | All trading rules across instruments|
 | `accounts.get_instrument_scaling_factor`| Standard | `instrument_code`  | D | IDM * instrument weight|
+| `accounts.get_forecast_scaling_factor`| Standard | `instrument_code`, `rule_variation_name`  | D | FDM * forecast weight|
+| `accounts.get_instrument_forecast_scaling_factor`| Standard | `instrument_code`, `rule_variation_name`  | D | IDM * instrument weight * FDM * forecast weight|
+| `accounts.get_capital_in_rule`| Standard |  `rule_variation_name`  | D | Sum of `get_instrument_forecast_scaling_factor` for a given trading rule|
 | `accounts.get_buffered_position`| Standard |  `instrument_code` | D | Buffered position at portfolio level|
 | `accounts.subsystem_turnover`| Standard | `instrument_code`  | D | Annualised turnover of subsystem|
 | `accounts.instrument_turnover`| Standard | `instrument_code`  | D | Annualised turnover of instrument position at portfolio level|
 | `accounts.forecast_turnover`| Standard | `instrument_code`, `rule_variation_name`  | D | Annualised turnover of forecast|
+| `accounts.get_SR_cost_for_instrument_forecast`| Standard | `instrument_code`, `rule_variation_name`  | D | SR cost * turnover for forecast|
+
+
+Accounting outputs:
+
 | `accounts.pandl_for_instrument`| Standard |  `instrument_code` | D | P&l for an instrument within a system|
 | `accounts.pandl_for_instrument_forecast`| Standard | `instrument_code`, `rule_variation_name` | D | P&l for a trading rule and instrument |
+| `accounts.pandl_for_instrument_forecast_weighted`| Standard | `instrument_code`, `rule_variation_name` | D | P&l for a trading rule and instrument as a % of total capital |
 | `accounts.pandl_for_instrument_rules`| Standard | `instrument_code` | D,O | P&l for all trading rules in an instrument, weighted |
 | `accounts.pandl_for_instrument_rules_unweighted`| Standard | `instrument_code` | D,O | P&l for all trading rules in an instrument, unweighted |
 | `accounts.pandl_for_trading_rule`| Standard | `rule_variation_name` | D | P&l for a trading rule over all instruments |
+| `accounts.pandl_for_trading_rule_weighted`| Standard | `rule_variation_name` | D | P&l for a trading rule over all instruments as % of total capital |
 | `accounts.pandl_for_trading_rule_unweighted`| Standard | `rule_variation_name` | D | P&l for a trading rule over all instruments, unweighted |
 | `accounts.pandl_for_subsystem`| Standard |  `instrument_code` | D | P&l for an instrument outright|
 | `accounts.pandl_across_subsystems`| Standard |  `instrument_code` | O,D | P&l across instruments, outright|
+| `accounts.pandl_for_all_trading_rules`| Standard |  | D | P&l for trading rules across whole system |
+| `accounts.pandl_for_all_trading_rules_unweighted`| Standard |  | D | P&l for trading rules across whole system |
 | `accounts.portfolio`| Standard |  | O,D | P&l for whole system |
-
 
 
 
@@ -3757,7 +3960,7 @@ config.forecast_weights=dict(SP500=["ewmac","carry"], US10=["ewmac"])
 Represented as: dict of str, or dict, each representing parameters.
 Defaults: See below
 
-To estimate the forecast weights we call the function defined in the `func` config element. If `pool_instruments` is True, then we use the returns of all instruments with the same set of trading rules to work out the forecast weights. All other parameters are passed to the optimisation function.
+To estimate the forecast weights we call the function defined in the `func` config element. 
 
 The defaults given below are for the default generic optimiser function. See the section on (optimisation)[#optimisation] for more information.
 
@@ -3765,13 +3968,18 @@ YAML, showing defaults
 ```
 forecast_weight_estimate:
    func: syscore.optimisation.GenericOptimiser
-   method: shrinkage ## other options: one_period, bootstrap
-   pool_instruments: True
+   method: shrinkage ## other options: one_period, bootstrap, equal_weights
+   pool_gross_returns: True
+   equalise_gross: False
+   cost_multiplier: 1.0
+   ceiling_cost_SR: 0.13
+   apply_cost_weight: True
    frequency: "W" ## other options: D, M, Y
    date_method: expanding ## other options: in_sample, rolling
    rollyears: 20
    cleaning: True
-   equalise_means: True
+   equalise_SR: True
+   ann_target_SR: 0.5  ## Sharpe we head to if we're shrinking or equalising
    equalise_vols: True
    shrinkage_SR: 0.90
    shrinkage_corr: 0.50
@@ -3978,12 +4186,17 @@ YAML, showing defaults
 ```
 instrument_weight_estimate:
    func: syscore.optimisation.GenericOptimiser
-   method: shrinkage ## other options: one_period, bootstrap
+   method: shrinkage ## other options: one_period, bootstrap, equal_weights
    frequency: "W" ## other options: D, M, Y
+   equalise_gross: False
+   cost_multiplier: 1.0
+   apply_cost_weight: True
+   ceiling_cost_SR: 999 ## this means we don't apply ceiling costs at all
    date_method: expanding ## other options: in_sample, rolling
    rollyears: 20
    cleaning: True
-   equalise_means: True
+   equalise_SR: True
+   ann_target_SR: 0.5  ## Sharpe we head to if we're shrinking or equalising
    equalise_vols: True
    shrinkage_SR: 0.90
    shrinkage_corr: 0.50
@@ -4135,10 +4348,8 @@ buffer_trade_to_edge: True
 
 #### Costs
 
-Should we use normalised Sharpe Ratio [costs](#costs), or the actual costs?
+Should we use normalised Sharpe Ratio [costs](#costs), or the actual costs for instrument level p&l (we always use SR costs for forecasts)?
 
-Represented as: bool
-Default: True
 
 YAML: 
 ```
@@ -4146,4 +4357,12 @@ YAML:
 use_SR_costs: True
 ```
 
+Should we pool SR costs across instruments when working out forecast p&L?
+
+YAML:
+```
+forecast_cost_estimate:
+   use_pooled_costs: False  ### use weighted average of SR cost * turnover across instruments with the same set of trading rules
+   use_pooled_turnover: True ### Use weighted average of turnover across instruments with the same set of trading rules
+```
 

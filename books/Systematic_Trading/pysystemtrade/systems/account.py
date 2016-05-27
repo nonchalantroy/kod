@@ -1,13 +1,14 @@
 import pandas as pd
+import numpy as np
 
-from syscore.accounting import accountCurve, accountCurveGroup
+from syscore.accounting import accountCurve, accountCurveGroup, weighted
 from systems.stage import SystemStage
 from systems.basesystem import ALL_KEYNAME
 from systems.defaults import system_defaults
 from syscore.algos import robust_vol_calc, apply_buffer
 from syscore.genutils import TorF
 from syscore.dateutils import ROOT_BDAYS_INYEAR
-from syscore.pdutils import multiply_df_single_column, turnover
+from syscore.pdutils import  turnover
 from dis import Instruction
 
 
@@ -55,6 +56,9 @@ class Account(SystemStage):
         system.combForecast.get_trading_rule_list
             found in self.get_trading_rule_list
 
+        system.combForecast.has_same_rules_as_code
+            found in self.has_same_rules_as_code
+
     KEY OUTPUTS: Used for optimisation:
                  system.accounts.pandl_for_instrument_rules_unweighted
                  system.accounts.accounts.pandl_across_subsystems
@@ -71,17 +75,27 @@ class Account(SystemStage):
 
 
         """
+        setattr(self, "name", "accounts")
+        setattr(self, "description", "Account()")
 
         protected = []
         setattr(self, "_protected", protected)
 
-        setattr(self, "name", "accounts")
-        setattr(self, "description", "Account()")
+        nopickle=["portfolio",  "pandl_for_instrument_forecast",
+                  "pandl_for_subsystem", "pandl_across_subsystems", "pandl_for_instrument",
+                  "pandl_for_instrument_rules_unweighted", 'pandl_for_trading_rule_unweighted',
+                  'pandl_for_trading_rule','pandl_for_instrument_rules', 'pandl_for_instrument_forecast'
+                  ]
+
+        setattr(self, "_nopickle", nopickle)
+
+
 
 
     def get_capped_forecast(self, instrument_code, rule_variation_name):
         """
         Get the capped forecast from the previous module
+
 
         KEY INPUT
 
@@ -96,6 +110,53 @@ class Account(SystemStage):
         """
         return self.parent.forecastScaleCap.get_capped_forecast(
             instrument_code, rule_variation_name)
+
+    def get_aligned_forecast(self, instrument_code, rule_variation_name):
+        """
+        Get the capped forecast aligned to daily prices
+
+
+        KEY INPUT
+
+        :param instrument_code:
+        :type str:
+
+        :param rule_variation_name:
+        :type str: name of the trading rule variation
+
+        :returns: Tx1 pd.DataFrames
+
+        """
+        def _get_aligned_forecast(system, instrument_code, rule_variation_name, this_stage):
+            price=self.get_daily_price(instrument_code)
+            forecast=self.get_capped_forecast(instrument_code, rule_variation_name)
+            
+            forecast=forecast.reindex(price.index).ffill()
+            
+            return forecast
+        
+        aligned_forecast = self.parent.calc_or_cache_nested(
+            'get_aligned_forecast', instrument_code, rule_variation_name,
+            _get_aligned_forecast, self)
+
+        return aligned_forecast
+
+
+    def has_same_rules_as_code(self, instrument_code):
+        """
+        Return instruments with same trading rules as this instrument
+    
+        KEY INPUT
+
+        :param instrument_code:
+        :type str:
+
+        :returns: list of str
+
+        """
+        return self.parent.combForecast.has_same_rules_as_code(instrument_code)
+
+
 
     def get_forecast_weights(self, instrument_code):
         """
@@ -169,6 +230,32 @@ class Account(SystemStage):
         return self.parent.positionSize.get_subsystem_position(instrument_code)
 
 
+    def get_aligned_subsystem_position(self, instrument_code):
+        """
+        Get the position assuming all capital in one instruments, aligned to price
+
+        :param instrument_code: instrument to get values for
+        :type instrument_code: str
+
+        :returns: Tx1 pd.DataFrame
+
+
+        """
+        def _get_aligned_subsystem_position(system, instrument_code,  this_stage):
+            price=this_stage.get_daily_price(instrument_code)
+            sspos=this_stage.get_subsystem_position(instrument_code)
+            
+            sspos = sspos.reindex(price.index).ffill()
+            
+            return sspos
+        
+        aligned_subsys_pos= self.parent.calc_or_cache(
+            'get_aligned_subsystem_position', instrument_code, 
+            _get_aligned_subsystem_position, self)
+
+        return aligned_subsys_pos
+
+
     def get_trading_rule_list(self, instrument_code):
         """
         Get the trading rules for this instrument, from a previous module
@@ -179,6 +266,21 @@ class Account(SystemStage):
 
         """
         return self.parent.combForecast.get_trading_rule_list(instrument_code)
+
+    def get_entire_trading_rule_list(self):
+        """
+        Get the trading rules for all instruments
+
+
+        :returns: list of str
+
+        """
+        instrument_list=self.get_instrument_list()
+        rules=[self.get_trading_rule_list(instrument_code) for instrument_code in instrument_list]
+        rules=sum(rules, [])
+        rules.sort()
+        
+        return list(set(rules))
 
     def get_instrument_list(self):
         """
@@ -191,26 +293,6 @@ class Account(SystemStage):
         """
         return self.parent.get_instrument_list()
 
-    def get_rule_groups(self):
-        """
-        Get the rule groups from the config
-
-        NOT USED YET
-
-        :returns: nested dict
-        """
-        return getattr(self.parent.config, "rule_groups", dict())
-
-    def get_style_groups(self):
-        """
-        Get the style groups from the config
-
-        :returns: nested dict
-
-        NOT USED YET
-
-        """
-        return getattr(self.parent.config, "style_groups", dict())
 
     def get_notional_capital(self):
         """
@@ -258,6 +340,23 @@ class Account(SystemStage):
 
         return self.parent.positionSize.get_fx_rate(instrument_code)
 
+    def get_aligned_fx(self, instrument_code):
+        
+        def _get_aligned_fx(system, instrument_code,  this_stage):
+            price=self.get_daily_price(instrument_code)
+            fx=self.get_fx_rate(instrument_code)
+            
+            fx=fx.reindex(price.index).ffill()
+            
+            return fx
+        
+        aligned_fx = self.parent.calc_or_cache(
+            'get_aligned_fx', instrument_code, 
+            _get_aligned_fx, self)
+
+
+        return aligned_fx
+
     def get_notional_position(self, instrument_code):
         """
         Get the notional position from a previous module
@@ -294,7 +393,7 @@ class Account(SystemStage):
 
     def get_daily_price(self, instrument_code):
         """
-        Get the daily instrument price from rawdata
+        Get the instrument price from rawdata
 
         KEY INPUT
 
@@ -314,7 +413,7 @@ class Account(SystemStage):
 
     def get_value_of_price_move(self, instrument_code):
         """
-        Get the value of a price move from the previous module
+        Get the value of a price move from raw data
 
         KEY INPUT
 
@@ -332,14 +431,19 @@ class Account(SystemStage):
         2500
         """
 
-        value_of_price_move = self.parent.data.get_value_of_block_price_move(
-            instrument_code)
+        def _get_value_of_price_move(system, instrument_code, this_stage):
+            return  system.data.get_value_of_block_price_move(
+                                                        instrument_code)
+
+        value_of_price_move = self.parent.calc_or_cache(
+            'get_value_of_price_move', instrument_code, _get_value_of_price_move, self)
+
 
         return value_of_price_move
 
     def get_raw_cost_data(self, instrument_code):
         """
-        Get the cost tuple for an instrument
+        Get the cost data for an instrument
         
         We cache this, because its coming from data so hasn't been cached yet
         
@@ -352,14 +456,16 @@ class Account(SystemStage):
         
         :param instrument_code: instrument to value for
         :type instrument_code: str
+        
+        :returns: dict of floats
 
         >>> from systems.basesystem import System
         >>> from systems.tests.testdata import get_test_object_futures_with_portfolios
         >>> (portfolio, posobject, combobject, capobject, rules, rawdata, data, config)=get_test_object_futures_with_portfolios()
         >>> system=System([portfolio, posobject, combobject, capobject, rules, rawdata, Account()], data, config)
         >>>
-        >>> system.accounts.get_raw_cost_data("EDOLLAR")
-        (0.0025000000000000001, 2.1099999999999999, 0, 0)
+        >>> system.accounts.get_raw_cost_data("EDOLLAR")['price_slippage']
+        0.0025000000000000001
         
         """
         def _get_raw_cost_data(system, instrument_code, this_stage):
@@ -414,6 +520,35 @@ class Account(SystemStage):
         
         return self.parent.positionSize.get_volatility_scalar(instrument_code)
     
+    def get_aligned_volatility_scalar(self, instrument_code):
+        """
+        Get the volatility scalar aligned to price
+        
+        KEY INPUT
+        
+        :param instrument_code: instrument to value for
+        :type instrument_code: str
+
+        :returns: Tx1 pd.DataFrame
+        
+        """
+        
+        def _get_aligned_vol_scalar(system, instrument_code,  this_stage):
+            price=this_stage.get_daily_price(instrument_code)
+            vs=this_stage.get_volatility_scalar(instrument_code)
+            
+            vs = vs.reindex(price.index).ffill()
+            
+            return vs
+        
+        aligned_vs= self.parent.calc_or_cache(
+            'get_aligned_vol_scalar', instrument_code, 
+            _get_aligned_vol_scalar, self)
+
+        return aligned_vs
+
+    
+    
     def get_instrument_scaling_factor(self, instrument_code):
         
         """
@@ -429,16 +564,17 @@ class Account(SystemStage):
         :returns: Tx1 pd.DataFrame
         
         """
-        
         idm = self.get_instrument_diversification_multiplier()
         instr_weights = self.get_instrument_weights()
 
         inst_weight_this_code = instr_weights[
-            instrument_code].to_frame("weight")
+            instrument_code]
 
-        multiplier = multiply_df_single_column(inst_weight_this_code, idm, ffill=(True, True))
-
-        return multiplier
+        multiplier = inst_weight_this_code * idm
+        
+        price = self.get_daily_price(instrument_code)
+        
+        return multiplier.reindex(price.index).ffill()
     
     def get_forecast_scaling_factor(self, instrument_code, rule_variation_name):
         """
@@ -447,21 +583,68 @@ class Account(SystemStage):
         :param instrument_code: instrument to value for
         :type instrument_code: str
 
+        :param rule_variation_name: trading rule
+        :type rule_variation_name: str
+
         :returns: Tx1 pd.DataFrame
         
         """
         
         fdm = self.get_forecast_diversification_multiplier(instrument_code)
         forecast_weights = self.get_forecast_weights(instrument_code)
+        
+        if rule_variation_name in forecast_weights.columns:
+            
+            fcast_weight_this_code = forecast_weights[
+                rule_variation_name]
+        else:
+            fcast_weight_this_code = self.get_aligned_forecast(instrument_code, rule_variation_name)
+            fcast_weight_this_code[:]=0.0
 
-        fcast_weight_this_code = forecast_weights[
-            rule_variation_name].to_frame("weight")
-
-        multiplier = multiply_df_single_column(fcast_weight_this_code, fdm, ffill=(True, True))
+        multiplier = fcast_weight_this_code* fdm
 
         return multiplier
 
+
+    def get_instrument_forecast_scaling_factor(self, instrument_code, rule_variation_name):
+        """
+        Get forecast weight * FDM  *instrument_weight * IDM
+        
+        :param instrument_code: instrument to value for
+        :type instrument_code: str
+
+        :param rule_variation_name: trading rule
+        :type rule_variation_name: str
+
+        :returns: Tx1 pd.DataFrame
+        
+        """
+        
+        fsf=self.get_forecast_scaling_factor(instrument_code, rule_variation_name)
+        isf=self.get_instrument_scaling_factor(instrument_code)
+
+        (fsf, isf)= fsf.align(isf, join="inner")
+        
+        return fsf*isf
     
+    def get_capital_in_rule(self, rule_variation_name):
+        """
+        Get sum of forecast weight * FDM  *instrument_weight * IDM for a given rule
+        
+        :param rule_variation_name: trading rule
+        :type rule_variation_name: str
+
+        :returns: Tx1 pd.DataFrame
+        
+        """
+    
+        instrument_list = self.get_instrument_list()
+        all_risk_allocations = [self.get_instrument_forecast_scaling_factor(instrument_code, rule_variation_name) for 
+                                instrument_code in instrument_list]
+        all_risk_allocations=pd.concat(all_risk_allocations, axis=1)
+        
+        return all_risk_allocations.sum(axis=1)
+        
     def get_SR_cost(self, instrument_code):
         """
         Get the vol normalised SR costs for an instrument
@@ -487,10 +670,10 @@ class Account(SystemStage):
             raw_costs=this_stage.get_raw_cost_data(instrument_code)
             block_value=this_stage.get_value_of_price_move(instrument_code)
 
-            price_slippage=raw_costs[0]
-            value_of_block_commission=raw_costs[1]
-            percentage_cost=raw_costs[2]
-            value_of_pertrade_commission=raw_costs[3]
+            price_slippage=raw_costs['price_slippage']
+            value_of_block_commission=raw_costs['value_of_block_commission']
+            percentage_cost=raw_costs['percentage_cost']
+            value_of_pertrade_commission=raw_costs['value_of_pertrade_commission']
             
             
             daily_vol=this_stage.get_daily_returns_volatility(instrument_code)
@@ -547,10 +730,10 @@ class Account(SystemStage):
             raw_costs=this_stage.get_raw_cost_data(instrument_code)
             block_value=this_stage.get_value_of_price_move(instrument_code)
 
-            price_slippage=raw_costs[0]
-            value_of_block_commission=raw_costs[1]
-            percentage_cost=raw_costs[2]
-            value_of_pertrade_commission=raw_costs[3]
+            price_slippage=raw_costs['price_slippage']
+            value_of_block_commission=raw_costs['value_of_block_commission']
+            percentage_cost=raw_costs['percentage_cost']
+            value_of_pertrade_commission=raw_costs['value_of_pertrade_commission']
             
             ## Cost in actual terms in local currency
             value_of_slippage=price_slippage*block_value
@@ -596,16 +779,46 @@ class Account(SystemStage):
         def _subsystem_turnover(
                 system, instrument_code,  this_stage, roundpositions):
 
-            positions = this_stage.get_subsystem_position(instrument_code)
-            average_position_for_turnover=this_stage.get_volatility_scalar(instrument_code)
+            positions = this_stage.get_aligned_subsystem_position(instrument_code)
+            average_position_for_turnover=this_stage.get_aligned_volatility_scalar(instrument_code)
             
             return turnover(positions, average_position_for_turnover)
 
         subsys_turnover = self.parent.calc_or_cache(
-            "subsystem_turnover_%s" % TorF(roundpositions), instrument_code,
-            _subsystem_turnover, self, roundpositions)
+            "subsystem_turnover", instrument_code,
+            _subsystem_turnover, self, roundpositions, flags="%s" % TorF(roundpositions))
 
         return subsys_turnover
+
+    def subsystem_SR_costs(self, instrument_code, roundpositions=False):
+        """
+        Get the annualised SR costs for an instrument subsystem
+
+        :param instrument_code: instrument to get values for
+        :type instrument_code: str
+
+        :returns: float
+        
+        KEY OUTPUT (used for portfolio optimisation)
+        
+        
+
+        """
+        def _subsystem_SR_costs(
+                system, instrument_code,  this_stage, roundpositions):
+            
+            SR_cost_per_turnover=this_stage.get_SR_cost(instrument_code)
+                
+            turnover_for_SR = this_stage.subsystem_turnover(instrument_code, roundpositions = roundpositions)
+            SR_cost = SR_cost_per_turnover * turnover_for_SR
+            
+            return SR_cost
+
+        subsystem_SR_costs = self.parent.calc_or_cache(
+            "subsystem_SR_costs", instrument_code,
+            _subsystem_SR_costs, self, roundpositions, flags="%s" % TorF(roundpositions))
+
+        return subsystem_SR_costs
         
 
     def pandl_for_subsystem(
@@ -645,21 +858,20 @@ class Account(SystemStage):
 
             
             price = this_stage.get_daily_price(instrument_code)
-            positions = this_stage.get_subsystem_position(instrument_code)
+            positions = this_stage.get_aligned_subsystem_position(instrument_code)
 
-            fx = this_stage.get_fx_rate(instrument_code)
+            fx = this_stage.get_aligned_fx(instrument_code)
             value_of_price_point = this_stage.get_value_of_price_move(
                 instrument_code)
             get_daily_returns_volatility = this_stage.get_daily_returns_volatility(
                 instrument_code)
 
 
-            (SR_cost, cash_costs)=this_stage.get_costs(instrument_code)
+            (SR_cost_per_turnover, cash_costs)=this_stage.get_costs(instrument_code)
             
-            if SR_cost is not None:
-                turnover_for_SR = this_stage.subsystem_turnover(instrument_code, roundpositions = roundpositions)
-                SR_cost = SR_cost * turnover_for_SR
-            
+            if SR_cost_per_turnover is not None:
+                SR_cost = self.subsystem_SR_costs(instrument_code, roundpositions)
+                
             capital = this_stage.get_notional_capital()
             ann_risk_target = this_stage.get_ann_risk_target()
 
@@ -672,10 +884,11 @@ class Account(SystemStage):
 
             return instr_pandl
 
-        itemname = "pandl_for_subsystem__percentage%sdelayfill%sroundpositions%s" % (
-            TorF(percentage), TorF(delayfill), TorF(roundpositions))
         instr_pandl = self.parent.calc_or_cache(
-            itemname, instrument_code, _pandl_for_subsystem, self, percentage, delayfill, roundpositions)
+            "pandl_for_subsystem", instrument_code, _pandl_for_subsystem, 
+            self, percentage, delayfill, roundpositions,
+            flags="__percentage%sdelayfill%sroundpositions%s" % (
+            TorF(percentage), TorF(delayfill), TorF(roundpositions)))
 
         return instr_pandl
 
@@ -683,7 +896,7 @@ class Account(SystemStage):
     def pandl_across_subsystems(
                                 self, percentage=True, delayfill=True, roundpositions=False):
         """
-        Get the p&l across subsystems
+        Get the p&l across subsystems (unweighted)
 
         :param percentage: Return results as % of total notional capital
         :type percentage: bool
@@ -720,14 +933,15 @@ class Account(SystemStage):
                     delayfill=delayfill,
                     roundpositions=roundpositions) for instrument_code in instruments]
             
-            pandl = accountCurveGroup(pandl_across_subsys, instruments)
+            pandl = accountCurveGroup(pandl_across_subsys, instruments, weighted_flag=False)
             
             return pandl
 
-        itemname = "pandl_across_subsystems__percentage%sdelayfill%sroundpositions%s" % (
-            TorF(percentage), TorF(delayfill), TorF(roundpositions))
         instr_pandl = self.parent.calc_or_cache(
-            itemname, ALL_KEYNAME, _pandl_across_subsystems, self, percentage, delayfill, roundpositions)
+            "pandl_across_subsystems", ALL_KEYNAME, _pandl_across_subsystems, self, 
+            percentage, delayfill, roundpositions,
+                    flags = "percentage%sdelayfill%sroundpositions%s" % (
+            TorF(percentage), TorF(delayfill), TorF(roundpositions)))
 
         return instr_pandl
 
@@ -771,10 +985,10 @@ class Account(SystemStage):
             
             return buffered_position
 
-        itemname = "get_buffered_position__roundpositions%s" %  TorF(roundpositions)
-
         buffered_position = self.parent.calc_or_cache(
-            itemname, instrument_code, _get_buffered_position, self, roundpositions)
+            "get_buffered_position", instrument_code, _get_buffered_position, self, 
+            roundpositions,
+            flags="roundpositions%s" %  TorF(roundpositions))
 
         return buffered_position
 
@@ -795,17 +1009,16 @@ class Account(SystemStage):
         def _instrument_turnover(
                 system, instrument_code,  this_stage, roundpositions):
 
-            average_position_for_turnover=multiply_df_single_column( this_stage.get_volatility_scalar(instrument_code), 
-                                                                     this_stage.get_instrument_scaling_factor(instrument_code),
-                                                                     ffill=(True, True))
+            average_position_for_turnover=this_stage.get_aligned_volatility_scalar(instrument_code)  *  this_stage.get_instrument_scaling_factor(instrument_code)
             
             positions = this_stage.get_buffered_position(instrument_code, roundpositions = roundpositions)
             
             return turnover(positions, average_position_for_turnover)
 
         instr_turnover = self.parent.calc_or_cache(
-            "instrument_turnover_%s" % TorF(roundpositions), instrument_code,
-            _instrument_turnover, self, roundpositions)
+            "instrument_turnover", instrument_code,
+            _instrument_turnover, self, roundpositions,
+            flags="%s" % TorF(roundpositions))
 
         return instr_turnover
 
@@ -844,7 +1057,7 @@ class Account(SystemStage):
 
             price = this_stage.get_daily_price(instrument_code)
             positions = this_stage.get_buffered_position(instrument_code, roundpositions = roundpositions)
-            fx = this_stage.get_fx_rate(instrument_code)
+            fx = this_stage.get_aligned_fx(instrument_code)
             value_of_price_point = this_stage.get_value_of_price_move(
                 instrument_code)
             get_daily_returns_volatility = this_stage.get_daily_returns_volatility(
@@ -856,6 +1069,14 @@ class Account(SystemStage):
 
             (SR_cost, cash_costs)=this_stage.get_costs(instrument_code)
             
+
+            instr_pandl = accountCurve(price, positions = positions,
+                                       delayfill = delayfill, roundpositions = roundpositions, 
+                                fx=fx, value_of_price_point=value_of_price_point, capital=capital,
+                                ann_risk_target = ann_risk_target,
+                                percentage=percentage, SR_cost=SR_cost, cash_costs = cash_costs,
+                                get_daily_returns_volatility=get_daily_returns_volatility)
+
             if SR_cost is not None:
                 ## Note that SR cost is done as a proportion of capital
                 ## Since we're only using part of the capital we need to correct for this
@@ -863,33 +1084,30 @@ class Account(SystemStage):
                 SR_cost = SR_cost * turnover_for_SR
                 weighting = this_stage.get_instrument_scaling_factor(instrument_code)
                 apply_weight_to_costs_only=True
+                
+                instr_pandl=weighted(instr_pandl, 
+                                 weighting = weighting,
+                                apply_weight_to_costs_only=apply_weight_to_costs_only)
+                
             else:
                 ## Costs wil be correct
                 ## We don't need to do anything
-                weighting = None
-                apply_weight_to_costs_only=False
-
-            instr_pandl = accountCurve(price, positions = positions,
-                                       delayfill = delayfill, roundpositions = roundpositions, 
-                                fx=fx, value_of_price_point=value_of_price_point, capital=capital,
-                                ann_risk_target = ann_risk_target,
-                                percentage=percentage, SR_cost=SR_cost, cash_costs = cash_costs,
-                                get_daily_returns_volatility=get_daily_returns_volatility,
-                                 weighting = weighting,
-                                apply_weight_to_costs_only=apply_weight_to_costs_only)
+                pass
+                
 
             return instr_pandl
 
-        itemname = "pandl_for_instrument__percentage%sdelayfill%sroundpositions%s" % (
-            TorF(percentage), TorF(delayfill), TorF(roundpositions))
         instr_pandl = self.parent.calc_or_cache(
-            itemname, instrument_code, _pandl_for_instrument, self, percentage, delayfill, roundpositions)
+            "pandl_for_instrument", instrument_code, _pandl_for_instrument, self, 
+            percentage, delayfill, roundpositions,
+            flags="percentage%sdelayfill%sroundpositions%s" % (
+            TorF(percentage), TorF(delayfill), TorF(roundpositions)))
 
         return instr_pandl
 
     def pandl_for_trading_rule(self, rule_variation_name, delayfill=True):
         """
-        Get the p&l for one trading rule over multiple instruments; as % of arbitrary capital
+        Get the p&l for one trading rule over multiple instruments; as % of it's risk contribution
 
         Within the trading rule the instrument returns are weighted by instrument weight
         
@@ -903,7 +1121,69 @@ class Account(SystemStage):
 
         """
         def _pandl_for_trading_rule(
-                system, instrument_code_unused,  this_stage, rule_variation_name, delayfill):
+                system, instrument_code_unused,  rule_variation_name, this_stage,  delayfill):
+
+            this_stage.log.terse("Calculating pandl for trading rule %s" % rule_variation_name)
+            
+            this_stage.log.terse("Calculating pandl for trading rule %s" % rule_variation_name)
+            
+            instrument_list=system.get_instrument_list()
+            instrument_list=[instr_code for instr_code in instrument_list 
+                             if rule_variation_name in this_stage.get_trading_rule_list(instr_code)]
+            
+            ## already weighted
+            pandl_by_instrument_weighted=[this_stage.pandl_for_instrument_forecast_weighted(
+                                            instr_code, rule_variation_name, delayfill)
+                              for instr_code in instrument_list   
+                            ]
+            
+            ## now we weight so total capital is correct
+            capital_this_rule=this_stage.get_capital_in_rule(rule_variation_name)
+            
+            def _cleanweightelement( capelement):
+                if np.isnan(capelement):
+                    return 0.0
+                if capelement==0.0:
+                    return 0.0
+                else:
+                    return 1.0/capelement
+
+            weight=[_cleanweightelement(capelement) for capelement in list(capital_this_rule.values)]
+            weight=pd.Series(weight, index=capital_this_rule.index)
+            
+            pandl_by_instrument_reweighted=[weighted(pandl_for_instrument, weight,
+                                                     allow_reweighting=True) for 
+                                             pandl_for_instrument in pandl_by_instrument_weighted]
+
+            pandl_rule = accountCurveGroup(pandl_by_instrument_reweighted, instrument_list, weighted_flag=True)
+            
+            return pandl_rule
+
+
+        pandl_trading_rule = self.parent.calc_or_cache_nested(
+            "pandl_for_trading_rule", ALL_KEYNAME, rule_variation_name, 
+            _pandl_for_trading_rule, self, delayfill,
+            flags = "delayfill%s" % TorF(delayfill))
+
+        return pandl_trading_rule
+
+    def pandl_for_trading_rule_weighted(self, rule_variation_name, delayfill=True):
+        """
+        Get the p&l for one trading rule over multiple instruments; as % of total capital
+
+        Within the trading rule the instrument returns are weighted by risk contribution
+        
+        :param rule_variation_name: rule to get values for
+        :type rule_variation_name: str
+
+        :param delayfill: Lag fills by one day
+        :type delayfill: bool
+
+        :returns: accountCurveGroup
+
+        """
+        def _pandl_for_trading_rule_weighted(
+                system, instrument_code_unused,  rule_variation_name, this_stage,  delayfill):
 
             this_stage.log.terse("Calculating pandl for trading rule %s" % rule_variation_name)
             
@@ -911,24 +1191,25 @@ class Account(SystemStage):
             instrument_list=[instr_code for instr_code in instrument_list 
                              if rule_variation_name in this_stage.get_trading_rule_list(instr_code)]
             
-            pandl_by_instrument=[this_stage.pandl_for_instrument_forecast(
-                                            instr_code, rule_variation_name, delayfill,
-                                            this_stage.get_instrument_scaling_factor(instr_code))
+            ## already weighted, don't need to do again
+            pandl_by_instrument_weighted=[this_stage.pandl_for_instrument_forecast_weighted(
+                                            instr_code, rule_variation_name, delayfill)
                               for instr_code in instrument_list   
                             ]
-            
-            pandl_rule = accountCurveGroup(pandl_by_instrument, instrument_list)
+
+            pandl_rule = accountCurveGroup(pandl_by_instrument_weighted, instrument_list, weighted_flag=True)
             
             return pandl_rule
 
-        itemname = "pandl_for_trading__rule_%s_delayfill%s" % (rule_variation_name, TorF(
-            delayfill))
 
-        pandl_trading_rule = self.parent.calc_or_cache(
-            itemname, ALL_KEYNAME, 
-            _pandl_for_trading_rule, self, rule_variation_name, delayfill)
+        pandl_trading_rule_weighted = self.parent.calc_or_cache_nested(
+            "pandl_for_trading_rule_weighted", ALL_KEYNAME, rule_variation_name, 
+            _pandl_for_trading_rule_weighted, self, delayfill,
+            flags = "delayfill%s" % TorF(delayfill))
 
-        return pandl_trading_rule
+        return pandl_trading_rule_weighted
+
+
 
     def pandl_for_trading_rule_unweighted(self, rule_variation_name, delayfill=True):
         """
@@ -946,7 +1227,7 @@ class Account(SystemStage):
 
         """
         def _pandl_for_trading_rule_unweighted(
-                system, instrument_code_unused,  this_stage, rule_variation_name, delayfill):
+                system, instrument_code_unused,  rule_variation_name, this_stage,  delayfill):
 
             this_stage.log.terse("Calculating pandl for trading rule (unweighted) %s" % rule_variation_name)
             
@@ -959,22 +1240,19 @@ class Account(SystemStage):
                               for instr_code in instrument_list   
                             ]
             
-            pandl_rule = accountCurveGroup(pandl_by_instrument, instrument_list)
+            pandl_rule = accountCurveGroup(pandl_by_instrument, instrument_list, weighted_flag=False)
             
             return pandl_rule
 
-        itemname = "pandl_for_trading_rule_unweighted_%s_delayfill%s" % (rule_variation_name, TorF(
-            delayfill))
-
-        pandl_trading_rule_unweighted = self.parent.calc_or_cache(
-            itemname, ALL_KEYNAME, 
-            _pandl_for_trading_rule_unweighted, self, rule_variation_name, delayfill)
+        pandl_trading_rule_unweighted = self.parent.calc_or_cache_nested(
+            "pandl_for_trading_rule_unweighted", ALL_KEYNAME, rule_variation_name, 
+            _pandl_for_trading_rule_unweighted, self, delayfill,
+            flags = "delayfill%s" % TorF(delayfill))
 
         return pandl_trading_rule_unweighted
 
 
-
-    def pandl_for_instrument_rules_unweighted(self, instrument_code, delayfill=True):
+    def pandl_for_instrument_rules_unweighted(self, instrument_code, rule_list=None, delayfill=True):
         """
         Get the p&l for one instrument over multiple forecasts; as % of arbitrary capital
         
@@ -989,7 +1267,7 @@ class Account(SystemStage):
         :param delayfill: Lag fills by one day
         :type delayfill: bool
 
-        :returns: accountCurve
+        :returns: accountCurveGroup
 
         >>> from systems.basesystem import System
         >>> from systems.tests.testdata import get_test_object_futures_with_portfolios
@@ -1000,30 +1278,29 @@ class Account(SystemStage):
         {'ewmac16': 0.6799720823590352, 'ewmac8': 0.69594671177102}
         """
         def _pandl_for_instrument_rules_unweighted(
-                system, instrument_code,  this_stage, delayfill):
+                system, instrument_code,  this_stage, delayfill, rule_list):
 
             this_stage.log.terse("Calculating pandl for instrument rules for %s" % instrument_code,
                                  instrument_code=instrument_code)
             
-            forecast_rules=this_stage.get_trading_rule_list(instrument_code
+            if rule_list is None:
+                rule_list=this_stage.get_trading_rule_list(instrument_code
                                                                      )
             pandl_rules=[this_stage.pandl_for_instrument_forecast(
-                                            instrument_code, rule_variation_name, delayfill = delayfill,
-                                            weighting=None)
-                              for rule_variation_name in forecast_rules   
+                                            instrument_code, rule_variation_name, delayfill = delayfill)
+                              for rule_variation_name in rule_list   
                             ]
             
             
-            pandl_rules = accountCurveGroup(pandl_rules, forecast_rules)
+            pandl_rules = accountCurveGroup(pandl_rules, rule_list, weighted_flag=False)
             
             return pandl_rules
 
-        itemname = "pandl_for_instrument_rules_unweighted_delayfill%s" % TorF(
-            delayfill)
-
         pandl_rules = self.parent.calc_or_cache(
-            itemname, instrument_code, 
-            _pandl_for_instrument_rules_unweighted, self, delayfill)
+            "pandl_for_instrument_rules_unweighted", instrument_code, 
+            _pandl_for_instrument_rules_unweighted, self, delayfill, rule_list, 
+            flags="_delayfill%s" % TorF(
+            delayfill))
 
         return pandl_rules
 
@@ -1060,26 +1337,81 @@ class Account(SystemStage):
             
             forecast_rules=this_stage.get_trading_rule_list(instrument_code
                                                                      )
-            pandl_rules=[this_stage.pandl_for_instrument_forecast(
-                                            instrument_code, rule_variation_name, delayfill = delayfill,
-                                            weighting = this_stage.get_forecast_scaling_factor(instrument_code, rule_variation_name))
+            pandl_rules_unweighted=[this_stage.pandl_for_instrument_forecast(
+                                            instrument_code, rule_variation_name, delayfill = delayfill)
                               for rule_variation_name in forecast_rules   
+                            ]
+
+            pandl_rules=[weighted(
+                         pandl_this_rule,
+                         weighting = this_stage.get_forecast_scaling_factor(instrument_code, rule_variation_name))
+                              for (pandl_this_rule, rule_variation_name) in zip(
+                                                                                pandl_rules_unweighted,
+                                                                                forecast_rules)   
                             ]
             
             
-            pandl_rules = accountCurveGroup(pandl_rules, forecast_rules)
+            pandl_rules = accountCurveGroup(pandl_rules, forecast_rules, weighted_flag=True)
             
             return pandl_rules
 
-        itemname = "pandl_for_instrument_rules_delayfill%s" % TorF(
-            delayfill)
 
         pandl_rules = self.parent.calc_or_cache(
-            itemname, instrument_code, 
-            _pandl_for_instrument_rules, self, delayfill)
+            "pandl_for_instrument_rules", instrument_code, 
+            _pandl_for_instrument_rules, self, delayfill,
+            flags="delayfill%s" % TorF(
+            delayfill))
 
         return pandl_rules
 
+
+    def forecast_turnover_for_list(self, instrument_code_list, rule_variation_name):
+        """
+        Get the average turnover for a rule, over instrument_code_list
+
+        :param instrument_code_list: instruments to get values for
+        :type instrument_code_list: list of str
+
+        :param rule_variation_name: rule to get values for
+        :type rule_variation_name: str
+
+        :returns: float
+        
+        """
+
+        def _forecast_turnover_for_list(
+                system, NOTUSEDinstrument_code_ref, rule_variation_name, this_stage,
+                instrument_code_list):
+
+            average_forecast_for_turnover=system_defaults['average_absolute_forecast']
+
+            forecast_list=[this_stage.get_capped_forecast(
+                instrument_code, rule_variation_name)
+                        for instrument_code in instrument_code_list]
+            
+            turnovers=[turnover(forecast, average_forecast_for_turnover) for forecast in forecast_list]
+
+            if len(instrument_code_list)==1:
+                return turnovers[0]
+            
+            ## weight by length
+            forecast_lengths=[len(forecast.index) for forecast in forecast_list]
+            total_length=sum(forecast_lengths)
+            weighted_turnovers=[tover*fc_length/total_length for (tover, fc_length) in zip(turnovers, forecast_lengths)]
+            
+            avg_turnover = sum(weighted_turnovers)
+            
+            return avg_turnover
+
+        ## 
+        instrument_code_ref = "_".join(instrument_code_list) 
+        
+        fcast_turnover = self.parent.calc_or_cache_nested(
+            "forecast_turnover_for_list", instrument_code_ref, rule_variation_name,
+            _forecast_turnover_for_list, self, instrument_code_list)
+
+        return fcast_turnover
+        
 
     def forecast_turnover(self, instrument_code, rule_variation_name):
         """
@@ -1096,30 +1428,120 @@ class Account(SystemStage):
 
         """
         def _forecast_turnover(
-                system, instrument_code, rule_variation_name, this_stage):
+                system, instrument_code, rule_variation_name, this_stage, use_pooled_turnover):
+            
+            if use_pooled_turnover:
+                instrument_code_list = this_stage.has_same_rules_as_code(instrument_code)
+            else:
+                instrument_code_list = [instrument_code]
 
-            forecast = this_stage.get_capped_forecast(
-                instrument_code, rule_variation_name)
-
-            average_forecast_for_turnover=system_defaults['average_absolute_forecast']
-            turnover_for_SR=turnover(forecast, average_forecast_for_turnover)
+            turnover_for_SR=this_stage.forecast_turnover_for_list(instrument_code_list, rule_variation_name)
             
             return turnover_for_SR
 
+        use_pooled_turnover = self.parent.config.forecast_cost_estimates['use_pooled_turnover']
+        
         fcast_turnover = self.parent.calc_or_cache_nested(
             "forecast_turnover", instrument_code, rule_variation_name,
-            _forecast_turnover, self)
+            _forecast_turnover, self, use_pooled_turnover)
 
         return fcast_turnover
 
-
-    def pandl_for_instrument_forecast(
-            self, instrument_code, rule_variation_name, delayfill=True,
-            weighting=None):
+    def get_SR_cost_instr_forecast_for_list(self, instrument_code_list, rule_variation_name):
         """
-        Get the p&l for one instrument and forecast; as % of arbitrary capital
+        Get the SR cost for a forecast/rule combination, averaged across multiple instruments
 
-        This is not cached as it is calculated with different weighting schemes
+        :param instrument_code_list: instrument to get values for
+        :type instrument_code: str
+
+        :param rule_variation_name: rule to get values for
+        :type rule_variation_name: str
+
+        :returns: float
+
+
+        """
+
+        def _get_SR_cost_instr_forecast_for_list(
+                system, NOTUSEDinstrument_code_ref, rule_variation_name, this_stage,
+                instrument_code_list):
+            
+            turnover_list=[this_stage.forecast_turnover(instrument_code, rule_variation_name)
+                        for instrument_code in instrument_code_list]
+            
+            SR_cost_per_turnover=[this_stage.get_SR_cost(instrument_code) for instrument_code in instrument_code_list]
+
+            forecast_list=[this_stage.get_capped_forecast(
+                instrument_code, rule_variation_name)
+                        for instrument_code in instrument_code_list]
+
+            SR_cost = [tover * SRcpt for (tover, SRcpt) in zip(turnover_list, SR_cost_per_turnover)]
+            
+            ## weight by length
+            forecast_lengths=[len(forecast.index) for forecast in forecast_list]
+            total_length=sum(forecast_lengths)
+            weighted_SR_costs=[SRc*fc_length/total_length for (SRc, fc_length) in zip(SR_cost, forecast_lengths)]
+            
+            avg_SR_cost = sum(weighted_SR_costs)
+            
+            return avg_SR_cost
+            
+        instrument_code_ref = "_".join(instrument_code_list) 
+
+        SR_cost_for_instr_fcast_list = self.parent.calc_or_cache_nested(
+            "get_SR_cost_instr_forecast_for_list", instrument_code_ref, rule_variation_name,
+            _get_SR_cost_instr_forecast_for_list, self, instrument_code_list)
+
+        return SR_cost_for_instr_fcast_list
+        
+
+
+
+
+
+    def get_SR_cost_for_instrument_forecast(self, instrument_code, rule_variation_name):
+        """
+        Get the SR cost for a forecast/rule combination
+
+        :param instrument_code: instrument to get values for
+        :type instrument_code: str
+
+        :param rule_variation_name: rule to get values for
+        :type rule_variation_name: str
+
+        :returns: float
+
+        KEY OUTPUT
+        """
+
+        def _get_SR_cost_for_instrument_forecast(
+                system, instrument_code, rule_variation_name, this_stage, use_pooled_costs):
+            
+            if use_pooled_costs:
+                instrument_code_list = this_stage.has_same_rules_as_code(instrument_code)
+                SR_cost=this_stage.get_SR_cost_instr_forecast_for_list(instrument_code_list, rule_variation_name)
+
+            else:
+                ## note the turnover may still be pooled..
+                SR_cost = this_stage.forecast_turnover(instrument_code, rule_variation_name)*this_stage.get_SR_cost(instrument_code)
+            
+            return SR_cost
+
+        use_pooled_costs = self.parent.config.forecast_cost_estimates['use_pooled_costs']
+        
+        SR_cost_for_instr_fcast = self.parent.calc_or_cache_nested(
+            "SR_cost_for_instrument_forecast", instrument_code, rule_variation_name,
+            _get_SR_cost_for_instrument_forecast, self, use_pooled_costs)
+
+        return SR_cost_for_instr_fcast
+        
+
+
+    def pandl_for_instrument_forecast_weighted(
+            self, instrument_code, rule_variation_name, delayfill=True):
+        """
+        Get the p&l for one instrument and forecast; as % of total capital
+
 
         :param instrument_code: instrument to get values for
         :type instrument_code: str
@@ -1130,8 +1552,45 @@ class Account(SystemStage):
         :param delayfill: Lag fills by one day
         :type delayfill: bool
 
-        :param weighting: Weights to use which will be multiplied by returns
-        :type weighting: pd.Dataframe
+        :returns: accountCurve
+
+
+        """
+        
+        def _pandl_for_instrument_forecast_weighted(system, instrument_code, 
+                                           rule_variation_name, this_stage, delayfill):
+                    
+            this_stage.log.msg("Calculating pandl for instrument forecast weighted for %s %s" % (instrument_code, rule_variation_name),
+                               instrument_code=instrument_code, rule_variation_name=rule_variation_name)
+
+            pandl = this_stage.pandl_for_instrument_forecast(instrument_code, rule_variation_name, delayfill=delayfill)    
+            weight = this_stage.get_instrument_forecast_scaling_factor( instrument_code, rule_variation_name)            
+            pandl = weighted(pandl, weight)
+
+            return pandl
+        
+        pandl_fcast = self.parent.calc_or_cache_nested(
+            "pandl_for_instrument_forecast_weighted", instrument_code, rule_variation_name,
+            _pandl_for_instrument_forecast_weighted, self, delayfill,
+            flags="delayfill%s" %   TorF(delayfill))
+
+
+        return pandl_fcast
+
+
+    def pandl_for_instrument_forecast(
+            self, instrument_code, rule_variation_name, delayfill=True):
+        """
+        Get the p&l for one instrument and forecast; as % of arbitrary capital
+
+        :param instrument_code: instrument to get values for
+        :type instrument_code: str
+
+        :param rule_variation_name: rule to get values for
+        :type rule_variation_name: str
+
+        :param delayfill: Lag fills by one day
+        :type delayfill: bool
 
         :returns: accountCurve
 
@@ -1145,32 +1604,110 @@ class Account(SystemStage):
 
         """
         
-        ## NOT CACHED - this is deliberate - as we call with different weights...
-        this_stage=self
-        
-        this_stage.log.msg("Calculating pandl for instrument forecast for %s %s" % (instrument_code, rule_variation_name),
-                           instrument_code=instrument_code, rule_variation_name=rule_variation_name)
-
-        price = this_stage.get_daily_price(instrument_code)
-        forecast = this_stage.get_capped_forecast(
-            instrument_code, rule_variation_name)
-        get_daily_returns_volatility = this_stage.get_daily_returns_volatility(
-            instrument_code)
-
-        ## We NEVER use cash costs for forecasts ...
-        turnover_for_SR=this_stage.forecast_turnover(instrument_code, rule_variation_name)
-        SR_cost=this_stage.get_SR_cost(instrument_code)* turnover_for_SR
+        def _pandl_for_instrument_forecast(system, instrument_code, 
+                                           rule_variation_name, this_stage, delayfill):
                     
-        ## We use percentage returns (as no 'capital') and don't round positions
+            this_stage.log.msg("Calculating pandl for instrument forecast for %s %s" % (instrument_code, rule_variation_name),
+                               instrument_code=instrument_code, rule_variation_name=rule_variation_name)
+    
+            ## by construction all these things are aligned
+            price = this_stage.get_daily_price(instrument_code)
+            forecast = this_stage.get_aligned_forecast(
+                instrument_code, rule_variation_name)
+            get_daily_returns_volatility = this_stage.get_daily_returns_volatility(
+                instrument_code)
+    
+            ## We NEVER use cash costs for forecasts ...
+            SR_cost = this_stage.get_SR_cost_for_instrument_forecast(instrument_code, rule_variation_name)
+                        
+            ## We use percentage returns (as no 'capital') and don't round positions
+            pandl_fcast = accountCurve(price, forecast=forecast, delayfill=delayfill, 
+                                       roundpositions=False,
+                                value_of_price_point=1.0, capital=None,
+                                percentage=True, SR_cost=SR_cost, cash_costs=None,
+                                get_daily_returns_volatility=get_daily_returns_volatility)
+            
+            return pandl_fcast
         
-        
-        pandl_fcast = accountCurve(price, forecast=forecast, delayfill=delayfill, 
-                                   roundpositions=False,
-                            value_of_price_point=1.0, capital=None,
-                            percentage=True, SR_cost=SR_cost, cash_costs=None,
-                            get_daily_returns_volatility=get_daily_returns_volatility, weighting = weighting)
+        pandl_fcast = self.parent.calc_or_cache_nested(
+            "pandl_for_instrument_forecast", instrument_code, rule_variation_name,
+            _pandl_for_instrument_forecast, self, delayfill,
+            flags="delayfill%s" %   TorF(delayfill))
+
 
         return pandl_fcast
+
+    def pandl_for_all_trading_rules(self, delayfill=True):
+        """
+        Get the p&l for all trading rules; as % of total capital
+
+        Each trading rule is weighted as a proportion of total capital
+        
+        :param delayfill: Lag fills by one day
+        :type delayfill: bool
+
+        :returns: accountCurveGroup
+
+        """
+        def _pandl_for_all_trading_rules(
+                system, instrument_code_unused,   this_stage,  delayfill):
+
+            this_stage.log.terse("Calculating pandl for all trading rules")
+
+            variations=this_stage.get_entire_trading_rule_list()            
+            
+            ## already weighted, don't need to do again
+            pandl_by_trading_rule_weighted=[this_stage.pandl_for_trading_rule_weighted(rulename, delayfill)
+                                            for rulename in variations]
+
+            ## this is a group of groups... will it work?
+            pandl_all_rules = accountCurveGroup(pandl_by_trading_rule_weighted, variations, weighted_flag=True)
+            
+            return pandl_all_rules
+
+
+        pandl_for_all_trading_rules = self.parent.calc_or_cache(
+            "pandl_for_all_trading_rules", ALL_KEYNAME,  
+            _pandl_for_all_trading_rules, self, delayfill,
+            flags = "delayfill%s" % TorF(delayfill))
+
+        return pandl_for_all_trading_rules
+
+    def pandl_for_all_trading_rules_unweighted(self, delayfill=True):
+        """
+        Get the p&l for all trading rules; unweighted
+
+        Each trading rule has capital in isolation
+        
+        :param delayfill: Lag fills by one day
+        :type delayfill: bool
+
+        :returns: accountCurveGroup
+
+        """
+        def _pandl_for_all_trading_rules_unweighted(
+                system, instrument_code_unused,   this_stage,  delayfill):
+
+            this_stage.log.terse("Calculating pandl for all trading rules unweighted")
+
+            variations=this_stage.get_entire_trading_rule_list()            
+            
+            ## already weighted, don't need to do again
+            pandl_by_trading_rule_unweighted=[this_stage.pandl_for_trading_rule(rulename, delayfill)
+                                            for rulename in variations]
+
+            ## this is a group of groups... will it work?
+            pandl_all_rules = accountCurveGroup(pandl_by_trading_rule_unweighted, variations, weighted_flag=False)
+            
+            return pandl_all_rules
+
+
+        pandl_for_all_trading_rules_unweighted = self.parent.calc_or_cache(
+            "pandl_for_all_trading_rules_unweighted", ALL_KEYNAME,  
+            _pandl_for_all_trading_rules_unweighted, self, delayfill,
+            flags = "delayfill%s" % TorF(delayfill))
+
+        return pandl_for_all_trading_rules_unweighted
 
 
     def portfolio(self, percentage=True, delayfill=True, roundpositions=True):
@@ -1209,38 +1746,17 @@ class Account(SystemStage):
                     delayfill=delayfill,
                     roundpositions=roundpositions) for instrument_code in instruments]
             
-            port_pandl = accountCurveGroup(port_pandl, instruments)
+            port_pandl = accountCurveGroup(port_pandl, instruments, weighted_flag=True)
 
             return port_pandl
 
-        itemname = "portfolio__percentage%sdelayfill%sroundpositions%s" % (
-            TorF(percentage), TorF(delayfill), TorF(roundpositions))
-
         port_pandl = self.parent.calc_or_cache(
-            itemname, ALL_KEYNAME, _portfolio, self, percentage, delayfill,
-            roundpositions)
+            "portfolio", ALL_KEYNAME, _portfolio, self, percentage, delayfill,
+            roundpositions,
+            flags="percentage%sdelayfill%sroundpositions%s" % (
+            TorF(percentage), TorF(delayfill), TorF(roundpositions)))
 
         return port_pandl
-
-    """
-    ## More unused stuff, also commented out here
-    def rules(self, subset=None, percentage=True, isolated=False, sumup=False):
-        pass
-
-    def rulegroup(self, subset=None, percentage=True, isolated=False, sumup=False):
-        pass
-
-    def rulestyle(self, subset=None, percentage=True, isolated=False, sumup=False):
-        pass
-
-    ## these should be in a futures accounting object...
-
-    def assetclass(self, subset=None, percentage=True, isolated=False, sumup=False):
-        pass
-
-    def country(self, subset=None, percentage=True, isolated=False, sumup=False):
-        pass
-    """
 
 
 if __name__ == '__main__':
