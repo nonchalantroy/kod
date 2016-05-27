@@ -21,5 +21,5 @@ if sys.argv[1] == "ed":
 if sys.argv[1] == "systematic":
     #os.system("python rsync.py c:\\Users\\burak\\Downloads\\pysystemtrade c:\\Users\\burak\\Documents\\kod\\books\\Systematic_Trading\\pysystemtrade")
     #rsync.deleteDir("c:\\Users\\burak\\Documents\\kod\\books\\Systematic_Trading\\pysystemtrade\\.git")
-    rsync.purge("c:\\Users\\burak\\Documents\\kod\\books\\Systematic_Trading\\pysystemtrade","\.pch")
+    rsync.purge("c:/Users/burak/Documents/kod/books/Systematic_Trading/pysystemtrade","\.pck")
     

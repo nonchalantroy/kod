@@ -55,10 +55,13 @@ def ls(d):
             files.append((path, os.path.getsize(path)))
     return dirs, files
 
-def purge(dir, pattern):
-    for f in os.listdir(dir):
-    	if re.search(pattern, f):
-    		os.remove(os.path.join(dir, f))
+def purge(dir, pattern, inclusive=True):
+    regexObj = re.compile(pattern)
+    for root, dirs, files in os.walk(dir, topdown=False):
+        for name in files:
+            path = os.path.join(root, name)
+            if bool(regexObj.search(path)) == bool(inclusive):
+                os.remove(path)
                 
 def copy_files_and_dirs(fr,to):    
     frdirs,frfiles =  ls(fr)
