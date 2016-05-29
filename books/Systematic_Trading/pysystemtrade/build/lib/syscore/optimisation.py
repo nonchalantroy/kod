@@ -1,3 +1,11 @@
+import logging
+import logging
+import logging
+import logging
+import logging
+import logging
+import logging
+import logging
 '''
 Created on 21 Jan 2016
 
@@ -83,10 +91,10 @@ class GenericOptimiser(object):
         ## create a class object for each period
         opt_results=[]
         
-        log.terse("Optimising...")
+        logging.debug("Optimising...")
         
         for fit_period in fit_dates:
-            log.msg("Optimising for data from %s to %s" % (str(fit_period.period_start), str(fit_period.period_end)))
+            logging.debug("Optimising for data from %s to %s" % (str(fit_period.period_start), str(fit_period.period_end)))
             ## Do the optimisation for one period, using a particular optimiser instance
             results_this_period=optSinglePeriod(self, data, fit_period, optimiser, cleaning)
 

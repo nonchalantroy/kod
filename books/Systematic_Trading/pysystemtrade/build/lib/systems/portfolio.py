@@ -1,3 +1,11 @@
+import logging
+import logging
+import logging
+import logging
+import logging
+import logging
+import logging
+import logging
 import pandas as pd
 from copy import copy
 
@@ -97,7 +105,7 @@ class PortfoliosFixed(SystemStage):
         2015-12-10  0.333333  0.333333  0.333333
         """
         def _get_raw_instrument_weights(system, an_ignored_variable, this_stage):
-            this_stage.log.msg("Calculating raw instrument weights")
+            logging.debug("Calculating raw instrument weights")
 
             try:
                 instrument_weights = system.config.instrument_weights
@@ -107,7 +115,7 @@ class PortfoliosFixed(SystemStage):
                 
                 warn_msg="WARNING: No instrument weights  - using equal weights of %.4f over all %d instruments in data" % (weight, len(instruments))
                 
-                this_stage.log.warn(warn_msg)
+                logging.debug(warn_msg)
                 
                 instrument_weights = dict(
                     [(instrument_code, weight) for instrument_code in instruments])
@@ -153,7 +161,7 @@ class PortfoliosFixed(SystemStage):
         def _get_clean_instrument_weights(
                 system, an_ignored_variable, this_stage):
 
-            this_stage.log.terse("Calculating clean instrument weights")
+            logging.debug("Calculating clean instrument weights")
 
             raw_instr_weights = this_stage.get_raw_instrument_weights()
             instrument_list = list(raw_instr_weights.columns)
@@ -202,7 +210,7 @@ class PortfoliosFixed(SystemStage):
         def _get_instrument_div_multiplier(
                 system, an_ignored_variable, this_stage):
 
-            this_stage.log.terse("Calculating diversification multiplier")
+            logging.debug("Calculating diversification multiplier")
 
             div_mult=system.config.instrument_div_multiplier
 
@@ -249,7 +257,7 @@ class PortfoliosFixed(SystemStage):
         """
         def _get_notional_position(system, instrument_code, this_stage):
             
-            this_stage.log.msg("Calculating notional position for %s" % instrument_code,
+            logging.debug("Calculating notional position for %s" % instrument_code,
                                instrument_code=instrument_code)
             
             idm = this_stage.get_instrument_diversification_multiplier()
@@ -338,7 +346,7 @@ class PortfoliosEstimated(PortfoliosFixed):
         def _get_instrument_correlation_matrix(system, NotUsed,  this_stage, 
                                                corr_func, **corr_params):
 
-            this_stage.log.terse("Calculating instrument correlations")
+            logging.debug("Calculating instrument correlations")
 
             instrument_codes=system.get_instrument_list()
 
@@ -347,7 +355,7 @@ class PortfoliosEstimated(PortfoliosFixed):
                         for code in instrument_codes]
             else:
                 error_msg="You need an accounts stage in the system to estimate instrument correlations"
-                this_stage.log.critical(error_msg)
+                logging.debug(error_msg)
                 
             pandl=pd.concat(pandl_subsystems, axis=1)
             pandl.columns=instrument_codes
@@ -403,7 +411,7 @@ class PortfoliosEstimated(PortfoliosFixed):
         """
         def _get_instrument_div_multiplier(system,  NotUsed, this_stage):
 
-            this_stage.log.terse("Calculating instrument div. multiplier")
+            logging.debug("Calculating instrument div. multiplier")
             
             ## Get some useful stuff from the config
             div_mult_params=copy(system.config.instrument_div_mult_estimate)
@@ -446,7 +454,7 @@ class PortfoliosEstimated(PortfoliosFixed):
         """
 
         def _get_raw_instrument_weights(system, notUsed, this_stage):
-            this_stage.log.msg("Getting raw instrument weights")
+            logging.debug("Getting raw instrument weights")
 
             return this_stage.calculation_of_raw_instrument_weights().weights
 
@@ -494,7 +502,7 @@ class PortfoliosEstimated(PortfoliosFixed):
         """
         def _get_instrument_weights(system, notUsed, this_stage):
 
-            this_stage.log.msg("Getting instrument weights")
+            logging.debug("Getting instrument weights")
 
             raw_instr_weights = this_stage.get_raw_instrument_weights()
             instrument_list = list(raw_instr_weights.columns)
@@ -548,7 +556,7 @@ class PortfoliosEstimated(PortfoliosFixed):
         def _calculation_of_raw_instrument_weights(system, NotUsed1, this_stage, 
                                       weighting_func, **weighting_params):
             
-            this_stage.log.terse("Calculating raw instrument weights")
+            logging.debug("Calculating raw instrument weights")
 
             instrument_codes=system.get_instrument_list()
             if hasattr(system, "accounts"):
@@ -556,7 +564,7 @@ class PortfoliosEstimated(PortfoliosFixed):
                         for code in instrument_codes]
             else:
                 error_msg="You need an accounts stage in the system to estimate instrument weights"
-                this_stage.log.critical(error_msg)
+                logging.debug(error_msg)
 
             pandl=pd.concat(pandl_subsystems, axis=1)
             pandl.columns=instrument_codes

@@ -1,3 +1,11 @@
+import logging
+import logging
+import logging
+import logging
+import logging
+import logging
+import logging
+import logging
 
 import pandas as pd, optimisation
 

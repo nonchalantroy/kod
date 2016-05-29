@@ -1,3 +1,11 @@
+import logging
+import logging
+import logging
+import logging
+import logging
+import logging
+import logging
+import logging
 import pandas as pd
 from syslogdiag.log import logtoscreen
 
@@ -59,7 +67,7 @@ class Data(object):
 
         """
         error_msg="You have created a Data() object; you might need to use a more specific data object" % instrument_code
-        self.log.critical(error_msg)
+        logging.debug(error_msg)
 
 
     def __getitem__(self, keyname):

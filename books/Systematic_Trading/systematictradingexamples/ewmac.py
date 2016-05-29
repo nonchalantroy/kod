@@ -1,3 +1,11 @@
+import logging
+import logging
+import logging
+import logging
+import logging
+import logging
+import logging
+import logging
 """
 This file shows how to calculate the EWMAC trading rule for crude oil futures
 

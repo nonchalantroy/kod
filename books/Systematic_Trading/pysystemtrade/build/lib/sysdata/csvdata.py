@@ -1,3 +1,11 @@
+import logging
+import logging
+import logging
+import logging
+import logging
+import logging
+import logging
+import logging
 """
 Get legacy data from .csv files
 
@@ -82,7 +90,7 @@ class csvFuturesData(FuturesData):
         """
 
         # Read from .csv
-        self.log.msg("Loading csv data for %s" % instrument_code, instrument_code=instrument_code)
+        logging.debug("Loading csv data for %s" % instrument_code, instrument_code=instrument_code)
         filename = os.path.join(self._datapath, instrument_code + "_price.csv")
         instrpricedata = pd_readcsv(filename)
         instrpricedata.columns = ["price"]
@@ -109,7 +117,7 @@ class csvFuturesData(FuturesData):
         2015-12-11 17:24:06  126.945312    NaN         201606         201603
         """
 
-        self.log.msg("Loading csv carry data for %s" % instrument_code, instrument_code=instrument_code)
+        logging.debug("Loading csv carry data for %s" % instrument_code, instrument_code=instrument_code)
 
         filename = os.path.join(
             self._datapath, instrument_code + "_carrydata.csv")
@@ -138,7 +146,7 @@ class csvFuturesData(FuturesData):
         BUND             BUND       1000       Bond      EUR
         """
 
-        self.log.msg("Loading csv instrument config")
+        logging.debug("Loading csv instrument config")
 
         filename = os.path.join(self._datapath, "instrumentconfig.csv")
         instr_data = pd.read_csv(filename)
@@ -242,7 +250,7 @@ class csvFuturesData(FuturesData):
         2015-12-10  0.724463
         """
 
-        self.log.msg("Loading csv fx data", fx="%s%s" % (currency1, currency2))
+        logging.debug("Loading csv fx data", fx="%s%s" % (currency1, currency2))
 
         if currency1 == currency2:
             return self._get_default_series()

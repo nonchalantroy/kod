@@ -1,5 +1,20 @@
 # Release notes
 
+## Version 0.11.1
+
+* Added extra methods to support capital scaling, but not implemented yet.
+* fixed couple of bugs in getting subsystem p&l to calculate instrument weights
+* removed aligned fx method, doesn't speed up and adds complexity
+* solved issue #16
+
+## Version 0.11.0
+
+* Included option to show account curves as cumulative (compounding): somecurve.cumulative()
+* removed percentage options, now a method for account curves: somecurve.percent()
+* Incorporated capital into account curves: anycurve.capital
+* General clean up of the way capital dealt with in accounting
+
+
 ## Version 0.10.3
 
 * More speed up, couple of tweaks...
@@ -187,7 +202,6 @@
 
 * Simulation:
    
-  * vol targeting with capital adjustment
   * add other trading rules (some in private...?) - cross sectional carry
   * quandl data
   * stitch futures contracts 

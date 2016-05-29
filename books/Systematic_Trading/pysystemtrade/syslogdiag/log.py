@@ -1,5 +1,7 @@
 import inspect
 from copy import copy
+import sys
+import logging; logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
 
 class logger(object):
@@ -109,13 +111,12 @@ class logger(object):
         new_attributes=get_update_attributes_list(log_attributes, passed_attributes)        
         
         setattr(self, "attributes", new_attributes)
-        
- 
+         
     def msg(self, text, **kwargs):
-        self.log(text, msglevel=0, **kwargs)
+        print (text)
 
     def terse(self, text, **kwargs):
-        self.log(text, msglevel=1, **kwargs)
+        print (text)        
 
     def warn(self, text, **kwargs):
         self.log(text, msglevel=2, **kwargs)

@@ -1,3 +1,11 @@
+import logging
+import logging
+import logging
+import logging
+import logging
+import logging
+import logging
+import logging
 from sysdata.configdata import Config
 from syslogdiag.log import logtoscreen
 """
@@ -198,7 +206,7 @@ class System(object):
 
         Will kill protected things as well
         """
-        self.log.msg("Deleting %s from cache" % itemname)
+        logging.debug("Deleting %s from cache" % itemname)
 
         if itemname not in self._cache:
             return None

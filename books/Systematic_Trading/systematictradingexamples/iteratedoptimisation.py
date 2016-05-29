@@ -1,3 +1,11 @@
+import logging
+import logging
+import logging
+import logging
+import logging
+import logging
+import logging
+import logging
 """
 This file shows how to do iterated portfolio construction (add most divers
 

@@ -1,7 +1,8 @@
+import logging
+import logging
 import sys; sys.path.append('../..')
 
 import logging;logging.basicConfig(stream=sys.stdout,level=logging.DEBUG,format='%(asctime)s - %(message)s - %(pathname)s') 
-
 from systems.provided.example.rules import ewmac_forecast_with_defaults as ewmac
 from sysdata.configdata import Config
 from systems.account import Account

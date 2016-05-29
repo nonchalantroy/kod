@@ -1,3 +1,11 @@
+import logging
+import logging
+import logging
+import logging
+import logging
+import logging
+import logging
+import logging
 import sys; sys.path.append('../..')
 from matplotlib.pyplot import show, title
 

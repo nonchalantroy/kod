@@ -1,3 +1,11 @@
+import logging
+import logging
+import logging
+import logging
+import logging
+import logging
+import logging
+import logging
 import pandas as pd
 
 from syscore.accounting import pandl, accountCurve
@@ -359,7 +367,7 @@ class Account(SystemStage):
         def _pandl_for_subsystem(
                 system, instrument_code, this_stage, percentage, delayfill, roundpositions):
 
-            this_stage.log.msg("Calculating pandl for subsystem for instrument %s" % instrument_code,
+            logging.debug("Calculating pandl for subsystem for instrument %s" % instrument_code,
                                instrument_code=instrument_code)
 
             price = this_stage.get_daily_price(instrument_code)
@@ -421,7 +429,7 @@ class Account(SystemStage):
         def _pandl_for_instrument(
                 system, instrument_code, this_stage, percentage, delayfill, roundpositions):
 
-            this_stage.log.msg("Calculating pandl for instrument for %s" % instrument_code,
+            logging.debug("Calculating pandl for instrument for %s" % instrument_code,
                                instrument_code=instrument_code)
             
             price = this_stage.get_daily_price(instrument_code)
@@ -476,7 +484,7 @@ class Account(SystemStage):
         def _pandl_for_instrument_rules(
                 system, instrument_code,  this_stage, delayfill):
 
-            this_stage.log.terse("Calculating pandl for instrument rules for %s" % instrument_code,
+            logging.debug("Calculating pandl for instrument rules for %s" % instrument_code,
                                  instrument_code=instrument_code)
             
             forecast_rules=system.combForecast.get_trading_rule_list(instrument_code
@@ -530,7 +538,7 @@ class Account(SystemStage):
         def _pandl_for_instrument_forecast(
                 system, instrument_code, rule_variation_name, this_stage, delayfill):
 
-            this_stage.log.msg("Calculating pandl for instrument forecast for %s %s" % (instrument_code, rule_variation_name),
+            logging.debug("Calculating pandl for instrument forecast for %s %s" % (instrument_code, rule_variation_name),
                                instrument_code=instrument_code, rule_variation_name=rule_variation_name)
 
             price = this_stage.get_daily_price(instrument_code)
@@ -581,7 +589,7 @@ class Account(SystemStage):
         def _portfolio(system, not_used, this_stage,
                        percentage, delayfill, roundpositions):
 
-            this_stage.log.terse("Calculating pandl for portfolio")
+            logging.debug("Calculating pandl for portfolio")
 
             instruments = this_stage.get_instrument_list()
             port_pandl = [

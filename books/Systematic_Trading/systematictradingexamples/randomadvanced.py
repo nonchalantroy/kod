@@ -1,3 +1,11 @@
+import logging
+import logging
+import logging
+import logging
+import logging
+import logging
+import logging
+import logging
 from commonrandom import autocorr_skewed_returns, adj_moments_for_rho
 from common import arbitrary_timeseries, autocorr, ROOT_DAYS_IN_YEAR
 import matplotlib.pyplot as plt

@@ -1,3 +1,11 @@
+import logging
+import logging
+import logging
+import logging
+import logging
+import logging
+import logging
+import logging
 '''
 Correlations are important and used a lot
 '''
@@ -238,11 +246,11 @@ class CorrelationEstimator(CorrelationList):
         ## create a list of correlation matrices
         corr_list=[]
         
-        log.terse("Correlation estimate")
+        logging.debug("Correlation estimate")
         
         ## Now for each time period, estimate correlation
         for fit_period in fit_dates:
-            log.msg("Estimating from %s to %s" % (fit_period.period_start, fit_period.period_end))
+            logging.debug("Estimating from %s to %s" % (fit_period.period_start, fit_period.period_end))
             
             if fit_period.no_data:
                 ## no data to fit with

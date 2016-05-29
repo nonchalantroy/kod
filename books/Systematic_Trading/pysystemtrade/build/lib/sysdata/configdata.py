@@ -1,3 +1,11 @@
+import logging
+import logging
+import logging
+import logging
+import logging
+import logging
+import logging
+import logging
 """
 Configuration is used to control the behaviour of a system
 
@@ -71,7 +79,7 @@ class Config(object):
 
         else:
             error_msg="Can only create a config with a nested dict or the string of a 'yamable' filename, or a list comprising these things"
-            self.log.critical(error_msg)
+            logging.debug(error_msg)
 
     def _create_config_from_dict(self, config_object):
         """
@@ -152,7 +160,7 @@ class Config(object):
         >>> config.forecast_weight_estimate['correlation_estimate']['ew_lookback']
         500
         """
-        self.log.msg("Adding config defaults")
+        logging.debug("Adding config defaults")
         
         existing_elements=self._elements
         default_elements=list(get_system_defaults().keys())
@@ -178,7 +186,7 @@ class Config(object):
         if config_item is None:
             if default_item is None:
                 error_msg="Element %s not in defaults or config" % element_name
-                self.log.critical(error_msg)
+                logging.debug(error_msg)
 
             else:
                 config_item=default_item
@@ -189,7 +197,7 @@ class Config(object):
         else:
             if type(default_item) is dict:
                 error_msg="Config item %s is not a dict, but it is in the default!" % element_name    
-                self.log.critical(error_msg)
+                logging.debug(error_msg)
 
             
         setattr(self, element_name, config_item)
@@ -217,7 +225,7 @@ class Config(object):
             else:
                 if type(default_dict[dict_key]) is dict:
                     error_msg="You've created a config where %s.%s is not a dict, but it is in the default config!"%(element_name, dict_key)
-                    self.log.critical(error_msg)
+                    logging.debug(error_msg)
                 
         return config_dict
 

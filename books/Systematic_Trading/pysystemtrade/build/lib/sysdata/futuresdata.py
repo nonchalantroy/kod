@@ -1,3 +1,11 @@
+import logging
+import logging
+import logging
+import logging
+import logging
+import logging
+import logging
+import logging
 from sysdata.data import Data
 
 
@@ -35,7 +43,7 @@ class FuturesData(Data):
         # Default method to get instrument price
         # Will usually be overriden when inherited with specific data source
         error_msg="You have created a FuturesData() object or you probably need to replace this method to do anything useful"
-        self.log.critical(error_msg)
+        logging.debug(error_msg)
 
 
 
