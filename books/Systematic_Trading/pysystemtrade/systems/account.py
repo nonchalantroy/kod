@@ -837,8 +837,7 @@ class Account(SystemStage):
         def _pandl_for_subsystem(
                 system, instrument_code, this_stage, delayfill, roundpositions):
 
-            this_stage.log.msg("Calculating pandl for subsystem for instrument %s" % instrument_code,
-                               instrument_code=instrument_code)
+            print(__file__ + " " + "Calculating pandl for subsystem for instrument %s" % instrument_code)
 
             
             price = this_stage.get_daily_price(instrument_code)
@@ -958,7 +957,7 @@ class Account(SystemStage):
         def _get_buffered_position(
                 system, instrument_code, this_stage,  roundpositions):
 
-            this_stage.log.msg("Calculating buffered positions")
+            print(__file__ + " " + "Calculating buffered positions")
             optimal_position=this_stage.get_notional_position(instrument_code)
             pos_buffers=this_stage.get_buffers_for_position(instrument_code)
             trade_to_edge=system.config.buffer_trade_to_edge
@@ -1034,8 +1033,7 @@ class Account(SystemStage):
         def _pandl_for_instrument(
                 system, instrument_code, this_stage,  delayfill, roundpositions):
 
-            this_stage.log.msg("Calculating pandl for instrument for %s" % instrument_code,
-                               instrument_code=instrument_code)
+            print(__file__ + " " + "Calculating pandl for instrument for %s" % instrument_code)
 
             price = this_stage.get_daily_price(instrument_code)
             positions = this_stage.get_buffered_position(instrument_code, roundpositions = roundpositions)
@@ -1105,9 +1103,9 @@ class Account(SystemStage):
         def _pandl_for_trading_rule(
                 system, instrument_code_unused,  rule_variation_name, this_stage,  delayfill):
 
-            this_stage.log.terse("Calculating pandl for trading rule %s" % rule_variation_name)
+            print(__file__ + " " + "Calculating pandl for trading rule %s" % rule_variation_name)
             
-            this_stage.log.terse("Calculating pandl for trading rule %s" % rule_variation_name)
+            print(__file__ + " " + "Calculating pandl for trading rule %s" % rule_variation_name)
             
             instrument_list=system.get_instrument_list()
             instrument_list=[instr_code for instr_code in instrument_list 
@@ -1171,7 +1169,7 @@ class Account(SystemStage):
         def _pandl_for_trading_rule_weighted(
                 system, instrument_code_unused,  rule_variation_name, this_stage,  delayfill):
 
-            this_stage.log.terse("Calculating pandl for trading rule %s" % rule_variation_name)
+            print(__file__ + " " + "Calculating pandl for trading rule %s" % rule_variation_name)
             
             instrument_list=system.get_instrument_list()
             instrument_list=[instr_code for instr_code in instrument_list 
@@ -1217,7 +1215,7 @@ class Account(SystemStage):
         def _pandl_for_trading_rule_unweighted(
                 system, instrument_code_unused,  rule_variation_name, this_stage,  delayfill):
 
-            this_stage.log.terse("Calculating pandl for trading rule (unweighted) %s" % rule_variation_name)
+            print(__file__ + " " + "Calculating pandl for trading rule (unweighted) %s" % rule_variation_name)
             
             instrument_list=system.get_instrument_list()
             instrument_list=[instr_code for instr_code in instrument_list 
@@ -1269,8 +1267,7 @@ class Account(SystemStage):
         def _pandl_for_instrument_rules_unweighted(
                 system, instrument_code,  this_stage, delayfill, rule_list):
 
-            this_stage.log.terse("Calculating pandl for instrument rules for %s" % instrument_code,
-                                 instrument_code=instrument_code)
+            print(__file__ + " " + "Calculating pandl for instrument rules for %s" % instrument_code)
             
             if rule_list is None:
                 rule_list=this_stage.get_trading_rule_list(instrument_code
@@ -1322,8 +1319,7 @@ class Account(SystemStage):
         def _pandl_for_instrument_rules(
                 system, instrument_code,  this_stage, delayfill):
 
-            this_stage.log.terse("Calculating pandl for instrument rules for %s" % instrument_code,
-                                 instrument_code=instrument_code)
+            print(__file__ + " " + "Calculating pandl for instrument rules for %s" % instrument_code)
             
             forecast_rules=this_stage.get_trading_rule_list(instrument_code
                                                                      )
@@ -1552,8 +1548,7 @@ class Account(SystemStage):
         def _pandl_for_instrument_forecast_weighted(system, instrument_code, 
                                            rule_variation_name, this_stage, delayfill):
                     
-            this_stage.log.msg("Calculating pandl for instrument forecast weighted for %s %s" % (instrument_code, rule_variation_name),
-                               instrument_code=instrument_code, rule_variation_name=rule_variation_name)
+            print(__file__ + " " + "Calculating pandl for instrument forecast weighted for %s %s" % (instrument_code, rule_variation_name))
 
             pandl = this_stage.pandl_for_instrument_forecast(instrument_code, rule_variation_name, delayfill=delayfill)    
             weight = this_stage.get_instrument_forecast_scaling_factor( instrument_code, rule_variation_name)            
@@ -1599,8 +1594,7 @@ class Account(SystemStage):
         def _pandl_for_instrument_forecast(system, instrument_code, 
                                            rule_variation_name, this_stage, delayfill):
                     
-            this_stage.log.msg("Calculating pandl for instrument forecast for %s %s" % (instrument_code, rule_variation_name),
-                               instrument_code=instrument_code, rule_variation_name=rule_variation_name)
+            print(__file__ + " " + "Calculating pandl for instrument forecast for %s %s" % (instrument_code, rule_variation_name))
     
             ## by construction all these things are aligned
             price = this_stage.get_daily_price(instrument_code)
@@ -1644,7 +1638,7 @@ class Account(SystemStage):
         def _pandl_for_all_trading_rules(
                 system, instrument_code_unused,   this_stage,  delayfill):
 
-            this_stage.log.terse("Calculating pandl for all trading rules")
+            print(__file__ + " " + "Calculating pandl for all trading rules")
 
             variations=this_stage.get_entire_trading_rule_list()            
             
@@ -1682,7 +1676,7 @@ class Account(SystemStage):
         def _pandl_for_all_trading_rules_unweighted(
                 system, instrument_code_unused,   this_stage,  delayfill):
 
-            this_stage.log.terse("Calculating pandl for all trading rules unweighted")
+            print(__file__ + " " + "Calculating pandl for all trading rules unweighted")
 
             variations=this_stage.get_entire_trading_rule_list()            
             
@@ -1729,7 +1723,7 @@ class Account(SystemStage):
         def _portfolio(system, not_used, this_stage,
                         delayfill, roundpositions):
 
-            this_stage.log.terse("Calculating pandl for portfolio")
+            print(__file__ + " " + "Calculating pandl for portfolio")
             capital=this_stage.get_notional_capital()
             instruments = this_stage.get_instrument_list()
             port_pandl = [
@@ -1865,7 +1859,7 @@ class Account(SystemStage):
         def _get_buffered_position_with_multiplier(
                 system, instrument_code, this_stage,  roundpositions):
 
-            this_stage.log.msg("Calculating buffered positions with multiplier")
+            print(__file__ + " " + "Calculating buffered positions with multiplier")
             optimal_position=this_stage.get_actual_position(instrument_code)
             pos_buffers=this_stage.get_actual_buffers_for_position(instrument_code)
             trade_to_edge=system.config.buffer_trade_to_edge
@@ -1906,8 +1900,7 @@ class Account(SystemStage):
         def _pandl_for_instrument_with_multiplier(
                 system, instrument_code, this_stage,  delayfill, roundpositions):
 
-            this_stage.log.msg("Calculating pandl for instrument for %s with capital multiplier" % instrument_code,
-                               instrument_code=instrument_code)
+            print(__file__ + " " + "Calculating pandl for instrument for %s with capital multiplier" % instrument_code)
 
             price = this_stage.get_daily_price(instrument_code)
             positions = this_stage.get_buffered_position_with_multiplier(instrument_code, roundpositions = roundpositions)
@@ -1976,7 +1969,7 @@ class Account(SystemStage):
         def _portfolio_with_multiplier(system, not_used, this_stage,
                         delayfill, roundpositions):
 
-            this_stage.log.terse("Calculating pandl for portfolio")
+            print(__file__ + " " + "Calculating pandl for portfolio")
             capital=this_stage.get_actual_capital(delayfill, roundpositions)
             instruments = this_stage.get_instrument_list()
             port_pandl = [

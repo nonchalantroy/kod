@@ -1,6 +1,4 @@
-import sys
-import logging; logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
-sys.path.append('../..')
+import sys; sys.path.append('../..')
 
 from systems.provided.example.rules import ewmac_forecast_with_defaults as ewmac
 from sysdata.configdata import Config
@@ -33,8 +31,7 @@ combiner = ForecastCombine()
 fcs=ForecastScaleCap()
 my_system = System([my_account, fcs, my_rules, combiner], data, my_config)
 
-logging.warn ('get_forecast_weights')
-logging.warn(my_system.combForecast.get_forecast_weights("SP500").tail(5))
+print(my_system.combForecast.get_forecast_weights("SP500").tail(5))
 #logging.warn ('forecast_diversification_multiplier')
 #logging.warn(my_system.combForecast.get_forecast_diversification_multiplier("EDOLLAR").tail(5))
 

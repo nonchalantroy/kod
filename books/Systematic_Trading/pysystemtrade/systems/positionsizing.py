@@ -206,7 +206,7 @@ class PositionSizing(SystemStage):
         """
 
         def _get_vol_target(system, an_ignored_variable, this_stage):
-            this_stage.log.msg("Getting vol target")
+            print(__file__ + " " + "Getting vol target")
 
             percentage_vol_target = float(system.config.percentage_vol_target)
 
@@ -252,8 +252,7 @@ class PositionSizing(SystemStage):
         """
 
         def _get_fx_rate(system, instrument_code, this_stage):
-            this_stage.log.msg("Getting fx rates for %s" % instrument_code,
-                               instrument_code=instrument_code)
+            print(__file__ + " " + "Getting fx rates for %s" % instrument_code)
 
             base_currency = this_stage.get_daily_cash_vol_target()[
                 'base_currency']
@@ -294,8 +293,7 @@ class PositionSizing(SystemStage):
 
         """
         def _get_block_value(system, instrument_code, this_stage):
-            this_stage.log.msg("Getting block value for %s" % instrument_code,
-                               instrument_code=instrument_code)
+            print(__file__ + " " + "Getting block value for %s" % instrument_code)
 
             (underlying_price, value_of_price_move) = this_stage.get_instrument_sizing_data(
                 instrument_code)
@@ -336,8 +334,7 @@ class PositionSizing(SystemStage):
         """
         def _get_instrument_currency_vol(system, instrument_code, this_stage):
 
-            this_stage.log.msg("Calculating instrument currency vol for %s" % instrument_code,
-                               instrument_code=instrument_code)
+            print(__file__ + " " + "Calculating instrument currency vol for %s" % instrument_code)
 
             block_value = this_stage.get_block_value(instrument_code)
             daily_perc_vol = this_stage.get_price_volatility(instrument_code)
@@ -380,8 +377,7 @@ class PositionSizing(SystemStage):
         """
         def _get_instrument_value_vol(system, instrument_code, this_stage):
 
-            this_stage.log.msg("Calculating instrument value vol for %s" % instrument_code,
-                               instrument_code=instrument_code)
+            print(__file__ + " " + "Calculating instrument value vol for %s" % instrument_code)
 
             instr_ccy_vol = this_stage.get_instrument_currency_vol(
                 instrument_code)
@@ -425,8 +421,7 @@ class PositionSizing(SystemStage):
         """
         def _get_volatility_scalar(system, instrument_code, this_stage):
 
-            this_stage.log.msg("Calculating volatility scalar for %s" % instrument_code,
-                               instrument_code=instrument_code)
+            print(__file__ + " " + "Calculating volatility scalar for %s" % instrument_code)
 
             instr_value_vol = this_stage.get_instrument_value_vol(
                 instrument_code)
@@ -472,8 +467,7 @@ class PositionSizing(SystemStage):
         """
         def _get_subsystem_position(system, instrument_code, this_stage):
 
-            this_stage.log.msg("Calculating subsystem position for %s" % instrument_code,
-                               instrument_code=instrument_code)
+            print(__file__ + " " + "Calculating subsystem position for %s" % instrument_code)
 
             """
             We don't allow this to be changed in config

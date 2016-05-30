@@ -110,8 +110,7 @@ for rule_name in variations:
     all_scalars=sorted(all_scalars, key=lambda x: x[1])
     print("%s: %s %s" % (rule_name, str(all_scalars[0]), str(all_scalars[-1])))
     all_scalar_values=[x[1] for x in all_scalars]
-    print("mean %.3f std %.3f min %.3f max %.3f" % (np.nanmean(all_scalar_values), np.nanstd(all_scalar_values),
-                                                    np.nanmin(all_scalar_values), np.nanmax(all_scalar_values)))
+    print("mean %.3f std %.3f min %.3f max %.3f" % (np.nanmean(all_scalar_values), np.nanstd(all_scalar_values))
     
 ## reload config so we get scalars estimated with pooling behaviour
 my_config = Config("examples.breakout.breakoutfuturesestimateconfig.yaml")

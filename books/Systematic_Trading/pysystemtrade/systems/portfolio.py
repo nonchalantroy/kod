@@ -167,7 +167,7 @@ class PortfoliosFixed(SystemStage):
 
         """
         def _get_raw_instrument_weights(system, an_ignored_variable, this_stage):
-            this_stage.log.msg("Calculating raw instrument weights")
+            print(__file__ + " " + "Calculating raw instrument weights")
 
             try:
                 instrument_weights = system.config.instrument_weights
@@ -223,7 +223,7 @@ class PortfoliosFixed(SystemStage):
         def _get_clean_instrument_weights(
                 system, an_ignored_variable, this_stage):
 
-            this_stage.log.terse("Calculating clean instrument weights")
+            print(__file__ + " " + "Calculating clean instrument weights")
 
             raw_instr_weights = this_stage.get_raw_instrument_weights()
             instrument_list = list(raw_instr_weights.columns)
@@ -272,7 +272,7 @@ class PortfoliosFixed(SystemStage):
         def _get_instrument_div_multiplier(
                 system, an_ignored_variable, this_stage):
 
-            this_stage.log.terse("Calculating diversification multiplier")
+            print(__file__ + " " + "Calculating diversification multiplier")
 
             div_mult=system.config.instrument_div_multiplier
 
@@ -319,8 +319,7 @@ class PortfoliosFixed(SystemStage):
         """
         def _get_notional_position(system, instrument_code, this_stage):
             
-            this_stage.log.msg("Calculating notional position for %s" % instrument_code,
-                               instrument_code=instrument_code)
+            print(__file__ + " " + "Calculating notional position for %s" % instrument_code)
             
             idm = this_stage.get_instrument_diversification_multiplier()
             instr_weights = this_stage.get_instrument_weights()
@@ -364,8 +363,7 @@ class PortfoliosFixed(SystemStage):
         """
         def _get_position_method_buffer(system, instrument_code, this_stage):
             
-            this_stage.log.msg("Calculating position method buffer for %s" % instrument_code,
-                               instrument_code=instrument_code)
+            print(__file__ + " " + "Calculating position method buffer for %s" % instrument_code)
             
             buffer_size=system.config.buffer_size
             
@@ -405,8 +403,7 @@ class PortfoliosFixed(SystemStage):
         """
         def _get_forecast_method_buffer(system, instrument_code, this_stage):
             
-            this_stage.log.msg("Calculating forecast method buffers for %s" % instrument_code,
-                               instrument_code=instrument_code)
+            print(__file__ + " " + "Calculating forecast method buffers for %s" % instrument_code)
             
             buffer_size=system.config.buffer_size
             position = this_stage.get_notional_position(instrument_code)
@@ -459,8 +456,7 @@ class PortfoliosFixed(SystemStage):
         """
         def _get_buffers_for_position(system, instrument_code, this_stage):
             
-            this_stage.log.msg("Calculating buffers for %s" % instrument_code,
-                               instrument_code=instrument_code)
+            print(__file__ + " " + "Calculating buffers for %s" % instrument_code)
             
             buffer_method=system.config.buffer_method
             
@@ -506,8 +502,7 @@ class PortfoliosFixed(SystemStage):
         """
         def _get_actual_position(system, instrument_code, this_stage):
             
-            this_stage.log.msg("Calculating actual position for %s" % instrument_code,
-                               instrument_code=instrument_code)
+            print(__file__ + " " + "Calculating actual position for %s" % instrument_code)
             
             notional_position = this_stage.get_notional_position(instrument_code)
             cap_multiplier = this_stage.capital_multiplier()
@@ -534,8 +529,7 @@ class PortfoliosFixed(SystemStage):
         """
         def _get_actual_buffers_for_position(system, instrument_code, this_stage):
             
-            this_stage.log.msg("Calculating actual buffers for position for %s" % instrument_code,
-                               instrument_code=instrument_code)
+            print(__file__ + " " + "Calculating actual buffers for position for %s" % instrument_code)
             
             buffers = this_stage.get_buffers_for_position(instrument_code)
             cap_multiplier = this_stage.capital_multiplier()
@@ -633,7 +627,7 @@ class PortfoliosEstimated(PortfoliosFixed):
         def _get_instrument_correlation_matrix(system, NotUsed,  this_stage, 
                                                corr_func, **corr_params):
 
-            this_stage.log.terse("Calculating instrument correlations")
+            print(__file__ + " " + "Calculating instrument correlations")
 
             instrument_codes=system.get_instrument_list()
 
@@ -695,7 +689,7 @@ class PortfoliosEstimated(PortfoliosFixed):
         """
         def _get_instrument_div_multiplier(system,  NotUsed, this_stage):
 
-            this_stage.log.terse("Calculating instrument div. multiplier")
+            print(__file__ + " " + "Calculating instrument div. multiplier")
             
             ## Get some useful stuff from the config
             div_mult_params=copy(system.config.instrument_div_mult_estimate)
@@ -736,7 +730,7 @@ class PortfoliosEstimated(PortfoliosFixed):
         """
 
         def _get_raw_instrument_weights(system, notUsed, this_stage):
-            this_stage.log.msg("Getting raw instrument weights")
+            print(__file__ + " " + "Getting raw instrument weights")
 
             return this_stage.calculation_of_raw_instrument_weights().weights
 
@@ -784,7 +778,7 @@ class PortfoliosEstimated(PortfoliosFixed):
         """
         def _get_instrument_weights(system, notUsed, this_stage):
 
-            this_stage.log.msg("Getting instrument weights")
+            print(__file__ + " " + "Getting instrument weights")
 
             raw_instr_weights = this_stage.get_raw_instrument_weights()
             instrument_list = list(raw_instr_weights.columns)
@@ -847,7 +841,7 @@ class PortfoliosEstimated(PortfoliosFixed):
         def _calculation_of_raw_instrument_weights(system, NotUsed1, this_stage, 
                                       weighting_func, **weighting_params):
             
-            this_stage.log.terse("Calculating raw instrument weights")
+            print(__file__ + " " + "Calculating raw instrument weights")
 
             instrument_codes=system.get_instrument_list()
 

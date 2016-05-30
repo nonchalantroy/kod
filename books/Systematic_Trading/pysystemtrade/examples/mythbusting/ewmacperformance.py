@@ -34,8 +34,7 @@ for rule_name in ["ewmac16_64", "carry"]:
     print("*****************")      
     for instr_code in instrument_list:
         data=system.accounts.pandl_for_instrument_forecast(instr_code, rule_name)
-        print("%s %.4f %.3f" % (instr_code, data.t_test()[1],
-                                data.sharpe()))
+        print("%s %.4f %.3f" % (instr_code, data.t_test()[1])
 
 bigresults=[]
 for rule_name in trading_rules:

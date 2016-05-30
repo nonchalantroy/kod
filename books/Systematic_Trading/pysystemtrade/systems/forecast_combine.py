@@ -276,8 +276,7 @@ class ForecastCombineFixed(SystemStage):
         2015-12-11      0.5     0.5
         """
         def _get_raw_forecast_weights(system, instrument_code, this_stage):
-            this_stage.log.msg("Calculating raw forecast weights for %s" % (instrument_code),
-                               instrument_code=instrument_code)
+            print(__file__ + " " + "Calculating raw forecast weights for %s" % (instrument_code))
 
             # Let's try the config
             if "forecast_weights" in dir(system.config):
@@ -295,7 +294,7 @@ class ForecastCombineFixed(SystemStage):
 
                 warn_msg="WARNING: No forecast weights  - using equal weights of %.4f over all %d trading rules in system" %(weight, len(rules))
 
-                this_stage.log.warn(warn_msg, instrument_code=instrument_code)
+                this_stage.log.warn(warn_msg)
 
                 fixed_weights = dict([(rule_name, weight)
                                       for rule_name in rules])
@@ -369,8 +368,7 @@ class ForecastCombineFixed(SystemStage):
         """
         def _get_forecast_weights(system, instrument_code, this_stage):
 
-            this_stage.log.msg("Calculating forecast weights for %s" % (instrument_code),
-                               instrument_code=instrument_code)
+            print(__file__ + " " + "Calculating forecast weights for %s" % (instrument_code))
 
             forecast_weights = this_stage.get_raw_forecast_weights(
                 instrument_code)
@@ -428,8 +426,7 @@ class ForecastCombineFixed(SystemStage):
         2015-12-11    1
         """
         def _get_forecast_div_multiplier(system, instrument_code, this_stage):
-            this_stage.log.msg("Calculating diversification multiplier for %s" % (instrument_code),
-                               instrument_code=instrument_code)
+            print(__file__ + " " + "Calculating diversification multiplier for %s" % (instrument_code))
 
             # Let's try the config
             if hasattr(system.config, "forecast_div_multiplier"):
@@ -442,14 +439,14 @@ class ForecastCombineFixed(SystemStage):
                         instrument_code]
                 else:
                     error_msg="FDM in config needs to be eithier float, or dict with instrument_code keys"
-                    this_stage.log.critical(error_msg, instrument_code=instrument_code)
+                    this_stage.log.critical(error_msg)
 
             elif "forecast_div_multiplier" in system_defaults:
                 # try defaults
                 fixed_div_mult = system_defaults['forecast_div_multiplier']
             else:
                 error_msg="Need to specify FDM in config or system_defaults"
-                this_stage.log.critical(error_msg, instrument_code=instrument_code)
+                this_stage.log.critical(error_msg)
 
             # Now we have a dict, fixed_weights.
             # Need to turn into a timeseries covering the range of forecast dates
@@ -501,8 +498,7 @@ class ForecastCombineFixed(SystemStage):
         2015-12-11             21
         """
         def _get_combined_forecast(system, instrument_code, this_stage):
-            this_stage.log.msg("Calculating combined forecast for %s" % (instrument_code),
-                               instrument_code=instrument_code)
+            print(__file__ + " " + "Calculating combined forecast for %s" % (instrument_code))
 
             forecast_weights = this_stage.get_forecast_weights(instrument_code)
             rule_variation_list = list(forecast_weights.columns)
@@ -646,7 +642,7 @@ class ForecastCombineEstimated(ForecastCombineFixed):
         """
         def _get_forecast_correlation_matrices(system, NotUsed1, NotUsed2, this_stage, 
                                                codes_to_use, corr_func, **corr_params):
-            this_stage.log.terse("Calculating forecast correlations over %s" % ", ".join(codes_to_use))
+            print(__file__ + " " + "Calculating forecast correlations over %s" % ", ".join(codes_to_use))
 
             forecast_data=[this_stage.get_all_forecasts(instr_code, this_stage.apply_cost_weighting(instr_code)) for instr_code in codes_to_use]
             
@@ -728,8 +724,7 @@ class ForecastCombineEstimated(ForecastCombineFixed):
         """
         def _get_forecast_div_multiplier(system, instrument_code, this_stage):
 
-            this_stage.log.terse("Calculating forecast div multiplier for %s" % instrument_code,
-                                 instrument_code=instrument_code)
+            print(__file__ + " " + "Calculating forecast div multiplier for %s" % instrument_code)
             
             ## Get some useful stuff from the config
             div_mult_params=copy(system.config.forecast_div_mult_estimate)
@@ -807,8 +802,7 @@ class ForecastCombineEstimated(ForecastCombineFixed):
             cheap_rule_list = [rule_name for (rule_name, rule_cost) in zip(rule_list, SR_cost_list) 
                                if rule_cost<=ceiling_cost_SR]
             
-            this_stage.log.msg("Only this set of rules %s is cheap enough to trade for %s" % (str(cheap_rule_list), instrument_code),
-                               instrument_code=instrument_code)
+            print(__file__ + " " + "Only this set of rules %s is cheap enough to trade for %s" % (str(cheap_rule_list), instrument_code))
 
             return cheap_rule_list
 
@@ -889,7 +883,7 @@ class ForecastCombineEstimated(ForecastCombineFixed):
         def _calculation_of_raw_forecast_weights(system, instrument_code, this_stage, 
                                       codes_to_use, weighting_func, pool_costs, **weighting_params):
 
-            this_stage.log.terse("Calculating raw forecast weights for %s, over %s" % (instrument_code, ", ".join(codes_to_use)))
+            print(__file__ + " " + "Calculating raw forecast weights for %s, over %s" % (instrument_code, ", ".join(codes_to_use)))
 
             rule_list = self.apply_cost_weighting(instrument_code)
 
@@ -973,7 +967,7 @@ class ForecastCombineEstimated(ForecastCombineFixed):
         def _calculation_of_pooled_raw_forecast_weights(system, instrument_code_ref, this_stage, 
                                       codes_to_use, weighting_func,  **weighting_params):
 
-            this_stage.log.terse("Calculating pooled raw forecast weights over instruments: %s" % instrument_code_ref)
+            print(__file__ + " " + "Calculating pooled raw forecast weights over instruments: %s" % instrument_code_ref)
 
 
             rule_list = self.apply_cost_weighting(instrument_code)
@@ -1075,8 +1069,7 @@ class ForecastCombineEstimated(ForecastCombineFixed):
         """
 
         def _get_raw_forecast_weights(system, instrument_code, this_stage):
-            this_stage.log.msg("Calculating raw forecast weights for %s" % instrument_code,
-                               instrument_code=instrument_code)
+            print(__file__ + " " + "Calculating raw forecast weights for %s" % instrument_code)
 
             return this_stage.calculation_of_raw_forecast_weights(instrument_code).weights
 
@@ -1115,8 +1108,7 @@ class ForecastCombineEstimated(ForecastCombineFixed):
         2015-12-11  0.441024  0.256879  0.302097
         """
         def _get_forecast_weights(system, instrument_code, this_stage):
-            this_stage.log.msg("Calculating forecast weights for %s" % instrument_code,
-                               instrument_code=instrument_code)
+            print(__file__ + " " + "Calculating forecast weights for %s" % instrument_code)
 
             ## Get some useful stuff from the config
             weighting_params=copy(system.config.forecast_weight_estimate)  

@@ -1,7 +1,5 @@
 import inspect
 from copy import copy
-import sys
-import logging; logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
 
 class logger(object):
@@ -111,12 +109,13 @@ class logger(object):
         new_attributes=get_update_attributes_list(log_attributes, passed_attributes)        
         
         setattr(self, "attributes", new_attributes)
-         
+        
+ 
     def msg(self, text, **kwargs):
-        print (text)
+        self.log(text, msglevel=0, **kwargs)
 
     def terse(self, text, **kwargs):
-        print (text)        
+        self.log(text, msglevel=1, **kwargs)
 
     def warn(self, text, **kwargs):
         self.log(text, msglevel=2, **kwargs)
@@ -166,17 +165,17 @@ class logtoscreen(logger):
         """
         >>> log=logtoscreen("base_system", log_level="off") ## this won't do anything
         >>> log.log("this wont print")
-        >>> log.terse("nor this")
+        >>> print(__file__ + " " + "nor this")
         >>> log.warn("this will")
         this will
         >>> log.error("and this")
         and this
         >>> log=logtoscreen(log, log_level="terse")
-        >>> log.msg("this wont print")
-        >>> log.terse("this will")
+        >>> print(__file__ + " " + "this wont print")
+        >>> print(__file__ + " " + "this will")
         this will
         >>> log=logtoscreen(log_level="on")
-        >>> log.msg("now prints every little thing")
+        >>> print(__file__ + " " + "now prints every little thing")
         now prints every little thing
         """
         log_level=self.logging_level()

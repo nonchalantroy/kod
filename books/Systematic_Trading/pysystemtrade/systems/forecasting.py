@@ -133,8 +133,7 @@ class Rules(SystemStage):
         def _get_raw_forecast(system, instrument_code,
                           rule_variation_name, rules_stage):
             # This function gets called if we haven't cached the forecast
-            rules_stage.log.msg("Calculating raw forecast %s for %s" % (instrument_code, rule_variation_name),
-                                instrument_code=instrument_code, rule_variation_name=rule_variation_name)
+            print(__file__ + " " + "Calculating raw forecast %s for %s" % (instrument_code, rule_variation_name))
 
             trading_rule = rules_stage.trading_rules()[rule_variation_name]
 

@@ -282,11 +282,11 @@ class CorrelationEstimator(CorrelationList):
         ## create a list of correlation matrices
         corr_list=[]
         
-        log.terse("Correlation estimate")
+        print(__file__ + " " + "Correlation estimate")
         
         ## Now for each time period, estimate correlation
         for fit_period in fit_dates:
-            log.msg("Estimating from %s to %s" % (fit_period.period_start, fit_period.period_end))
+            print(__file__ + " " + "Estimating from %s to %s" % (fit_period.period_start, fit_period.period_end))
             
             if fit_period.no_data:
                 ## no data to fit with
