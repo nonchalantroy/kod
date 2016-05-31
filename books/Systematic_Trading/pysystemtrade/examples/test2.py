@@ -1,4 +1,4 @@
-import sys; sys.path.append('../..')
+import sys; sys.path.append('..')
 
 from systems.provided.example.rules import ewmac_forecast_with_defaults as ewmac
 from sysdata.configdata import Config
