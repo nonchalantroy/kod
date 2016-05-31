@@ -424,7 +424,8 @@ Freq: B, dtype: float64
 
 Alternatively you can estimate div. multipliers, and weights. 
 
-Note: Since we need to know the performance of different trading rules, we need to include an Accounts stage to calculate these:
+Note: Since we need to know the performance of different trading
+rules, we need to include an Accounts stage to calculate these:
 
 ```python
 from systems.account import Account
