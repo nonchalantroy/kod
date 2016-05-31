@@ -321,7 +321,7 @@ class csvFuturesData(FuturesData):
         Name: FX, dtype: float64
         """
 
-        print(__file__ + " " + "Loading csv fx data", fx="%s%s" % (currency1, currency2))
+        print(__file__ + " " + "Loading csv fx data %s%s" % (currency1, currency2))
 
         if currency1 == currency2:
             return self._get_default_series()
