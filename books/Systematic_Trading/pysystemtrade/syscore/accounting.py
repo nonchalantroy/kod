@@ -517,6 +517,7 @@ class accountCurveSingleElementOneFreq(pd.Series):
 
         build_stats = []
         for stat_name in stats_list:
+            # HACK: stats below cause segfault, remove later TBD
             if stat_name in ['avg_drawdown','time_in_drawdown','calmar','avg_return_to_drawdown']: continue
             print (stat_name)
             stat_method = getattr(self, stat_name)
