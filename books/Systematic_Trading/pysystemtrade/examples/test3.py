@@ -36,6 +36,7 @@ price = df.PRICE
 ewmac = calc_ewmac_forecast(price, 32, 128)
 ewmac.columns=['forecast']
 print(ewmac.tail(5))
+ewmac.to_csv('c:/Users/burak/out.csv')
 
 from syscore.accounting import accountCurve
 account = accountCurve(price, forecast=ewmac,capital=200000.)
