@@ -1,3 +1,4 @@
+import inspect
 """
 
 Work up a minimum example of a trend following system

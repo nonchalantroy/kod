@@ -1,3 +1,4 @@
+import inspect
 from systems.provided.example.simplesystem import simplesystem
 
 my_system = simplesystem(log_level="on")

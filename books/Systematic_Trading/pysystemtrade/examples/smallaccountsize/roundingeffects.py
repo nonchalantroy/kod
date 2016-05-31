@@ -1,3 +1,4 @@
+import inspect
 """
 rounding effects
 """
@@ -13,7 +14,7 @@ class ForecastWithBinary(ForecastCombineFixed):
     def get_combined_forecast(self, instrument_code):
 
         def _get_combined_forecast(system, instrument_code, this_stage):
-            print(__file__ + " " + "Calculating combined forecast for %s" % (instrument_code))
+            print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" +"Calculating combined forecast for %s" % (instrument_code))
 
             forecast_weights = this_stage.get_forecast_weights(instrument_code)
             rule_variation_list = list(forecast_weights.columns)
@@ -52,7 +53,7 @@ class ForecastWithThreshold(ForecastCombineFixed):
     def get_combined_forecast(self, instrument_code):
 
         def _get_combined_forecast(system, instrument_code, this_stage):
-            print(__file__ + " " + "Calculating combined forecast for %s" % (instrument_code))
+            print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" +"Calculating combined forecast for %s" % (instrument_code))
 
             forecast_weights = this_stage.get_forecast_weights(instrument_code)
             rule_variation_list = list(forecast_weights.columns)

@@ -1,3 +1,4 @@
+import inspect
 '''
 Simple trading rules used in examples
 '''

@@ -1,3 +1,4 @@
+import inspect
 """
 Get legacy data from .csv files
 
@@ -75,7 +76,7 @@ class csvFuturesData(FuturesData):
         EDOLLAR       EDOLLAR    0.0025      2.11           0         0
         """
 
-        print(__file__ + " " + "Loading csv cost file")
+        print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" +"Loading csv cost file")
 
         filename = os.path.join(self._datapath, "costs_analysis.csv")
         try:
@@ -154,7 +155,7 @@ class csvFuturesData(FuturesData):
         """
 
         # Read from .csv
-        print(__file__ + " " + "Loading csv data for %s" % instrument_code)
+        print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" +"Loading csv data for %s" % instrument_code)
         filename = os.path.join(self._datapath, instrument_code + "_price.csv")
         instrpricedata = pd_readcsv(filename)
         instrpricedata.columns = ["price"]
@@ -182,7 +183,7 @@ class csvFuturesData(FuturesData):
         2015-12-11 17:24:06  126.945312    NaN         201606         201603
         """
 
-        print(__file__ + " " + "Loading csv carry data for %s" % instrument_code)
+        print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" +"Loading csv carry data for %s" % instrument_code)
 
         filename = os.path.join(
             self._datapath, instrument_code + "_carrydata.csv")
@@ -211,7 +212,7 @@ class csvFuturesData(FuturesData):
         BUND             BUND       1000       Bond      EUR
         """
 
-        print(__file__ + " " + "Loading csv instrument config")
+        print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" +"Loading csv instrument config")
 
         filename = os.path.join(self._datapath, "instrumentconfig.csv")
         instr_data = pd.read_csv(filename)
@@ -321,7 +322,7 @@ class csvFuturesData(FuturesData):
         Name: FX, dtype: float64
         """
 
-        print(__file__ + " " + "Loading csv fx data %s%s" % (currency1, currency2))
+        print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" +"Loading csv fx data", fx="%s%s" % (currency1, currency2))
 
         if currency1 == currency2:
             return self._get_default_series()

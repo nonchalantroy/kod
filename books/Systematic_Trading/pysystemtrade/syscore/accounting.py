@@ -1,3 +1,4 @@
+import inspect
 """
 Suite of things to work out p&l, and statistics thereof
 

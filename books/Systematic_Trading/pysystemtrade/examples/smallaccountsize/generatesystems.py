@@ -1,3 +1,4 @@
+import inspect
 instrument_list=['KR3',  'V2X',  'EDOLLAR', 'MXP', 'CORN', 'EUROSTX', 'GAS_US', 'PLAT',
  'US2', 'LEANHOG', 'GBP', 'VIX', 'CAC', 'COPPER', 'CRUDE_W',
  'BOBL', 'WHEAT', 'JPY', 'NASDAQ', 'GOLD',

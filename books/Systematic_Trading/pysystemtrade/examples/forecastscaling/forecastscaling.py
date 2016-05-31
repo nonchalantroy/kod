@@ -1,3 +1,4 @@
+import inspect
 from copy import copy
 from matplotlib.pyplot import show, bar
 from systems.provided.futures_chapter15.estimatedsystem import futures_system

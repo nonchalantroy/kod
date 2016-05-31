@@ -1,3 +1,4 @@
+import inspect
 from systems.provided.futures_chapter15.basesystem import *
 import pandas as pd
 import numpy as np
@@ -119,7 +120,7 @@ def fit_a_filter_datewise(system, rule_name, instrument_code=None, return_period
 
     filter_data=[]
     for fit_period in fit_dates:
-        system.print(__file__ + " " + "Estimating fitting from %s to %s" % (fit_period.period_start, fit_period.period_end))
+        system.print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" +"Estimating fitting from %s to %s" % (fit_period.period_start, fit_period.period_end))
         
         if fit_period.no_data:
             data=[None, None]
@@ -219,7 +220,7 @@ class newfsc(ForecastScaleCapEstimated):
     def get_fitted_values(self, instrument_code, rule_variation_name):
         def _get_fitted_values(
                 system, instrument_code, rule_variation_name, this_stage,  **kwargs):
-            print(__file__ + " " + "Fitting mapping for %s %s " % (instrument_code, rule_variation_name))
+            print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" +"Fitting mapping for %s %s " % (instrument_code, rule_variation_name))
             if instrument_code==ALL_KEYNAME:
                 instrument_code=None
 

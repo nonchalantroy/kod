@@ -1,3 +1,4 @@
+import inspect
 """
 Functions to calculate capital multiplier
 """
