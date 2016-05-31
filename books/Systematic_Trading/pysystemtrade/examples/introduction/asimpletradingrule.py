@@ -1,4 +1,4 @@
-import inspect
+import sys; sys.path.append('../..')
 """
 
 Work up a minimum example of a trend following system

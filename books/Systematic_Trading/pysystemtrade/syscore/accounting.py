@@ -130,6 +130,7 @@ def pandl_with_data(price, trades=None, marktomarket=True, positions=None,
                             base_ccy_returns, fx) all Tx1 pd.DataFrames
 
     """
+
     if price is None:
         raise Exception("Can't work p&l without price")
 
@@ -139,9 +140,7 @@ def pandl_with_data(price, trades=None, marktomarket=True, positions=None,
                        index=price.index)
     else:
         use_fx = fx.reindex(price.index, method="ffill")
-
-
-
+    
     if trades is None:
         
         prices_to_use = copy(price)
@@ -191,7 +190,7 @@ def pandl_with_data(price, trades=None, marktomarket=True, positions=None,
         cum_trades = trades_to_use.cumsum().ffill()
 
     price_returns = prices_to_use.diff()
-
+    
     instr_ccy_returns = cum_trades.shift(1)* price_returns * value_of_price_point
     
     instr_ccy_returns=instr_ccy_returns.cumsum().ffill().reindex(price.index).diff()
@@ -518,6 +517,8 @@ class accountCurveSingleElementOneFreq(pd.Series):
 
         build_stats = []
         for stat_name in stats_list:
+            if stat_name in ['avg_drawdown','time_in_drawdown','calmar','avg_return_to_drawdown']: continue
+            print (stat_name)
             stat_method = getattr(self, stat_name)
             ans = stat_method()
             build_stats.append((stat_name, "{0:.4g}".format(ans)))
@@ -683,7 +684,7 @@ class accountCurve(accountCurveSingle):
             (base_capital, ann_risk, daily_risk_capital)=resolve_capital(price, capital, ann_risk_target)
 
             returns_data=pandl_with_data(price, daily_risk_capital=daily_risk_capital,  **kwargs)
-    
+
             (cum_trades, trades_to_use, instr_ccy_returns,
                 base_ccy_returns, use_fx, value_of_price_point)=returns_data
                 
@@ -694,6 +695,7 @@ class accountCurve(accountCurveSingle):
             unweighted_instr_ccy_pandl=dict(gross=instr_ccy_returns, costs=costs_instr_ccy, 
                                  net=instr_ccy_returns+costs_instr_ccy)
 
+            
 
         ## Initially we have an unweighted version
         
@@ -740,7 +742,6 @@ class accountCurve(accountCurveSingle):
 
         """
 
-        
         if weighted_flag:
             use_weighting = weighting.reindex(base_ccy_returns.index).ffill()
             if not apply_weight_to_costs_only:
