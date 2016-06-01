@@ -1,3 +1,4 @@
+import inspect
 import sys; sys.path.append('..')
 from sysdata.csvdata import csvFuturesData
 from sysdata.configdata import Config
@@ -39,6 +40,6 @@ print(ewmac.tail(5))
 ewmac.to_csv('c:/Users/burak/out.csv')
 
 from syscore.accounting import accountCurve
-account = accountCurve(price, forecast=ewmac,capital=200000.)
+account = accountCurve(price, forecast=ewmac)
 tmp = account.percent()
 print(tmp.stats())

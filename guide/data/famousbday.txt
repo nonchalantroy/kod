@@ -39670,3 +39670,4 @@ Berat Albayrak:Damat:1/1/1978
 Rodrigo Duterte:Philipine President:28/2/1945
 Sahan Gokbakar:Comedian:22/10/1988
 Binali Yildirim:Prime Minister:20/12/1955
+Guido van Rossum:Inventor:31/1/1956
