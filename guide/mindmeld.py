@@ -174,7 +174,7 @@ def calculate(date):
 
 def describe(res):
    print res
-   base = 'https://github.com/skorsky12/mindmeld/tree/master/doc/details'
+   base = './doc/details'
    print base + '/millman/' + str(res['millman'][0]) + str(res['millman'][1]) + '.html'
    for lewi in res['lewi']: print base + '/lewi/' + str(lewi) + '.html'
    print base + '/chinese/' + str(res['chinese']) + '.html'
