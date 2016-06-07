@@ -1,4 +1,5 @@
 import inspect
+import inspect
 """
 Configuration is used to control the behaviour of a system
 

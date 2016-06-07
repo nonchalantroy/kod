@@ -1,4 +1,5 @@
 import inspect
+import inspect
 from syscore.objects import get_methods
 
 class SystemStage(object):

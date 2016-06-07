@@ -1,5 +1,6 @@
 import inspect
 import inspect
+import inspect
 import sys; sys.path.append('..')
 
 from systems.provided.example.rules import ewmac_forecast_with_defaults as ewmac

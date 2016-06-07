@@ -1,5 +1,6 @@
 import inspect
 import inspect
+import inspect
 import sys; sys.path.append('../..')
 from matplotlib.pyplot import show, title
 

@@ -1,4 +1,5 @@
 import inspect
+import inspect
 import pickle
 from sysdata.configdata import Config
 from syslogdiag.log import logtoscreen
