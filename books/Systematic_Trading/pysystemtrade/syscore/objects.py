@@ -1,5 +1,4 @@
 import inspect
-import inspect
 """
 Do fun things with objects and classes
 """

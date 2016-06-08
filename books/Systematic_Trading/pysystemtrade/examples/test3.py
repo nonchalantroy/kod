@@ -1,5 +1,6 @@
 import inspect
 import inspect
+import inspect
 import sys; sys.path.append('..')
 from sysdata.csvdata import csvFuturesData
 from sysdata.configdata import Config

@@ -1,5 +1,4 @@
 import inspect
-import inspect
 import pandas as pd
 from syslogdiag.log import logtoscreen
 from syscore.objects import get_methods

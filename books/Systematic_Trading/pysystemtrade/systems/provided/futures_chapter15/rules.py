@@ -1,5 +1,4 @@
 import inspect
-import inspect
 '''
 Trading rules for futures system
 '''

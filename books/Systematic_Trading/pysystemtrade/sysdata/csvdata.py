@@ -1,5 +1,4 @@
 import inspect
-import inspect
 """
 Get legacy data from .csv files
 

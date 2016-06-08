@@ -1,5 +1,4 @@
 import inspect
-import inspect
 from copy import copy
 import pandas as pd
 import numpy as np
@@ -379,6 +378,21 @@ class Account(SystemStage):
         """
         
         return self.parent.portfolio.get_buffers_for_position(instrument_code)
+
+    def get_actual_buffers_for_position(self, instrument_code):
+        """
+        Get the actual capital corrected buffered position from a previous module
+
+        :param instrument_code: instrument to get values for
+        :type instrument_code: str
+
+        :returns: Tx2 pd.DataFrame: columns top_pos, bot_pos
+
+        KEY INPUT
+        """
+        
+        return self.parent.portfolio.get_actual_buffers_for_position(instrument_code)
+
 
     def get_daily_price(self, instrument_code):
         """
@@ -1799,10 +1813,14 @@ class Account(SystemStage):
                         delayfill, roundpositions):
 
             capmult = this_stage.capital_multiplier()
-            notional = this_stage.get_notional_capital()            
-            notional = notional.reindex(capmult.index).ffill()
+            notional = this_stage.get_notional_capital()
             
-            capital = capmult*notional
+            if type(notional) is not pd.core.series.Series:
+                notional_ts = pd.Series([notional]*len(capmult), capmult.index)
+            else:              
+                notional_ts = notional.reindex(capmult.index).ffill()
+            
+            capital = capmult*notional_ts
             
             return capital
 
@@ -1831,19 +1849,6 @@ class Account(SystemStage):
         return self.parent.portfolio.get_actual_position(instrument_code)
 
 
-    def get_actual_buffers_for_position(self, instrument_code):
-        """
-        Get the buffered position for actual positions from a previous module
-
-        :param instrument_code: instrument to get values for
-        :type instrument_code: str
-
-        :returns: Tx2 pd.DataFrame: columns top_pos, bot_pos
-
-        KEY INPUT
-        """
-        
-        return self.parent.portfolio.get_actual_buffers_for_position(instrument_code)
 
     def get_buffered_position_with_multiplier(self, instrument_code, roundpositions=True):
         """

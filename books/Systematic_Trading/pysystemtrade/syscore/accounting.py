@@ -1,5 +1,4 @@
 import inspect
-import inspect
 """
 Suite of things to work out p&l, and statistics thereof
 
@@ -354,12 +353,6 @@ class accountCurveSingleElementOneFreq(pd.Series):
         
         return new_curve
 
-    def as_cum_percent(self):
-        perc_prod_returns = (self.as_percent()/100.0) + 1.0
-        
-        perc_ac_curve_cum = perc_prod_returns.cumprod() 
-        
-        return 100.0*perc_ac_curve_cum
 
 
     def as_percent(self):
@@ -373,11 +366,13 @@ class accountCurveSingleElementOneFreq(pd.Series):
         else:
             use_capital=self.capital
         
-        perc_ac_curve_cum = self.as_cum_percent() / 100.0
+        perc_ac_returns = self.as_percent() / 100.0
         
-        cum_returns = perc_ac_curve_cum * use_capital
+        cum_returns = (1.0 + perc_ac_returns).cumprod()
         
-        return cum_returns
+        cum_returns = cum_returns * use_capital
+        
+        return cum_returns.diff()
 
 
     def curve(self):
@@ -512,8 +507,10 @@ class accountCurveSingleElementOneFreq(pd.Series):
 
         stats_list = ["min", "max", "median", "mean", "std", "skew",
                       "ann_mean", "ann_std", "sharpe", "sortino",
-                      "avg_loss", "avg_gain", "gaintolossratio", "profitfactor",
-                      "hitrate", "t_stat", "p_value"]
+                      "avg_drawdown", "time_in_drawdown",
+                      "calmar", "avg_return_to_drawdown",
+                      "avg_loss", "avg_gain", "gaintolossratio", "profitfactor", "hitrate",
+                      "t_stat", "p_value"]
 
         build_stats = []
         for stat_name in stats_list:
