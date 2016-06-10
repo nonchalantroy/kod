@@ -39673,3 +39673,4 @@ Binali Yildirim:Prime Minister:20/12/1955
 Guido van Rossum:Inventor:31/1/1956
 Efkan Ala:Politician:21/2/1965
 Jon Oliver:Comedian:23/4/1977
+Dick Morris:Pollster:28/11/1946

@@ -1,9 +1,4 @@
 import inspect
-import inspect
-import inspect
-import inspect
-import inspect
-import inspect
 import sys; sys.path.append('..')
 
 from systems.provided.example.rules import ewmac_forecast_with_defaults as ewmac
@@ -46,3 +41,4 @@ print(my_system.combForecast.get_forecast_diversification_multiplier("EDOLLAR").
 # 2015-12-09  0.750037  0.249963
 # 2015-12-10  0.750036  0.249964
 # 2015-12-11  0.750036  0.249964
+
