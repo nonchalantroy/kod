@@ -34,11 +34,5 @@ my_system = System([my_account, fcs, my_rules, combiner], data, my_config)
 
 print(my_system.combForecast.get_forecast_weights("SP500").tail(5))
 print('forecast_diversification_multiplier')
-print(my_system.combForecast.get_forecast_diversification_multiplier("EDOLLAR").tail(5))
-
-# 2015-12-07  0.750037  0.249963
-# 2015-12-08  0.750037  0.249963
-# 2015-12-09  0.750037  0.249963
-# 2015-12-10  0.750036  0.249964
-# 2015-12-11  0.750036  0.249964
+print(my_system.combForecast.get_forecast_diversification_multiplier("SP500").tail(5))
 

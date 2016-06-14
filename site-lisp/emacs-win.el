@@ -876,7 +876,7 @@ This command does not push erased text to kill-ring."
 
 (when (or (eq system-type 'windows-nt) (eq system-type 'msdos))
   (setenv "PATH" (concat "C:\\GNU\\gnuwin32\\bin;" (getenv "PATH")))
-  (setq grep-find-command "c:\\Users\\burak\\Documents\\kod\\find.bat "
+  (setq grep-find-command "c:\\Users\\burak\\Documents\\kod\\find.bat *.* "
 	grep-program ""
 	))
 
