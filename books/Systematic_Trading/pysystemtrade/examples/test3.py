@@ -7,7 +7,6 @@ import pandas as pd
 
 def calc_ewmac_forecast(price, Lfast, Lslow=None):
     price=price.resample("1B", how="last")
-    if Lslow is None: Lslow = 4 * Lfast
     fast_ewma = pd.ewma(price, span=Lfast)
     slow_ewma = pd.ewma(price, span=Lslow)
     raw_ewmac = fast_ewma - slow_ewma
@@ -19,7 +18,6 @@ price = pd.read_csv(f,index_col=0,parse_dates=True).PRICE
 ewmac = calc_ewmac_forecast(price, 32, 128)
 ewmac.columns=['forecast']
 print(ewmac.tail(5))
-ewmac.to_csv('c:/Users/burak/out.csv')
 
 from syscore.accounting import accountCurve
 account = accountCurve(price, forecast=ewmac)

@@ -54,7 +54,8 @@ data.keys() ## equivalent to data.get_instrument_list
 data['SP500'] ## equivalent to data.get_instrument_price
 ```
 
-Price data is useful, but is there any other data available? For futures, yes, we can get the data we need to implement a carry rule:
+Price data is useful, but is there any other data available? For
+futures, yes, we can get the data we need to implement a carry rule:
 
 ```python
 data.get_instrument_raw_carry_data("EDOLLAR").tail(6)

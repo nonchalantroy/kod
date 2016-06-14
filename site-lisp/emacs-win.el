@@ -553,7 +553,7 @@ This command does not push erased text to kill-ring."
 (setq tempo-interactive t)
 
 (tempo-define-template  "py-debug-var" 
- '("logging.debug (\"" (p "Enter debug message: " deg) 
+ '("print (\"" (p "Enter debug message: " deg) 
    "=\" + str(" (s deg) "))" ) "d" ) 
 
 (tempo-define-template "verb"

@@ -507,6 +507,8 @@ class accountCurveSingleElementOneFreq(pd.Series):
 
         stats_list = ["min", "max", "median", "mean", "std", "skew",
                       "ann_mean", "ann_std", "sharpe", "sortino",
+                      #"avg_drawdown", "time_in_drawdown",
+                      #"calmar", "avg_return_to_drawdown",
                       "avg_loss", "avg_gain", "gaintolossratio", "profitfactor", "hitrate",
                       "t_stat", "p_value"]
 
@@ -916,7 +918,7 @@ def resolve_capital(ts_to_scale_to, capital=None, ann_risk_target=None):
 
     """
     if capital is None:
-        base_capital=DEFAULT_CAPITAL
+        base_capital=copy(DEFAULT_CAPITAL)
     else:
         base_capital = copy(capital)
         
