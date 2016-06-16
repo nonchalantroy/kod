@@ -76,26 +76,8 @@ def get_positions_from_forecasts(price, get_daily_returns_volatility, forecast,
 
     return positions
 
-    
-def percent(accurve):
-    """
-    Takes any account curve object
-    
-    Returns accountCurveSingleElementOneFreq - anything else is lost
-    """
-    pass
 
 class accountCurveSingleElementOneFreq(pd.Series):
-    """
-    A single account curve for one asset (instrument / trading rule variation, ...)
-     and one part of it (gross, net, costs)
-     and for one frequency (daily, weekly, monthly...)
-    
-    Inherits from series
-
-    We never init these directly but only as part of accountCurveSingleElement
-    
-    """
     def __init__(self, returns_df, capital, weighted_flag=False, frequency="D"):
         super().__init__(returns_df)
         
