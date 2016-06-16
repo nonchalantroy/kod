@@ -119,15 +119,9 @@ class accountCurveSingleElementOneFreq(pd.Series):
     def std(self):
         return float(self.as_ts().std())
 
-    def ann_std(self):
-        period_std = self.std()
-
-        return period_std * self._vol_scalar
-
-
     def sharpe(self):
         mean_return = self.mean() * self._returns_scalar
-        vol = self.ann_std()
+        vol = self.std() * self._vol_scalar
         try:
             sharpe=mean_return / vol
         except ZeroDivisionError:
