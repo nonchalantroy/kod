@@ -53,7 +53,7 @@ class accountCurve(accountCurveSingleElementOneFreq):
         ts_capital=pd.Series([DEFAULT_CAPITAL]*len(price), index=price.index)        
         ann_risk = ts_capital * DEFAULT_ANN_RISK_TARGET
         
-        (cum_trades,trades_to_use,instr_ccy_returns,base_ccy_returns) = pandl_with_data(price, daily_risk_capital=daily_risk_capital, forecast=forecast)
+        (cum_trades,trades_to_use,instr_ccy_returns,base_ccy_returns) = pandl_with_data(price, daily_risk_capital, forecast)
         
         super().__init__(base_ccy_returns, base_capital, frequency="D")        
 
