@@ -29,20 +29,13 @@ def sharpe(price, forecast):
     vol = base_ccy_returns.std() * ROOT_BDAYS_INYEAR
     return mean_return / vol
 
-def calc_ewmac_forecast(price, Lfast, Lslow=None):
-    price=price.resample("1B", how="last")
-    fast_ewma = pd.ewma(price, span=Lfast)
-    slow_ewma = pd.ewma(price, span=Lslow)
+if __name__ == "__main__": 
+ 
+    f = '../sysdata/legacycsv/EDOLLAR_price.csv'
+    df = pd.read_csv(f,index_col=0,parse_dates=True)
+    fast_ewma = pd.ewma(df.PRICE, span=32)
+    slow_ewma = pd.ewma(df.PRICE, span=128)
     raw_ewmac = fast_ewma - slow_ewma
-    vol = robust_vol_calc(price.diff())
-    return raw_ewmac /  vol
-
-f = '../sysdata/legacycsv/EDOLLAR_price.csv'
-df = pd.read_csv(f,index_col=0,parse_dates=True)
-
-fast_ewma = pd.ewma(df.PRICE, span=32)
-slow_ewma = pd.ewma(df.PRICE, span=128)
-raw_ewmac = fast_ewma - slow_ewma
-vol = robust_vol_calc(df['PRICE'].diff())
-forecast = raw_ewmac /  vol 
-print (sharpe(df.PRICE, forecast))
+    vol = robust_vol_calc(df['PRICE'].diff())
+    forecast = raw_ewmac /  vol 
+    print (sharpe(df.PRICE, forecast))
