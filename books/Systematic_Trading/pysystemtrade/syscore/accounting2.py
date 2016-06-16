@@ -13,7 +13,7 @@ DEFAULT_ANN_RISK_TARGET = 0.16
 DEFAULT_DAILY_CAPITAL=DEFAULT_CAPITAL * DEFAULT_ANN_RISK_TARGET / ROOT_BDAYS_INYEAR
 
 class accountCurveSingleElementOneFreq(pd.Series):
-    def __init__(self, returns_df, capital, weighted_flag=False, frequency="D"):
+    def __init__(self, returns_df, capital, frequency="D"):
         super().__init__(returns_df)
         
         returns_scalar=dict(D=BUSINESS_DAYS_IN_YEAR, W=WEEKS_IN_YEAR,
@@ -26,7 +26,6 @@ class accountCurveSingleElementOneFreq(pd.Series):
         setattr(self, "_returns_scalar", returns_scalar)
         setattr(self, "_vol_scalar", vol_scalar)
         setattr(self, "_returns_df", returns_df)
-        setattr(self, "weighted_flag", weighted_flag)
         setattr(self, "capital", capital)
 
     def as_ts(self):
@@ -34,7 +33,7 @@ class accountCurveSingleElementOneFreq(pd.Series):
 
     def percent(self):
         perc_returns=self.as_percent()
-        new_curve=accountCurveSingleElementOneFreq(perc_returns, 100.0, self.weighted_flag, self.frequency)        
+        new_curve=accountCurveSingleElementOneFreq(perc_returns, 100.0, self.frequency)        
         return new_curve
 
     def as_percent(self):
