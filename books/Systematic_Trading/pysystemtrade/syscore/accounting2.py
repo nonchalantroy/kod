@@ -105,17 +105,14 @@ def resolve_capital(ts_to_scale_to, capital=None, ann_risk_target=None):
 
     ann_risk_target=DEFAULT_ANN_RISK_TARGET
         
-    ## might be a float or a Series, depending on capital
     daily_risk_capital = base_capital * ann_risk_target / ROOT_BDAYS_INYEAR
 
     ts_capital=pd.Series([base_capital]*len(ts_to_scale_to), index=ts_to_scale_to.index)
     base_capital = float(base_capital)
     
-    ## always a time series
     ann_risk = ts_capital * ann_risk_target
     
     return (base_capital, ann_risk, daily_risk_capital)
-
 
 
 def pandl_with_data(price, trades=None, marktomarket=True, positions=None,
