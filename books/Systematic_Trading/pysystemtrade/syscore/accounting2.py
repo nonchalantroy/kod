@@ -109,9 +109,7 @@ class accountCurveSingleElementOneFreq(pd.Series):
         return new_curve
 
     def as_percent(self):
-        print ("in percent self.as_ts=" + str(self.as_ts().tail(4)))
         return 100.0 * self.as_ts() / self.capital
-
 
     def mean(self):
         return float(self.as_ts().mean())
@@ -122,19 +120,7 @@ class accountCurveSingleElementOneFreq(pd.Series):
     def sharpe(self):
         mean_return = self.mean() * self._returns_scalar
         vol = self.std() * self._vol_scalar
-        try:
-            sharpe=mean_return / vol
-        except ZeroDivisionError:
-            sharpe=np.nan
-        return sharpe
-
-    def __repr__(self):
-        if self.weighted_flag:
-            weight_comment="Weighted"
-        else:
-            weight_comment="Unweighted"
-        return super().__repr__()+"\n %s account curve; use object.stats() to see methods" % weight_comment
-    
+        return mean_return / vol
 
 
 class accountCurveSingleElement(accountCurveSingleElementOneFreq):
