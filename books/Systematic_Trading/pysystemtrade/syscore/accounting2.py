@@ -51,23 +51,18 @@ class accountCurveSingleElementOneFreq(pd.Series):
         vol = self.std() * self._vol_scalar
         return mean_return / vol
 
-
-class accountCurveSingle(accountCurveSingleElementOneFreq):
-    
-    def __init__(self, gross_returns, net_returns, capital):
-        daily_returns = net_returns.resample("1B", how="sum")        
-        super().__init__(daily_returns, capital, frequency="D")
-
-class accountCurve(accountCurveSingle):
+class accountCurve(accountCurveSingleElementOneFreq):
 
     def __init__(self, price=None, capital=None, ann_risk_target=None, **kwargs):
         
         (base_capital, ann_risk, daily_risk_capital)=resolve_capital(price, capital, ann_risk_target)
 
-        (cum_trades, trades_to_use, instr_ccy_returns,
-            base_ccy_returns, use_fx, value_of_price_point)=pandl_with_data(price, daily_risk_capital=daily_risk_capital, **kwargs)
+        (cum_trades, trades_to_use,
+         instr_ccy_returns, base_ccy_returns,
+         use_fx, value_of_price_point)=pandl_with_data(price, daily_risk_capital=daily_risk_capital, **kwargs)
         
-        super().__init__(base_ccy_returns, base_ccy_returns, base_capital)
+        daily_returns = base_ccy_returns.resample("1B", how="sum")        
+        super().__init__(daily_returns, base_capital, frequency="D")
         
 
     def __repr__(self):
