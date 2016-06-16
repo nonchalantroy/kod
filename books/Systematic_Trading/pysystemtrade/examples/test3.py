@@ -11,7 +11,8 @@ def calc_ewmac_forecast(price, Lfast, Lslow):
     vol = robust_vol_calc(price.diff())
     return raw_ewmac /  vol
 
-f = '../sysdata/legacycsv/EDOLLAR_price.csv'
+#f = '../sysdata/legacycsv/EDOLLAR_price.csv'
+f = '../sysdata/legacycsv/CORN_price.csv'
 price = pd.read_csv(f,index_col=0,parse_dates=True).PRICE
 ewmac = calc_ewmac_forecast(price, 32, 128)
 ewmac.columns=['forecast']
