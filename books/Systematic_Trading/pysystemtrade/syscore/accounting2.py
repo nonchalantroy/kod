@@ -69,18 +69,16 @@ class accountCurve(accountCurveSingleElementOneFreq):
         
 
 def resolve_capital(ts_to_scale_to, capital=None, ann_risk_target=None):
-    base_capital=copy(DEFAULT_CAPITAL)
-
-    ann_risk_target=DEFAULT_ANN_RISK_TARGET
         
-    daily_risk_capital = base_capital * ann_risk_target / ROOT_BDAYS_INYEAR
+    daily_risk_capital = DEFAULT_CAPITAL * DEFAULT_ANN_RISK_TARGET / ROOT_BDAYS_INYEAR
 
-    ts_capital=pd.Series([base_capital]*len(ts_to_scale_to), index=ts_to_scale_to.index)
-    base_capital = float(base_capital)
+    ts_capital=pd.Series([DEFAULT_CAPITAL]*len(ts_to_scale_to), index=ts_to_scale_to.index)
+
+    base_capital = float(DEFAULT_CAPITAL)
     
-    ann_risk = ts_capital * ann_risk_target
+    ann_risk = ts_capital * DEFAULT_ANN_RISK_TARGET
     
-    return (base_capital, ann_risk, daily_risk_capital)
+    return (DEFAULT_CAPITAL, ann_risk, daily_risk_capital)
 
 
 def pandl_with_data(price, trades=None, marktomarket=True, positions=None,
