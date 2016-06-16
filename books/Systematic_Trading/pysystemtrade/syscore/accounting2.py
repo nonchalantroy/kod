@@ -90,8 +90,8 @@ class accountCurveSingle(accountCurveSingleElement):
 class accountCurve(accountCurveSingle):
 
     def __init__(self, price=None,   cash_costs=None, SR_cost=None, 
-                 capital=None, ann_risk_target=None, pre_calc_data=None,
-                 **kwargs):
+                 capital=None, ann_risk_target=None, **kwargs):
+        
         (base_capital, ann_risk, daily_risk_capital)=resolve_capital(price, capital, ann_risk_target)
 
         returns_data=pandl_with_data(price, daily_risk_capital=daily_risk_capital,  **kwargs)
