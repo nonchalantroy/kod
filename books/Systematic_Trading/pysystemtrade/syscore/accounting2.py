@@ -1,29 +1,16 @@
-"""
-Suite of things to work out p&l, and statistics thereof
-
-"""
-
 from copy import copy, deepcopy
-
 import pandas as pd
 from pandas.tseries.offsets import BDay
-import numpy as np
 from scipy.stats import skew, ttest_rel, ttest_1samp
-import scipy.stats as stats
-import random
-
+import scipy.stats as stats, random, numpy as np
 from syscore.algos import robust_vol_calc
 from syscore.pdutils import  drawdown
 from syscore.dateutils import BUSINESS_DAYS_IN_YEAR, ROOT_BDAYS_INYEAR, WEEKS_IN_YEAR, ROOT_WEEKS_IN_YEAR
 from syscore.dateutils import MONTHS_IN_YEAR, ROOT_MONTHS_IN_YEAR
 
-"""
-some defaults
-"""
 DEFAULT_CAPITAL = 10000000.0
 DEFAULT_ANN_RISK_TARGET = 0.16
 DEFAULT_DAILY_CAPITAL=DEFAULT_CAPITAL * DEFAULT_ANN_RISK_TARGET / ROOT_BDAYS_INYEAR
-
 
 class accountCurveSingleElementOneFreq(pd.Series):
     def __init__(self, returns_df, capital, weighted_flag=False, frequency="D"):
@@ -41,12 +28,6 @@ class accountCurveSingleElementOneFreq(pd.Series):
         setattr(self, "_returns_df", returns_df)
         setattr(self, "weighted_flag", weighted_flag)
         setattr(self, "capital", capital)
-
-    def as_df(self):
-        print("Deprecated accountCurve.as_df use .as_ts() please")
-        ## backward compatibility
-        return self.as_ts()
-
 
     def as_ts(self):
         return pd.Series(self._returns_df)
