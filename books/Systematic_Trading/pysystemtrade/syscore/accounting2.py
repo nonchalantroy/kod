@@ -207,16 +207,8 @@ class accountCurve(accountCurveSingle):
                               apply_weight_to_costs_only=False):
         
         use_weighting = None
-
-        #net_base_returns=base_ccy_returns + costs_base_ccy ## costs are negative returns
-        net_base_returns=base_ccy_returns
         
-        super().__init__(base_ccy_returns, net_base_returns, base_capital, weighted_flag=weighted_flag)
-            
-        ## save useful stats
-        ## have to do this after super() call
-        setattr(self, "weighted_flag", weighted_flag)
-        setattr(self, "weighting", use_weighting)
+        super().__init__(base_ccy_returns, base_ccy_returns, base_capital, weighted_flag=weighted_flag)
 
     def __repr__(self):
         return super().__repr__()+ "\n Use object.calc_data() to see calculation details"        
