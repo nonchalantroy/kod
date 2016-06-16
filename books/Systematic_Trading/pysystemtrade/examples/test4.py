@@ -45,6 +45,4 @@ slow_ewma = pd.ewma(df.PRICE, span=128)
 raw_ewmac = fast_ewma - slow_ewma
 vol = robust_vol_calc(df['PRICE'].diff())
 forecast = raw_ewmac /  vol 
-
-from syscore.accounting2 import sharpe
 print (sharpe(df.PRICE, forecast))
