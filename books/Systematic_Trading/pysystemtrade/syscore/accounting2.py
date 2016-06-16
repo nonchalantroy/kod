@@ -57,12 +57,16 @@ class accountCurve(accountCurveSingleElementOneFreq):
         
         (base_capital, ann_risk, daily_risk_capital)=resolve_capital(price, capital, ann_risk_target)
 
-        (cum_trades, trades_to_use,
-         instr_ccy_returns, base_ccy_returns,
-         use_fx, value_of_price_point)=pandl_with_data(price, daily_risk_capital=daily_risk_capital, **kwargs)
+        (cum_trades,
+         trades_to_use,
+         instr_ccy_returns,
+         base_ccy_returns,
+         use_fx,
+         value_of_price_point)=pandl_with_data(price,
+                                               daily_risk_capital=daily_risk_capital,
+                                               **kwargs)
         
-        daily_returns = base_ccy_returns.resample("1B", how="sum")        
-        super().__init__(daily_returns, base_capital, frequency="D")
+        super().__init__(base_ccy_returns, base_capital, frequency="D")
         
 
     def __repr__(self):
