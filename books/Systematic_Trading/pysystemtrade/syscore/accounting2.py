@@ -193,12 +193,11 @@ class accountCurveSingleElement(accountCurveSingleElementOneFreq):
 
 class accountCurveSingle(accountCurveSingleElement):
     
-    def __init__(self, gross_returns, net_returns, costs, capital, weighted_flag=False):
+    def __init__(self, gross_returns, net_returns, capital, weighted_flag=False):
         super().__init__(net_returns,  capital, weighted_flag=weighted_flag)
         
         setattr(self, "net", accountCurveSingleElement(net_returns, capital, weighted_flag=weighted_flag))
         setattr(self, "gross", accountCurveSingleElement(gross_returns, capital, weighted_flag=weighted_flag))
-        setattr(self, "costs", accountCurveSingleElement(costs,  capital, weighted_flag=weighted_flag))
 
 class accountCurve(accountCurveSingle):
 
@@ -227,7 +226,7 @@ class accountCurve(accountCurveSingle):
 
         ## Initially we have an unweighted version
         
-        self._calc_and_set_returns(base_ccy_returns, costs_base_ccy, base_capital, 
+        self._calc_and_set_returns(base_ccy_returns, base_capital, 
                                     weighted_flag=weighted_flag, weighting=weighting,
                                     apply_weight_to_costs_only=apply_weight_to_costs_only)
         
@@ -241,16 +240,16 @@ class accountCurve(accountCurveSingle):
         setattr(self, "value_of_price_point", value_of_price_point)
 
 
-    def _calc_and_set_returns(self, base_ccy_returns, costs_base_ccy, base_capital, 
+    def _calc_and_set_returns(self, base_ccy_returns, base_capital, 
                               weighted_flag=False, weighting=None, 
                               apply_weight_to_costs_only=False):
         
         use_weighting = None
 
-        net_base_returns=base_ccy_returns + costs_base_ccy ## costs are negative returns
-        print ("net_base_returns=" + str(net_base_returns.tail(4)))
+        #net_base_returns=base_ccy_returns + costs_base_ccy ## costs are negative returns
+        net_base_returns=base_ccy_returns
         
-        super().__init__(base_ccy_returns, net_base_returns, costs_base_ccy, base_capital, weighted_flag=weighted_flag)
+        super().__init__(base_ccy_returns, net_base_returns, base_capital, weighted_flag=weighted_flag)
             
         ## save useful stats
         ## have to do this after super() call
