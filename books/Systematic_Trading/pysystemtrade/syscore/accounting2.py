@@ -61,7 +61,6 @@ class accountCurve(accountCurveSingleElementOneFreq):
          trades_to_use,
          instr_ccy_returns,
          base_ccy_returns,
-         use_fx,
          value_of_price_point)=pandl_with_data(price,
                                                daily_risk_capital=daily_risk_capital,
                                                **kwargs)
@@ -93,13 +92,11 @@ def pandl_with_data(price, trades=None, marktomarket=True, positions=None,
           daily_risk_capital=None, 
           value_of_price_point=1.0):
     
-    use_fx = pd.Series([1.0] * len(price.index),index=price.index)
-
     get_daily_returns_volatility = robust_vol_calc(price.diff())
         
     multiplier = daily_risk_capital * 1.0 * 1.0 / 10.0
 
-    denominator = (value_of_price_point * get_daily_returns_volatility* use_fx)
+    denominator = (value_of_price_point * get_daily_returns_volatility)
 
     numerator = forecast *  multiplier
 
@@ -118,8 +115,8 @@ def pandl_with_data(price, trades=None, marktomarket=True, positions=None,
     instr_ccy_returns = cum_trades.shift(1)* price_returns * value_of_price_point
     
     instr_ccy_returns=instr_ccy_returns.cumsum().ffill().reindex(price.index).diff()
-    base_ccy_returns = instr_ccy_returns * use_fx
+    base_ccy_returns = instr_ccy_returns 
     
     return (cum_trades, trades_to_use, instr_ccy_returns,
-            base_ccy_returns, use_fx, value_of_price_point)
+            base_ccy_returns, value_of_price_point)
 
