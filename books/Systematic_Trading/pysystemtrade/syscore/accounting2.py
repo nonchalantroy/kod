@@ -220,7 +220,6 @@ class accountCurve(accountCurveSingle):
 
     def __repr__(self):
         return super().__repr__()+ "\n Use object.calc_data() to see calculation details"        
-        
 
 def resolve_capital(ts_to_scale_to, capital=None, ann_risk_target=None):
     if capital is None:
