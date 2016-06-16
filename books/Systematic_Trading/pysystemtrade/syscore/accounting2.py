@@ -119,10 +119,6 @@ class accountCurveSingleElementOneFreq(pd.Series):
     def std(self):
         return float(self.as_ts().std())
 
-    def ann_mean(self):
-        avg = self.mean()
-        return avg * self._returns_scalar
-
     def ann_std(self):
         period_std = self.std()
 
@@ -130,7 +126,7 @@ class accountCurveSingleElementOneFreq(pd.Series):
 
 
     def sharpe(self):
-        mean_return = self.ann_mean()
+        mean_return = self.mean() * self._returns_scalar
         vol = self.ann_std()
         try:
             sharpe=mean_return / vol
