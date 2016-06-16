@@ -258,23 +258,7 @@ class accountCurve(accountCurveSingle):
         setattr(self, "weighting", use_weighting)
 
     def __repr__(self):
-        return super().__repr__()+ "\n Use object.calc_data() to see calculation details"
-
-        
-
-    def calc_data(self):
-        """
-        Returns detailed calculation information
-        
-        :returns: dictionary of float
-        """
-        calc_items=["cum_trades",  "trades_to_use",    "unweighted_instr_ccy_pandl",
-                     "capital",  "weighting", "fx","value_of_price_point"]
-        
-        calc_dict=dict([(calc_name, getattr(self, calc_name)) for calc_name in calc_items])
-        
-        return calc_dict
-
+        return super().__repr__()+ "\n Use object.calc_data() to see calculation details"        
         
 def calc_costs(returns_data, cash_costs, SR_cost, ann_risk):
     (cum_trades, trades_to_use, instr_ccy_returns,
