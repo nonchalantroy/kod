@@ -86,9 +86,6 @@ class accountCurveSingle(accountCurveSingleElement):
     
     def __init__(self, gross_returns, net_returns, capital, weighted_flag=False):
         super().__init__(net_returns,  capital, weighted_flag=weighted_flag)
-        
-        setattr(self, "net", accountCurveSingleElement(net_returns, capital, weighted_flag=weighted_flag))
-        setattr(self, "gross", accountCurveSingleElement(gross_returns, capital, weighted_flag=weighted_flag))
 
 class accountCurve(accountCurveSingle):
 
