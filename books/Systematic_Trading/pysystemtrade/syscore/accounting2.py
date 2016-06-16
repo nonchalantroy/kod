@@ -89,8 +89,7 @@ class accountCurveSingle(accountCurveSingleElement):
 
 class accountCurve(accountCurveSingle):
 
-    def __init__(self, price=None,   cash_costs=None, SR_cost=None, 
-                 capital=None, ann_risk_target=None, **kwargs):
+    def __init__(self, price=None, capital=None, ann_risk_target=None, **kwargs):
         
         (base_capital, ann_risk, daily_risk_capital)=resolve_capital(price, capital, ann_risk_target)
 
