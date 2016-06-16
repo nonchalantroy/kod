@@ -53,36 +53,28 @@ class accountCurve(accountCurveSingleElementOneFreq):
         ts_capital=pd.Series([DEFAULT_CAPITAL]*len(price), index=price.index)        
         ann_risk = ts_capital * DEFAULT_ANN_RISK_TARGET
         
-        (cum_trades,trades_to_use,instr_ccy_returns,base_ccy_returns) = pandl_with_data(price, daily_risk_capital, forecast)
+        get_daily_returns_volatility = robust_vol_calc(price.diff())
+
+        multiplier = daily_risk_capital * 1.0 * 1.0 / 10.0
+
+        denominator = get_daily_returns_volatility
+
+        numerator = forecast *  multiplier
+
+        positions = numerator.ffill() /  denominator.ffill()
+
+        use_positions = positions.shift(1)
+
+        cum_trades = use_positions.ffill()
+
+        trades_to_use=cum_trades.diff()
+
+        price_returns = price.diff()
+
+        instr_ccy_returns = cum_trades.shift(1)* price_returns 
+
+        instr_ccy_returns=instr_ccy_returns.cumsum().ffill().reindex(price.index).diff()
+
+        base_ccy_returns = instr_ccy_returns 
         
         super().__init__(base_ccy_returns, base_capital, frequency="D")        
-
-def pandl_with_data(price, daily_risk_capital, forecast):
-    
-    get_daily_returns_volatility = robust_vol_calc(price.diff())
-        
-    multiplier = daily_risk_capital * 1.0 * 1.0 / 10.0
-
-    denominator = get_daily_returns_volatility
-
-    numerator = forecast *  multiplier
-
-    positions = numerator.ffill() /  denominator.ffill()
-
-    use_positions = positions.shift(1)
-
-    cum_trades = use_positions.ffill()
-
-    trades_to_use=cum_trades.diff()
-        
-    price_returns = price.diff()
-
-    instr_ccy_returns = cum_trades.shift(1)* price_returns 
-    
-    instr_ccy_returns=instr_ccy_returns.cumsum().ffill().reindex(price.index).diff()
-
-    base_ccy_returns = instr_ccy_returns 
-    
-    return (cum_trades, trades_to_use, instr_ccy_returns,
-            base_ccy_returns)
-
