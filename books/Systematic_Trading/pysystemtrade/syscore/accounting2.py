@@ -195,26 +195,12 @@ class accountCurve(accountCurveSingle):
         (cum_trades, trades_to_use, instr_ccy_returns,
             base_ccy_returns, use_fx, value_of_price_point)=returns_data
 
-        print ("cum_trades=" + str(cum_trades.tail(4)))
-        print ("base_ccy_returns=" + str(base_ccy_returns.tail(4)))
-
-        ## always returns a time series
-        (costs_base_ccy, costs_instr_ccy)=calc_costs(returns_data, cash_costs, SR_cost, ann_risk)
-
         ## Initially we have an unweighted version
         
         self._calc_and_set_returns(base_ccy_returns, base_capital, 
                                     weighted_flag=weighted_flag, weighting=weighting,
                                     apply_weight_to_costs_only=apply_weight_to_costs_only)
         
-        ## Save all kinds of useful statistics
-
-        setattr(self, "cum_trades", cum_trades)
-        setattr(self, "trades_to_use", trades_to_use)
-        setattr(self, "capital", base_capital)
-        setattr(self, "fx", use_fx)
-        setattr(self, "value_of_price_point", value_of_price_point)
-
 
     def _calc_and_set_returns(self, base_ccy_returns, base_capital, 
                               weighted_flag=False, weighting=None, 
@@ -235,21 +221,6 @@ class accountCurve(accountCurveSingle):
     def __repr__(self):
         return super().__repr__()+ "\n Use object.calc_data() to see calculation details"        
         
-def calc_costs(returns_data, cash_costs, SR_cost, ann_risk):
-    (cum_trades, trades_to_use, instr_ccy_returns,
-        base_ccy_returns, use_fx, value_of_price_point)=returns_data
-
-    ## set costs to zero
-    costs_instr_ccy=pd.Series([0.0]*len(use_fx), index=use_fx.index)
-
-    ## fx is on master (price timestamp)
-    ## costs_instr_ccy needs downsampling
-    costs_instr_ccy=costs_instr_ccy.cumsum().ffill().reindex(use_fx.index).diff()
-    
-    costs_base_ccy=costs_instr_ccy *  use_fx.ffill()
-    costs_base_ccy[np.isnan(costs_base_ccy)]=0.0
-
-    return (costs_base_ccy, costs_instr_ccy)
 
 def resolve_capital(ts_to_scale_to, capital=None, ann_risk_target=None):
     if capital is None:
