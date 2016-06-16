@@ -18,4 +18,4 @@ ewmac.columns=['forecast']
 print(ewmac.tail(5))
 
 from syscore.accounting2 import sharpe
-account = sharpe(price, forecast=ewmac)
+print (sharpe(price, ewmac))
