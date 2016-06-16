@@ -17,8 +17,5 @@ ewmac = calc_ewmac_forecast(price, 32, 128)
 ewmac.columns=['forecast']
 print(ewmac.tail(5))
 
-from syscore.accounting2 import accountCurve
-account = accountCurve(price, forecast=ewmac)
-tmp = account.percent()
-
-print(tmp.sharpe())
+from syscore.accounting2 import sharpe
+account = sharpe(price, forecast=ewmac)

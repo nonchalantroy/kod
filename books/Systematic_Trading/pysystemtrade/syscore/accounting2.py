@@ -12,69 +12,30 @@ DEFAULT_CAPITAL = 10000000.0
 DEFAULT_ANN_RISK_TARGET = 0.16
 DEFAULT_DAILY_CAPITAL=DEFAULT_CAPITAL * DEFAULT_ANN_RISK_TARGET / ROOT_BDAYS_INYEAR
 
-class accountCurveSingleElementOneFreq(pd.Series):
-    def __init__(self, returns_df, capital, frequency="D"):
-        super().__init__(returns_df)
-        
-        returns_scalar=dict(D=BUSINESS_DAYS_IN_YEAR, W=WEEKS_IN_YEAR,
-                            M=MONTHS_IN_YEAR, Y=1)[frequency]
+def sharpe(price, forecast):        
+    base_capital = DEFAULT_CAPITAL
+    daily_risk_capital = DEFAULT_CAPITAL * DEFAULT_ANN_RISK_TARGET / ROOT_BDAYS_INYEAR        
+    ts_capital=pd.Series([DEFAULT_CAPITAL]*len(price), index=price.index)        
+    ann_risk = ts_capital * DEFAULT_ANN_RISK_TARGET
+    get_daily_returns_volatility = robust_vol_calc(price.diff())
+    multiplier = daily_risk_capital * 1.0 * 1.0 / 10.0
+    denominator = get_daily_returns_volatility
+    numerator = forecast *  multiplier
+    positions = numerator.ffill() /  denominator.ffill()
+    use_positions = positions.shift(1)
+    cum_trades = use_positions.ffill()
+    trades_to_use=cum_trades.diff()
+    price_returns = price.diff()
+    instr_ccy_returns = cum_trades.shift(1)* price_returns 
+    instr_ccy_returns=instr_ccy_returns.cumsum().ffill().reindex(price.index).diff()
+    base_ccy_returns = instr_ccy_returns 
+    _returns_scalar=dict(D=BUSINESS_DAYS_IN_YEAR, W=WEEKS_IN_YEAR,
+                        M=MONTHS_IN_YEAR, Y=1)["D"]
 
-        vol_scalar=dict(D=ROOT_BDAYS_INYEAR, W=ROOT_WEEKS_IN_YEAR,
-                            M=ROOT_MONTHS_IN_YEAR, Y=1)[frequency]
-                    
-        setattr(self, "frequency", frequency)
-        setattr(self, "_returns_scalar", returns_scalar)
-        setattr(self, "_vol_scalar", vol_scalar)
-        setattr(self, "_returns_df", returns_df)
-        setattr(self, "capital", capital)
+    _vol_scalar=dict(D=ROOT_BDAYS_INYEAR, W=ROOT_WEEKS_IN_YEAR,
+                        M=ROOT_MONTHS_IN_YEAR, Y=1)["D"]
 
-    def as_ts(self):
-        return pd.Series(self._returns_df)
+    mean_return = base_ccy_returns.mean() * _returns_scalar
+    vol = base_ccy_returns.std() * _vol_scalar
+    print (mean_return / vol)
 
-    def percent(self):
-        perc_returns=self.as_percent()
-        new_curve=accountCurveSingleElementOneFreq(perc_returns, 100.0, self.frequency)        
-        return new_curve
-
-    def as_percent(self):
-        return 100.0 * self.as_ts() / self.capital
-    
-    def sharpe(self):
-        mean_return = self.as_ts().mean() * self._returns_scalar
-        vol = self.as_ts().std() * self._vol_scalar
-        return mean_return / vol
-
-class accountCurve(accountCurveSingleElementOneFreq):
-
-    def __init__(self, price, forecast):
-        
-        base_capital = DEFAULT_CAPITAL
-        daily_risk_capital = DEFAULT_CAPITAL * DEFAULT_ANN_RISK_TARGET / ROOT_BDAYS_INYEAR        
-        ts_capital=pd.Series([DEFAULT_CAPITAL]*len(price), index=price.index)        
-        ann_risk = ts_capital * DEFAULT_ANN_RISK_TARGET
-        
-        get_daily_returns_volatility = robust_vol_calc(price.diff())
-
-        multiplier = daily_risk_capital * 1.0 * 1.0 / 10.0
-
-        denominator = get_daily_returns_volatility
-
-        numerator = forecast *  multiplier
-
-        positions = numerator.ffill() /  denominator.ffill()
-
-        use_positions = positions.shift(1)
-
-        cum_trades = use_positions.ffill()
-
-        trades_to_use=cum_trades.diff()
-
-        price_returns = price.diff()
-
-        instr_ccy_returns = cum_trades.shift(1)* price_returns 
-
-        instr_ccy_returns=instr_ccy_returns.cumsum().ffill().reindex(price.index).diff()
-
-        base_ccy_returns = instr_ccy_returns 
-        
-        super().__init__(base_ccy_returns, base_capital, frequency="D")        
