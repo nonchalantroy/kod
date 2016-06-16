@@ -95,14 +95,6 @@ def pandl_with_data(price, trades=None, marktomarket=True, positions=None,
     
     use_fx = pd.Series([1.0] * len(price.index),index=price.index)
 
-    prices_to_use = copy(price)
-#    positions = get_positions_from_forecasts(price,
-#                                             get_daily_returns_volatility,
-#                                             forecast,
-#                                             use_fx,
-#                                             value_of_price_point,
-#                                             daily_risk_capital)
-
     get_daily_returns_volatility = robust_vol_calc(price.diff())
         
     multiplier = daily_risk_capital * 1.0 * 1.0 / 10.0
@@ -118,9 +110,10 @@ def pandl_with_data(price, trades=None, marktomarket=True, positions=None,
     use_positions = use_positions.shift(1)
 
     cum_trades = use_positions.ffill()
+
     trades_to_use=cum_trades.diff()
         
-    price_returns = prices_to_use.diff()
+    price_returns = price.diff()
 
     instr_ccy_returns = cum_trades.shift(1)* price_returns * value_of_price_point
     
@@ -129,23 +122,4 @@ def pandl_with_data(price, trades=None, marktomarket=True, positions=None,
     
     return (cum_trades, trades_to_use, instr_ccy_returns,
             base_ccy_returns, use_fx, value_of_price_point)
-
-
-
-
-def get_positions_from_forecasts(price, get_daily_returns_volatility, forecast,
-                                 use_fx, value_of_price_point, daily_risk_capital,
-                                  **kwargs):
-
-    get_daily_returns_volatility = robust_vol_calc(price.diff(), **kwargs)
-        
-    multiplier = daily_risk_capital * 1.0 * 1.0 / 10.0
-
-    denominator = (value_of_price_point * get_daily_returns_volatility* use_fx)
-
-    numerator = forecast *  multiplier
-
-    positions = numerator.ffill() /  denominator.ffill()
-
-    return positions
 
