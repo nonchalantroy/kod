@@ -121,22 +121,15 @@ class accountCurve(accountCurveSingle):
         return super().__repr__()+ "\n Use object.calc_data() to see calculation details"        
 
 def resolve_capital(ts_to_scale_to, capital=None, ann_risk_target=None):
-    if capital is None:
-        base_capital=copy(DEFAULT_CAPITAL)
-    else:
-        base_capital = copy(capital)
-        
-    if ann_risk_target is None:
-        ann_risk_target=DEFAULT_ANN_RISK_TARGET
+    base_capital=copy(DEFAULT_CAPITAL)
+
+    ann_risk_target=DEFAULT_ANN_RISK_TARGET
         
     ## might be a float or a Series, depending on capital
     daily_risk_capital = base_capital * ann_risk_target / ROOT_BDAYS_INYEAR
 
-    if type(base_capital) is float or type(base_capital) is int:
-        ts_capital=pd.Series([base_capital]*len(ts_to_scale_to), index=ts_to_scale_to.index)
-        base_capital = float(base_capital)
-    else:
-        ts_capital=copy(base_capital)
+    ts_capital=pd.Series([base_capital]*len(ts_to_scale_to), index=ts_to_scale_to.index)
+    base_capital = float(base_capital)
     
     ## always a time series
     ann_risk = ts_capital * ann_risk_target
