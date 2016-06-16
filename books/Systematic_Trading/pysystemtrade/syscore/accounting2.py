@@ -93,7 +93,7 @@ class accountCurve(accountCurveSingle):
         
         (base_capital, ann_risk, daily_risk_capital)=resolve_capital(price, capital, ann_risk_target)
 
-        returns_data=pandl_with_data(price, daily_risk_capital=daily_risk_capital,  **kwargs)
+        returns_data=pandl_with_data(price, daily_risk_capital=daily_risk_capital, **kwargs)
 
         (cum_trades, trades_to_use, instr_ccy_returns,
             base_ccy_returns, use_fx, value_of_price_point)=returns_data
