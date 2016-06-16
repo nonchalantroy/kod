@@ -77,10 +77,7 @@ class accountCurveSingleElement(accountCurveSingleElementOneFreq):
         ## We often want to use  
         daily_returns = returns_df.resample("1B", how="sum")        
         super().__init__(daily_returns, capital, frequency="D",  weighted_flag=weighted_flag)
-        setattr(self, "daily", accountCurveSingleElementOneFreq(daily_returns, capital, frequency="D", weighted_flag=weighted_flag))
 
-    def __repr__(self):
-        return super().__repr__()+ "\n Use object.freq.method() to access periods (freq=daily, weekly, monthly, annual) default: daily"
 
 class accountCurveSingle(accountCurveSingleElement):
     
