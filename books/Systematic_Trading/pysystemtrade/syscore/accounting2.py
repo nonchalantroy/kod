@@ -69,14 +69,9 @@ class accountCurve(accountCurveSingle):
         (cum_trades, trades_to_use, instr_ccy_returns,
             base_ccy_returns, use_fx, value_of_price_point)=returns_data
         
-        self._calc_and_set_returns(base_ccy_returns, base_capital)
-        
-
-    def _calc_and_set_returns(self, base_ccy_returns, base_capital):
-        
-        use_weighting = None
-        
+        #self._calc_and_set_returns(base_ccy_returns, base_capital)
         super().__init__(base_ccy_returns, base_ccy_returns, base_capital)
+        
 
     def __repr__(self):
         return super().__repr__()+ "\n Use object.calc_data() to see calculation details"        
