@@ -73,16 +73,16 @@ class accountCurveSingleElementOneFreq(pd.Series):
 
 class accountCurveSingleElement(accountCurveSingleElementOneFreq):
     
-    def __init__(self, returns_df, capital, weighted_flag=False):
+    def __init__(self, returns_df, capital):
         ## We often want to use  
         daily_returns = returns_df.resample("1B", how="sum")        
-        super().__init__(daily_returns, capital, frequency="D",  weighted_flag=weighted_flag)
+        super().__init__(daily_returns, capital, frequency="D")
 
 
 class accountCurveSingle(accountCurveSingleElement):
     
-    def __init__(self, gross_returns, net_returns, capital, weighted_flag=False):
-        super().__init__(net_returns,  capital, weighted_flag=weighted_flag)
+    def __init__(self, gross_returns, net_returns, capital):
+        super().__init__(net_returns,  capital)
 
 class accountCurve(accountCurveSingle):
 
