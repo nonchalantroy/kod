@@ -86,9 +86,7 @@ def pandl_with_data(price, trades=None, marktomarket=True, positions=None,
 
     positions = numerator.ffill() /  denominator.ffill()
 
-    use_positions = copy(positions)
-
-    use_positions = use_positions.shift(1)
+    use_positions = positions.shift(1)
 
     cum_trades = use_positions.ffill()
 
