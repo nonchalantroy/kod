@@ -25,58 +25,6 @@ DEFAULT_ANN_RISK_TARGET = 0.16
 DEFAULT_DAILY_CAPITAL=DEFAULT_CAPITAL * DEFAULT_ANN_RISK_TARGET / ROOT_BDAYS_INYEAR
 
 
-def pandl_with_data(price, trades=None, marktomarket=True, positions=None,
-          delayfill=True, roundpositions=False,
-          get_daily_returns_volatility=None, forecast=None, fx=None,
-          daily_risk_capital=None, 
-          value_of_price_point=1.0):
-    
-    use_fx = pd.Series([1.0] * len(price.index),index=price.index)
-
-    prices_to_use = copy(price)
-    positions = get_positions_from_forecasts(price,
-                                             get_daily_returns_volatility,
-                                             forecast,
-                                             use_fx,
-                                             value_of_price_point,
-                                             daily_risk_capital)
-    use_positions = copy(positions)
-
-    use_positions = use_positions.shift(1)
-
-    cum_trades = use_positions.ffill()
-    trades_to_use=cum_trades.diff()
-        
-    price_returns = prices_to_use.diff()
-
-    instr_ccy_returns = cum_trades.shift(1)* price_returns * value_of_price_point
-    
-    instr_ccy_returns=instr_ccy_returns.cumsum().ffill().reindex(price.index).diff()
-    base_ccy_returns = instr_ccy_returns * use_fx
-    
-    return (cum_trades, trades_to_use, instr_ccy_returns,
-            base_ccy_returns, use_fx, value_of_price_point)
-
-
-
-
-def get_positions_from_forecasts(price, get_daily_returns_volatility, forecast,
-                                 use_fx, value_of_price_point, daily_risk_capital,
-                                  **kwargs):
-
-    get_daily_returns_volatility = robust_vol_calc(price.diff(), **kwargs)
-        
-    multiplier = daily_risk_capital * 1.0 * 1.0 / 10.0
-
-    denominator = (value_of_price_point * get_daily_returns_volatility* use_fx)
-
-    numerator = forecast *  multiplier
-
-    positions = numerator.ffill() /  denominator.ffill()
-
-    return positions
-
-
 class accountCurveSingleElementOneFreq(pd.Series):
     def __init__(self, returns_df, capital, weighted_flag=False, frequency="D"):
         super().__init__(returns_df)
@@ -195,4 +143,56 @@ def resolve_capital(ts_to_scale_to, capital=None, ann_risk_target=None):
     
     return (base_capital, ann_risk, daily_risk_capital)
 
+
+
+def pandl_with_data(price, trades=None, marktomarket=True, positions=None,
+          delayfill=True, roundpositions=False,
+          get_daily_returns_volatility=None, forecast=None, fx=None,
+          daily_risk_capital=None, 
+          value_of_price_point=1.0):
+    
+    use_fx = pd.Series([1.0] * len(price.index),index=price.index)
+
+    prices_to_use = copy(price)
+    positions = get_positions_from_forecasts(price,
+                                             get_daily_returns_volatility,
+                                             forecast,
+                                             use_fx,
+                                             value_of_price_point,
+                                             daily_risk_capital)
+    use_positions = copy(positions)
+
+    use_positions = use_positions.shift(1)
+
+    cum_trades = use_positions.ffill()
+    trades_to_use=cum_trades.diff()
+        
+    price_returns = prices_to_use.diff()
+
+    instr_ccy_returns = cum_trades.shift(1)* price_returns * value_of_price_point
+    
+    instr_ccy_returns=instr_ccy_returns.cumsum().ffill().reindex(price.index).diff()
+    base_ccy_returns = instr_ccy_returns * use_fx
+    
+    return (cum_trades, trades_to_use, instr_ccy_returns,
+            base_ccy_returns, use_fx, value_of_price_point)
+
+
+
+
+def get_positions_from_forecasts(price, get_daily_returns_volatility, forecast,
+                                 use_fx, value_of_price_point, daily_risk_capital,
+                                  **kwargs):
+
+    get_daily_returns_volatility = robust_vol_calc(price.diff(), **kwargs)
+        
+    multiplier = daily_risk_capital * 1.0 * 1.0 / 10.0
+
+    denominator = (value_of_price_point * get_daily_returns_volatility* use_fx)
+
+    numerator = forecast *  multiplier
+
+    positions = numerator.ffill() /  denominator.ffill()
+
+    return positions
 
