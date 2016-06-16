@@ -201,11 +201,6 @@ class accountCurve(accountCurveSingle):
         ## always returns a time series
         (costs_base_ccy, costs_instr_ccy)=calc_costs(returns_data, cash_costs, SR_cost, ann_risk)
 
-        ## keep track of this
-        unweighted_instr_ccy_pandl=dict(gross=instr_ccy_returns, costs=costs_instr_ccy, 
-                             net=instr_ccy_returns+costs_instr_ccy)
-
-
         ## Initially we have an unweighted version
         
         self._calc_and_set_returns(base_ccy_returns, base_capital, 
@@ -214,7 +209,6 @@ class accountCurve(accountCurveSingle):
         
         ## Save all kinds of useful statistics
 
-        setattr(self, "unweighted_instr_ccy_pandl", unweighted_instr_ccy_pandl)
         setattr(self, "cum_trades", cum_trades)
         setattr(self, "trades_to_use", trades_to_use)
         setattr(self, "capital", base_capital)
