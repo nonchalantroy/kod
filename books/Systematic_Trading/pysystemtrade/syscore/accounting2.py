@@ -1,10 +1,7 @@
 from copy import copy, deepcopy
 import pandas as pd
-from pandas.tseries.offsets import BDay
-from scipy.stats import skew, ttest_rel, ttest_1samp
 import scipy.stats as stats, random, numpy as np
 from syscore.algos import robust_vol_calc
-from syscore.pdutils import  drawdown
 from syscore.dateutils import BUSINESS_DAYS_IN_YEAR, ROOT_BDAYS_INYEAR, WEEKS_IN_YEAR, ROOT_WEEKS_IN_YEAR
 from syscore.dateutils import MONTHS_IN_YEAR, ROOT_MONTHS_IN_YEAR
 
@@ -29,13 +26,7 @@ def sharpe(price, forecast):
     instr_ccy_returns = cum_trades.shift(1)* price_returns 
     instr_ccy_returns=instr_ccy_returns.cumsum().ffill().reindex(price.index).diff()
     base_ccy_returns = instr_ccy_returns 
-    _returns_scalar=dict(D=BUSINESS_DAYS_IN_YEAR, W=WEEKS_IN_YEAR,
-                        M=MONTHS_IN_YEAR, Y=1)["D"]
-
-    _vol_scalar=dict(D=ROOT_BDAYS_INYEAR, W=ROOT_WEEKS_IN_YEAR,
-                        M=ROOT_MONTHS_IN_YEAR, Y=1)["D"]
-
-    mean_return = base_ccy_returns.mean() * _returns_scalar
-    vol = base_ccy_returns.std() * _vol_scalar
+    mean_return = base_ccy_returns.mean() * BUSINESS_DAYS_IN_YEAR
+    vol = base_ccy_returns.std() * ROOT_BDAYS_INYEAR
     print (mean_return / vol)
 
