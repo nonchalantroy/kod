@@ -1,4 +1,3 @@
-import inspect
 from copy import copy
 
 import pandas as pd
@@ -279,7 +278,8 @@ class ForecastScaleCapFixed(SystemStage):
         def _get_capped_forecast(
                 system, instrument_code, rule_variation_name, this_stage):
 
-            print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" +"Calculating capped forecast for %s %s" % (instrument_code, rule_variation_name))
+            this_stage.log.msg("Calculating capped forecast for %s %s" % (instrument_code, rule_variation_name),
+                               instrument_code=instrument_code, rule_variation_name=rule_variation_name)
 
             scaled_forecast = this_stage.get_scaled_forecast(
                 instrument_code, rule_variation_name)
@@ -369,7 +369,8 @@ class ForecastScaleCapEstimated(ForecastScaleCapFixed):
             """
             instrument_list contains multiple things, pools everything across all instruments
             """
-            print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" +"Getting forecast scalar for %s over %s" % (rule_variation_name, ", ".join(instrument_list)))
+            this_stage.log.msg("Getting forecast scalar for %s over %s" % (rule_variation_name, ", ".join(instrument_list)),
+                               rule_variation_name=rule_variation_name)
             ## Get forecasts for each instrument
             forecast_list=[
                    this_stage.get_raw_forecast(instrument_code, rule_variation_name) 

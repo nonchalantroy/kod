@@ -17,10 +17,6 @@ content = content.replace("log.msg(",ps)
 content = content.replace("this_stage.print","print")
 content = content.replace("self.print","print")
 content = content.replace("rules_stage.print","print")
-content = content.replace("\"avg_drawdown\", \"time_in_drawdown",
-                          "#\"avg_drawdown\", \"time_in_drawdown")
-content = content.replace("\"calmar\", \"avg_return_to_drawdown",
-                          "#\"calmar\", \"avg_return_to_drawdown")
 content = re.sub("print(.*?),\n(.*?)\n","print\\1)\n",content,re.DOTALL)
 content = content.replace(", instrument_code=instrument_code","")
 

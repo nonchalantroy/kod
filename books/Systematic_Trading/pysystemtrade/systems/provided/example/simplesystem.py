@@ -1,4 +1,3 @@
-import inspect
 from sysdata.csvdata import csvFuturesData
 from sysdata.configdata import Config
 

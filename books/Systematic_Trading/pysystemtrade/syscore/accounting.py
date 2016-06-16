@@ -1,4 +1,3 @@
-import inspect
 """
 Suite of things to work out p&l, and statistics thereof
 
@@ -507,8 +506,8 @@ class accountCurveSingleElementOneFreq(pd.Series):
 
         stats_list = ["min", "max", "median", "mean", "std", "skew",
                       "ann_mean", "ann_std", "sharpe", "sortino",
-                      #"avg_drawdown", "time_in_drawdown",
-                      #"calmar", "avg_return_to_drawdown",
+                      "avg_drawdown", "time_in_drawdown",
+                      "calmar", "avg_return_to_drawdown",
                       "avg_loss", "avg_gain", "gaintolossratio", "profitfactor", "hitrate",
                       "t_stat", "p_value"]
 

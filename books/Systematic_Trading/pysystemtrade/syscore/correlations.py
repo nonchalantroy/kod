@@ -1,4 +1,3 @@
-import inspect
 '''
 Correlations are important and used a lot
 '''
@@ -283,11 +282,11 @@ class CorrelationEstimator(CorrelationList):
         ## create a list of correlation matrices
         corr_list=[]
         
-        print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" +"Correlation estimate")
+        log.terse("Correlation estimate")
         
         ## Now for each time period, estimate correlation
         for fit_period in fit_dates:
-            print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" +"Estimating from %s to %s" % (fit_period.period_start, fit_period.period_end))
+            log.msg("Estimating from %s to %s" % (fit_period.period_start, fit_period.period_end))
             
             if fit_period.no_data:
                 ## no data to fit with

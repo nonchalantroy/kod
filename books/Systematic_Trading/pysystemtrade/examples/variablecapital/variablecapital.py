@@ -1,4 +1,3 @@
-import inspect
 from matplotlib.pyplot import show
 from systems.provided.futures_chapter15.basesystem import futures_system
 

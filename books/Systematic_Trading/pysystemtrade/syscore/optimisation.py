@@ -1,4 +1,3 @@
-import inspect
 '''
 Created on 21 Jan 2016
 
@@ -139,9 +138,9 @@ class GenericOptimiser(object):
         
         ## net gross and costs
         if equalise_gross:
-            print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" +"Setting all gross returns to be identical - optimisation driven only by costs")
+            log.terse("Setting all gross returns to be identical - optimisation driven only by costs")
         if cost_multiplier!=1.0:
-            print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" +"Using cost multiplier on optimisation of %.2f" % cost_multiplier)
+            log.terse("Using cost multiplier on optimisation of %.2f" % cost_multiplier)
         
         
         data = work_out_net(data_gross, data_costs, annualisation=annualisation,
@@ -180,10 +179,10 @@ class GenericOptimiser(object):
         ## create a class object for each period
         opt_results=[]
         
-        print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" +"Optimising...")
+        log.terse("Optimising...")
         
         for fit_period in fit_dates:
-            print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" +"Optimising for data from %s to %s" % (str(fit_period.period_start), str(fit_period.period_end)))
+            log.msg("Optimising for data from %s to %s" % (str(fit_period.period_start), str(fit_period.period_end)))
             ## Do the optimisation for one period, using a particular optimiser instance
             results_this_period=optSinglePeriod(self, data, fit_period, optimiser, cleaning)
 
@@ -205,7 +204,7 @@ class GenericOptimiser(object):
 
         
         if apply_cost_weight:
-            print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" +"Applying cost weighting to optimisation results")
+            log.terse("Applying cost weighting to optimisation results")
             weight_df = apply_cost_weighting(raw_weight_df, ann_SR_costs)
         else:
             weight_df =raw_weight_df 

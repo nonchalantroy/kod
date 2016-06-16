@@ -3169,10 +3169,7 @@ Warning: The assumptions underlying a t-test may be violated for financial data.
 
 I work out costs in two different ways:
 
-- by applying a constant drag calculated according to the standardised
-  cost in Sharpe ratio terms and the estimated turnover (see chapter
-  12 of my book)
-
+- by applying a constant drag calculated according to the standardised cost in Sharpe ratio terms and the estimated turnover (see chapter 12 of my book)
 - using the actual costs for each trade.
 
 The former method is always used for costs derived from forecasts (`pandl_for_instrument_forecast`, `pandl_for_instrument_forecast_weighted`, `pandl_for_trading_rule`, `pandl_for_all_trading_rules`, `pandl_for_all_trading_rules_unweighted`, `pandl_for_trading_rule_unweighted`, `pandl_for_trading_rule_weighted`, `pandl_for_instrument_rules_unweighted`, and `pandl_for_instrument_rules`).

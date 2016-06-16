@@ -1,4 +1,3 @@
-import inspect
 '''
 This is a variation of the chapter 15 system which estimates rather than uses fixed parameters
 

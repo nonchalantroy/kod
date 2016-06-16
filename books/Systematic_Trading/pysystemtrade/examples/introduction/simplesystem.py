@@ -1,4 +1,3 @@
-import inspect
 """
 Let's recap:
 

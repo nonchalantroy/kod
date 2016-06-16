@@ -1,4 +1,3 @@
-import inspect
 from sysdata.data import Data
 
 
