@@ -64,12 +64,9 @@ class accountCurve(accountCurveSingle):
         
         (base_capital, ann_risk, daily_risk_capital)=resolve_capital(price, capital, ann_risk_target)
 
-        returns_data=pandl_with_data(price, daily_risk_capital=daily_risk_capital, **kwargs)
-
         (cum_trades, trades_to_use, instr_ccy_returns,
-            base_ccy_returns, use_fx, value_of_price_point)=returns_data
+            base_ccy_returns, use_fx, value_of_price_point)=pandl_with_data(price, daily_risk_capital=daily_risk_capital, **kwargs)
         
-        #self._calc_and_set_returns(base_ccy_returns, base_capital)
         super().__init__(base_ccy_returns, base_ccy_returns, base_capital)
         
 
