@@ -277,26 +277,6 @@ class accountCurve(accountCurveSingle):
 
         
 def calc_costs(returns_data, cash_costs, SR_cost, ann_risk):
-    """
-    Calculate costs
-    
-    :param returns_data: returns data
-    :type returns_data: 5 tuple returned by pandl data function
-    
-    :param cash_costs: Cost in local currency units per instrument block 
-    :type cash_costs: 3 tuple of floats; value_total_per_block, value_of_pertrade_commission, percentage_cost
-    
-    :param SR_cost: Cost in annualised Sharpe Ratio units (0.01 = 0.01 SR)
-    :type SR_cost: float
-
-    Set to None if not using. If both included use SR_cost
-
-    :param ann_risk: Capital (capital * ann vol) at risk on annaulised basis. Used for SR calculations
-    :type ann_risk: Tx1 pd.Series
-    
-    :returns : Tx1 pd.Series of costs. Minus numbers are losses
-    
-    """
     (cum_trades, trades_to_use, instr_ccy_returns,
         base_ccy_returns, use_fx, value_of_price_point)=returns_data
 
@@ -313,29 +293,6 @@ def calc_costs(returns_data, cash_costs, SR_cost, ann_risk):
     return (costs_base_ccy, costs_instr_ccy)
 
 def resolve_capital(ts_to_scale_to, capital=None, ann_risk_target=None):
-    """
-    Resolve and setup capital
-    We need capital for % returns and possibly for SR stuff
-
-    Capital is used for:
-    
-      - going from forecast to position in profit and loss calculation (fixed or a time series): daily_risk_capital
-      - calculating costs from SR costs (always a time series): ann_risk
-      - calculating percentage returns (maybe fixed or variable time series): capital
-
-    :param ts_to_scale_to: If capital is fixed, what time series to scale it to  
-    :type capital: Tx1 pd.DataFrame
-    
-    :param capital: Capital at risk. Used for % returns, and calculating daily risk for SR costs  
-    :type capital: None, int, float or Tx1 pd.DataFrame
-    
-    :param ann_risk_target: Annual risk target, as % of capital 0.10 is 10%. Used to calculate daily risk for SR costs
-    :type ann_risk_target: None or float
-    
-    :returns tuple: 3 tuple of Tx1 pd.Series / float, pd.Series, pd.Series or float
-    (capital, ann_risk, daily_risk_capital)
-
-    """
     if capital is None:
         base_capital=copy(DEFAULT_CAPITAL)
     else:
@@ -359,18 +316,6 @@ def resolve_capital(ts_to_scale_to, capital=None, ann_risk_target=None):
     return (base_capital, ann_risk, daily_risk_capital)
 
 def acc_list_to_pd_frame(list_of_ac_curves, asset_columns):
-    """
-    
-    Returns a pandas data frame
-
-    :param list_of_ac_curves: Elements to include
-    :type list_of_ac_curves: list of any accountcurve like object
-
-    :param asset_columns: Names of each asset
-    :type asset_columns: list of str 
-
-    :returns: TxN pd.DataFrame
-    """
     list_of_df=[acc.as_ts() for acc in list_of_ac_curves]
     ans=pd.concat(list_of_df, axis=1,  join="outer")
     
@@ -381,21 +326,6 @@ def acc_list_to_pd_frame(list_of_ac_curves, asset_columns):
 
 
 def total_from_list(list_of_ac_curves, asset_columns, capital):
-    """
-    
-    Return a single accountCurveSingleElement whose returns are the total across the portfolio
-
-    :param acc_curve_for_type_list: Elements to include in group
-    :type acc_curve_for_type_list: list of accountCurveSingleElement
-
-    :param asset_columns: Names of each asset
-    :type asset_columns: list of str 
-
-    :param capital: Capital, if None will discover from list elements
-    :type capital: None, float, or pd.Series 
-    
-    :returns: 2 tuple of pd.Series
-    """
     pdframe=acc_list_to_pd_frame(list_of_ac_curves, asset_columns)
     
     def _resolve_capital_for_total(capital, pdframe):
@@ -432,122 +362,6 @@ def total_from_list(list_of_ac_curves, asset_columns, capital):
     
     return (totalac, capital)
     
-
-class accountCurveGroupForType(accountCurveSingleElement):
-    """
-    an accountCurveGroup for one cost type (gross, net, costs)
-    """
-    def __init__(self, acc_curve_for_type_list, asset_columns, capital=None, weighted_flag=False, curve_type="net"):
-        """
-        Create a group of account curves from a list and some column names
-        
-        looks like accountCurveSingleElement; outward facing is the total p&L
-        
-        so acc=accountCurveGroupForType()
-        acc.mean() ## for the total
-        
-        Also you can access a instrument (gives an accountCurveSingleElement for an instrument): 
-           acc[instrument_code].mean(), acc[instrument_code].mean()
-           acc.instrument_code.gross.daily.stats()  
-        
-        acc.to_frame() ## returns a data frame 
-
-        If you want the original list back:
-        
-        acc.to_list
-
-        Also: eg acc.get_stats("mean", freq="daily")
-        ... Returns a dict of stats 
-
-        :param acc_curve_for_type_list: Elements to include in group
-        :type acc_curve_for_type_list: list of accountCurveSingleElement
-
-        :param asset_columns: Names of each asset
-        :type asset_columns: list of str 
-        
-        :param curve_type: Net, gross or costs?
-        :type curve_type: str
-
-        :param weighted_flag: Is this account curve of weighted returns?
-        :type weighted_flag: bool
-
-        :param capital: Capital, if None will discover from list elements
-        :type capital: None, float, or pd.Series 
-        
-        """
-        (acc_total, capital)=total_from_list(acc_curve_for_type_list, asset_columns, capital)
-        
-        super().__init__(acc_total, weighted_flag=weighted_flag, capital=capital)
-        
-        setattr(self, "to_list", acc_curve_for_type_list)
-        setattr(self, "asset_columns", asset_columns)
-        setattr(self, "curve_type", curve_type)
-
-
-    def __getitem__(self, colname):
-        """
-        Overriding this method to access individual curves
-
-        :returns: accountCurveSingleElement
-        """
-
-        try:
-            ans=self.to_list[self.asset_columns.index(colname)]
-        except ValueError:
-            raise Exception("%s not found in account curve" % colname)
-        
-        return ans
-
-    def to_frame(self):
-        """
-        Returns as a data frame, one column is an assets returns
-        
-        :returns: TxN pd.DataFrame
-        """
-        
-        return acc_list_to_pd_frame(self.to_list, self.asset_columns)
-
-
-    def get_stats(self, stat_method, freq="daily", percent=True):
-        """
-        Create a dictionary summarising statistics across a group of account curves
-        
-        :param stat_method: Any method of accountCurveSingleElementOneFreq
-        :type stat_method: str
-        
-        :param freq: frequency; daily, weekly, monthly or annual
-        :type freq: str 
-
-        :param percent: get % returns
-        :type percent: bool 
-        
-        :returns: statsDict
-        """
-        
-        return statsDict(self, stat_method, freq, percent)
-    
-    def time_weights(self):
-        """
-        Returns a dict, values are weights according to how much data we have
-        
-        :returns: dict of floats
-        """
-        def _len_nonzero(ac_curve):
-            return_df=ac_curve.as_ts()
-            ans=len([x for x in return_df.values if not np.isnan(x)])
-            
-            return ans
-            
-        time_weights_dict=dict([(asset_name, _len_nonzero(ac_curve)) for (asset_name, ac_curve) 
-                  in zip(self.asset_columns, self.to_list)])
-        
-        total_weight=sum(time_weights_dict.values())
-        
-        time_weights_dict = dict([(asset_name, weight/total_weight) for (asset_name, weight) 
-                                  in time_weights_dict.items()])
-        
-        return time_weights_dict
-
     
 class statsDict(dict):
     def __init__(self, acgroup_for_type, stat_method, freq="daily", percent=True):
