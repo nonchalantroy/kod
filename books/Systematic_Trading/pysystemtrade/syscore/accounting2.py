@@ -91,8 +91,6 @@ class accountCurve(accountCurveSingle):
 
     def __init__(self, price=None,   cash_costs=None, SR_cost=None, 
                  capital=None, ann_risk_target=None, pre_calc_data=None,
-                 weighted_flag = False, weighting=None, 
-                apply_weight_to_costs_only=False,
                  **kwargs):
         (base_capital, ann_risk, daily_risk_capital)=resolve_capital(price, capital, ann_risk_target)
 
