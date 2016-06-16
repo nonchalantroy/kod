@@ -96,12 +96,23 @@ def pandl_with_data(price, trades=None, marktomarket=True, positions=None,
     use_fx = pd.Series([1.0] * len(price.index),index=price.index)
 
     prices_to_use = copy(price)
-    positions = get_positions_from_forecasts(price,
-                                             get_daily_returns_volatility,
-                                             forecast,
-                                             use_fx,
-                                             value_of_price_point,
-                                             daily_risk_capital)
+#    positions = get_positions_from_forecasts(price,
+#                                             get_daily_returns_volatility,
+#                                             forecast,
+#                                             use_fx,
+#                                             value_of_price_point,
+#                                             daily_risk_capital)
+
+    get_daily_returns_volatility = robust_vol_calc(price.diff())
+        
+    multiplier = daily_risk_capital * 1.0 * 1.0 / 10.0
+
+    denominator = (value_of_price_point * get_daily_returns_volatility* use_fx)
+
+    numerator = forecast *  multiplier
+
+    positions = numerator.ffill() /  denominator.ffill()
+
     use_positions = copy(positions)
 
     use_positions = use_positions.shift(1)
