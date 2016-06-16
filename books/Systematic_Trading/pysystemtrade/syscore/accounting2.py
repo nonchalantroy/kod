@@ -55,8 +55,11 @@ class accountCurve(accountCurveSingleElementOneFreq):
 
     def __init__(self, price=None, capital=None, ann_risk_target=None, **kwargs):
         
-        (base_capital, ann_risk, daily_risk_capital)=resolve_capital(price, capital, ann_risk_target)
-
+        base_capital = DEFAULT_CAPITAL
+        daily_risk_capital = DEFAULT_CAPITAL * DEFAULT_ANN_RISK_TARGET / ROOT_BDAYS_INYEAR        
+        ts_capital=pd.Series([DEFAULT_CAPITAL]*len(price), index=price.index)        
+        ann_risk = ts_capital * DEFAULT_ANN_RISK_TARGET
+        
         (cum_trades,
          trades_to_use,
          instr_ccy_returns,
@@ -65,19 +68,7 @@ class accountCurve(accountCurveSingleElementOneFreq):
                                                daily_risk_capital=daily_risk_capital,
                                                **kwargs)
         
-        super().__init__(base_ccy_returns, base_capital, frequency="D")
-        
-
-def resolve_capital(ts_to_scale_to, capital=None, ann_risk_target=None):
-        
-    daily_risk_capital = DEFAULT_CAPITAL * DEFAULT_ANN_RISK_TARGET / ROOT_BDAYS_INYEAR
-
-    ts_capital=pd.Series([DEFAULT_CAPITAL]*len(ts_to_scale_to), index=ts_to_scale_to.index)
-    
-    ann_risk = ts_capital * DEFAULT_ANN_RISK_TARGET
-    
-    return (DEFAULT_CAPITAL, ann_risk, daily_risk_capital)
-
+        super().__init__(base_ccy_returns, base_capital, frequency="D")        
 
 def pandl_with_data(price, trades=None, marktomarket=True, positions=None,
           delayfill=True, roundpositions=False,
