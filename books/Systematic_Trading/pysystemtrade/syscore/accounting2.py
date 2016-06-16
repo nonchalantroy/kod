@@ -299,13 +299,4 @@ def resolve_capital(ts_to_scale_to, capital=None, ann_risk_target=None):
     
     return (base_capital, ann_risk, daily_risk_capital)
 
-def acc_list_to_pd_frame(list_of_ac_curves, asset_columns):
-    list_of_df=[acc.as_ts() for acc in list_of_ac_curves]
-    ans=pd.concat(list_of_df, axis=1,  join="outer")
-    
-    ans.columns=asset_columns
-    ans=ans.cumsum().ffill().diff()
-    
-    return ans
-
 
