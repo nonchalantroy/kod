@@ -39,12 +39,9 @@ class accountCurveSingleElementOneFreq(pd.Series):
     def as_percent(self):
         return 100.0 * self.as_ts() / self.capital
     
-    def std(self):
-        return float(self.as_ts().std())
-
     def sharpe(self):
         mean_return = self.as_ts().mean() * self._returns_scalar
-        vol = self.std() * self._vol_scalar
+        vol = self.as_ts().std() * self._vol_scalar
         return mean_return / vol
 
 class accountCurve(accountCurveSingleElementOneFreq):
