@@ -73,8 +73,6 @@ def resolve_capital(ts_to_scale_to, capital=None, ann_risk_target=None):
     daily_risk_capital = DEFAULT_CAPITAL * DEFAULT_ANN_RISK_TARGET / ROOT_BDAYS_INYEAR
 
     ts_capital=pd.Series([DEFAULT_CAPITAL]*len(ts_to_scale_to), index=ts_to_scale_to.index)
-
-    base_capital = float(DEFAULT_CAPITAL)
     
     ann_risk = ts_capital * DEFAULT_ANN_RISK_TARGET
     
