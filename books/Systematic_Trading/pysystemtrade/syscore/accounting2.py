@@ -84,7 +84,6 @@ class accountCurveSingleElementOneFreq(pd.Series):
         try:
             returns_scalar=dict(D=BUSINESS_DAYS_IN_YEAR, W=WEEKS_IN_YEAR,
                                 M=MONTHS_IN_YEAR, Y=1)[frequency]
-            print ("returns_scalar=" + str(returns_scalar))
                                 
             vol_scalar=dict(D=ROOT_BDAYS_INYEAR, W=ROOT_WEEKS_IN_YEAR,
                                 M=ROOT_MONTHS_IN_YEAR, Y=1)[frequency]
@@ -126,7 +125,6 @@ class accountCurveSingleElementOneFreq(pd.Series):
 
     def ann_mean(self):
         avg = self.mean()
-        print ("self=" + str(self.tail(4)))
         return avg * self._returns_scalar
 
     def ann_std(self):
@@ -157,18 +155,9 @@ class accountCurveSingleElement(accountCurveSingleElementOneFreq):
     
     def __init__(self, returns_df, capital, weighted_flag=False):
         ## We often want to use  
-        daily_returns = returns_df.resample("1B", how="sum")
-        print ("daily_returns=" + str(daily_returns.tail(4)))
-        weekly_returns=returns_df.resample("W", how="sum")
-        monthly_returns=returns_df.resample("MS", how="sum")
-        annual_returns=returns_df.resample("A", how="sum")
-        
+        daily_returns = returns_df.resample("1B", how="sum")        
         super().__init__(daily_returns, capital, frequency="D",  weighted_flag=weighted_flag)
-
         setattr(self, "daily", accountCurveSingleElementOneFreq(daily_returns, capital, frequency="D", weighted_flag=weighted_flag))
-        setattr(self, "weekly", accountCurveSingleElementOneFreq(weekly_returns, capital, frequency="W",  weighted_flag=weighted_flag))
-        setattr(self, "monthly", accountCurveSingleElementOneFreq(monthly_returns, capital, frequency="M", weighted_flag=weighted_flag))
-        setattr(self, "annual", accountCurveSingleElementOneFreq(annual_returns, capital, frequency="Y",  weighted_flag=weighted_flag))
 
     def __repr__(self):
         return super().__repr__()+ "\n Use object.freq.method() to access periods (freq=daily, weekly, monthly, annual) default: daily"
@@ -194,8 +183,6 @@ class accountCurve(accountCurveSingle):
 
         (cum_trades, trades_to_use, instr_ccy_returns,
             base_ccy_returns, use_fx, value_of_price_point)=returns_data
-
-        ## Initially we have an unweighted version
         
         self._calc_and_set_returns(base_ccy_returns, base_capital, 
                                     weighted_flag=weighted_flag, weighting=weighting,
