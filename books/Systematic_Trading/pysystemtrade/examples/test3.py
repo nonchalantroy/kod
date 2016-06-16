@@ -1,7 +1,5 @@
 import inspect
 import sys; sys.path.append('..')
-from sysdata.csvdata import csvFuturesData
-from sysdata.configdata import Config
 from syscore.algos import robust_vol_calc
 import pandas as pd
 
@@ -19,7 +17,8 @@ ewmac = calc_ewmac_forecast(price, 32, 128)
 ewmac.columns=['forecast']
 print(ewmac.tail(5))
 
-from syscore.accounting import accountCurve
+from syscore.accounting2 import accountCurve
 account = accountCurve(price, forecast=ewmac)
 tmp = account.percent()
-print(tmp.stats())
+
+print(tmp.sharpe())
