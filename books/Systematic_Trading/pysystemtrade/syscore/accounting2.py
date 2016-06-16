@@ -81,16 +81,12 @@ class accountCurveSingleElementOneFreq(pd.Series):
     def __init__(self, returns_df, capital, weighted_flag=False, frequency="D"):
         super().__init__(returns_df)
         
-        try:
-            returns_scalar=dict(D=BUSINESS_DAYS_IN_YEAR, W=WEEKS_IN_YEAR,
-                                M=MONTHS_IN_YEAR, Y=1)[frequency]
-                                
-            vol_scalar=dict(D=ROOT_BDAYS_INYEAR, W=ROOT_WEEKS_IN_YEAR,
-                                M=ROOT_MONTHS_IN_YEAR, Y=1)[frequency]
-            
-        except KeyError:
-            raise Exception("Not a frequency %s" % frequency)
-        
+        returns_scalar=dict(D=BUSINESS_DAYS_IN_YEAR, W=WEEKS_IN_YEAR,
+                            M=MONTHS_IN_YEAR, Y=1)[frequency]
+
+        vol_scalar=dict(D=ROOT_BDAYS_INYEAR, W=ROOT_WEEKS_IN_YEAR,
+                            M=ROOT_MONTHS_IN_YEAR, Y=1)[frequency]
+                    
         setattr(self, "frequency", frequency)
         setattr(self, "_returns_scalar", returns_scalar)
         setattr(self, "_vol_scalar", vol_scalar)
