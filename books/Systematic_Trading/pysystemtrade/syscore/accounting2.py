@@ -46,19 +46,14 @@ class accountCurveSingleElementOneFreq(pd.Series):
 
 class accountCurve(accountCurveSingleElementOneFreq):
 
-    def __init__(self, price=None, capital=None, ann_risk_target=None, **kwargs):
+    def __init__(self, price, forecast):
         
         base_capital = DEFAULT_CAPITAL
         daily_risk_capital = DEFAULT_CAPITAL * DEFAULT_ANN_RISK_TARGET / ROOT_BDAYS_INYEAR        
         ts_capital=pd.Series([DEFAULT_CAPITAL]*len(price), index=price.index)        
         ann_risk = ts_capital * DEFAULT_ANN_RISK_TARGET
         
-        (cum_trades,
-         trades_to_use,
-         instr_ccy_returns,
-         base_ccy_returns)=pandl_with_data(price,
-                                               daily_risk_capital=daily_risk_capital,
-                                               **kwargs)
+        (cum_trades,trades_to_use,instr_ccy_returns,base_ccy_returns) = pandl_with_data(price, daily_risk_capital=daily_risk_capital, forecast=forecast)
         
         super().__init__(base_ccy_returns, base_capital, frequency="D")        
 
