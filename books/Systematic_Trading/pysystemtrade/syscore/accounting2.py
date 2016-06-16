@@ -57,10 +57,7 @@ class accountCurve(accountCurveSingleElementOneFreq):
         
         super().__init__(base_ccy_returns, base_capital, frequency="D")        
 
-def pandl_with_data(price, trades=None, marktomarket=True, positions=None,
-          delayfill=True, roundpositions=False,
-          get_daily_returns_volatility=None, forecast=None, fx=None,
-          daily_risk_capital=None):
+def pandl_with_data(price, daily_risk_capital, forecast):
     
     get_daily_returns_volatility = robust_vol_calc(price.diff())
         
