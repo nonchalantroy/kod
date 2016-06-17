@@ -1,3 +1,6 @@
+"""
+Sharpe ratio calculation for one strategy / one instrument. 
+"""
 import sys; sys.path.append('..')
 from syscore.algos import robust_vol_calc
 import pandas as pd, numpy as np
