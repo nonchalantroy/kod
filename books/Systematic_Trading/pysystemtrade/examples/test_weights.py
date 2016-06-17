@@ -15,6 +15,7 @@ from systems.positionsizing import PositionSizing
 
 data = csvFuturesData()
 my_config = Config()
+my_config.instruments=["US20", "SP500"]
 
 ewmac_8 = TradingRule((ewmac, [], dict(Lfast=8, Lslow=32)))
 ewmac_32 = TradingRule(dict(function=ewmac, other_args=dict(Lfast=8, Lslow=32)))
@@ -23,6 +24,6 @@ my_rules = Rules(dict(ewmac8=ewmac_8, ewmac32=ewmac_32))
 my_system = System([Account(), PortfoliosEstimated(), PositionSizing(), ForecastScaleCap(), my_rules, ForecastCombine()], data, my_config)
 my_system.config.forecast_weight_estimate['method']="equal_weights"
 my_system.config.instrument_weight_estimate['method']="bootstrap"
-my_system.config.instrument_weight_estimate["monte_runs"]=100
-my_system.config.instrument_weight_estimate["bootstrap_length"]=50
+my_system.config.instrument_weight_estimate["monte_runs"]=10
+my_system.config.instrument_weight_estimate["bootstrap_length"]=30
 print (my_system.portfolio.get_instrument_weights())
