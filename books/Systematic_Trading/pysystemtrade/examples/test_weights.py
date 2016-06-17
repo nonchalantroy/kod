@@ -24,6 +24,9 @@ my_rules = Rules(dict(ewmac8=ewmac_8, ewmac32=ewmac_32))
 my_system = System([Account(), PortfoliosEstimated(), PositionSizing(), ForecastScaleCap(), my_rules, ForecastCombine()], data, my_config)
 my_system.config.forecast_weight_estimate['method']="equal_weights"
 my_system.config.instrument_weight_estimate['method']="bootstrap"
-my_system.config.instrument_weight_estimate["monte_runs"]=10
-my_system.config.instrument_weight_estimate["bootstrap_length"]=30
+my_system.config.instrument_weight_estimate["monte_runs"]=30
+my_system.config.instrument_weight_estimate["bootstrap_length"]=250
 print (my_system.portfolio.get_instrument_weights())
+
+# 10,250 0.75,0.25
+# 30,250 0.75,0.25
