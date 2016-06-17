@@ -1,6 +1,6 @@
 import sys; sys.path.append('..')
 from syscore.algos import robust_vol_calc
-import pandas as pd
+import pandas as pd, numpy as np
 from syscore.dateutils import BUSINESS_DAYS_IN_YEAR, ROOT_BDAYS_INYEAR, WEEKS_IN_YEAR, ROOT_WEEKS_IN_YEAR
 from syscore.dateutils import MONTHS_IN_YEAR, ROOT_MONTHS_IN_YEAR
 
@@ -23,7 +23,7 @@ def sharpe(price, forecast):
     """        
     base_capital = DEFAULT_CAPITAL
     daily_risk_capital = DEFAULT_CAPITAL * DEFAULT_ANN_RISK_TARGET / ROOT_BDAYS_INYEAR        
-    ts_capital=pd.Series([DEFAULT_CAPITAL]*len(price), index=price.index)        
+    ts_capital=pd.Series(np.ones(len(price)) * DEFAULT_CAPITAL, index=price.index)
     ann_risk = ts_capital * DEFAULT_ANN_RISK_TARGET
     daily_returns_volatility = robust_vol_calc(price.diff())
     multiplier = daily_risk_capital * 1.0 * 1.0 / 10.0
@@ -33,9 +33,8 @@ def sharpe(price, forecast):
     price_returns = price.diff()
     instr_ccy_returns = cum_trades.shift(1)*price_returns 
     instr_ccy_returns=instr_ccy_returns.cumsum().ffill().reindex(price.index).diff()
-    base_ccy_returns = instr_ccy_returns 
-    mean_return = base_ccy_returns.mean() * BUSINESS_DAYS_IN_YEAR
-    vol = base_ccy_returns.std() * ROOT_BDAYS_INYEAR
+    mean_return = instr_ccy_returns.mean() * BUSINESS_DAYS_IN_YEAR
+    vol = instr_ccy_returns.std() * ROOT_BDAYS_INYEAR
     return mean_return / vol
 
 if __name__ == "__main__": 
