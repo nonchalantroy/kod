@@ -1,3 +1,4 @@
+import inspect
 """
 Sharpe ratio calculation for one strategy / one instrument. 
 """

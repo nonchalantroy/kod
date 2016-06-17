@@ -1,3 +1,4 @@
+import inspect
 """
 Utilities to help with pandas
 """

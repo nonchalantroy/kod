@@ -1,4 +1,5 @@
 import inspect
+import inspect
 from copy import copy
 
 
@@ -165,17 +166,17 @@ class logtoscreen(logger):
         """
         >>> log=logtoscreen("base_system", log_level="off") ## this won't do anything
         >>> log.log("this wont print")
-        >>> log.terse("nor this")
+        >>> print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" +"nor this")
         >>> log.warn("this will")
         this will
         >>> log.error("and this")
         and this
         >>> log=logtoscreen(log, log_level="terse")
-        >>> log.msg("this wont print")
-        >>> log.terse("this will")
+        >>> print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" +"this wont print")
+        >>> print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" +"this will")
         this will
         >>> log=logtoscreen(log_level="on")
-        >>> log.msg("now prints every little thing")
+        >>> print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" +"now prints every little thing")
         now prints every little thing
         """
         log_level=self.logging_level()

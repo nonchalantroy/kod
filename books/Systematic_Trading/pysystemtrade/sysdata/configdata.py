@@ -1,3 +1,4 @@
+import inspect
 """
 Configuration is used to control the behaviour of a system
 
@@ -151,7 +152,7 @@ class Config(object):
         >>> config.forecast_weight_estimate['correlation_estimate']['ew_lookback']
         500
         """
-        self.log.msg("Adding config defaults")
+        print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" +"Adding config defaults")
         
         existing_elements=self._elements
         default_elements=list(get_system_defaults().keys())

@@ -1,3 +1,4 @@
+import inspect
 from systems.stage import SystemStage
 from copy import copy
 
@@ -51,7 +52,7 @@ class RawData(SystemStage):
         KEY OUTPUT
         """
         def _daily_prices(system, instrument_code, this_stage):
-            this_stage.log.msg("Calculating daily prices for %s" % instrument_code, instrument_code=instrument_code)
+            print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" +"Calculating daily prices for %s" % instrument_code)
             dailyprice = system.data.daily_prices(instrument_code)
             return dailyprice
 
@@ -173,7 +174,7 @@ class RawData(SystemStage):
 
         """
         def _daily_returns_volatility(system, instrument_code, this_stage):
-            this_stage.log.msg("Calculating daily volatility for %s" % instrument_code, instrument_code=instrument_code)
+            print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" +"Calculating daily volatility for %s" % instrument_code)
 
             dailyreturns = this_stage.daily_returns(instrument_code)
 
@@ -252,7 +253,7 @@ class RawData(SystemStage):
         2015-12-11     1.985413
         """
         def _norm_returns(system, instrument_code, this_stage):
-            this_stage.log.msg("Calculating normalised prices for %s" % instrument_code, instrument_code=instrument_code)
+            print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" +"Calculating normalised prices for %s" % instrument_code)
 
             returnvol = this_stage.daily_returns_volatility(
                 instrument_code).shift(1)

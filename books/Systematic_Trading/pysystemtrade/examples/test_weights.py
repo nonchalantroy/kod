@@ -1,4 +1,5 @@
 import inspect
+import inspect
 import sys; sys.path.append('..')
 
 from systems.provided.example.rules import ewmac_forecast_with_defaults as ewmac
@@ -24,7 +25,7 @@ my_rules = Rules(dict(ewmac8=ewmac_8, ewmac32=ewmac_32))
 my_system = System([Account(), PortfoliosEstimated(), PositionSizing(), ForecastScaleCap(), my_rules, ForecastCombine()], data, my_config)
 my_system.config.forecast_weight_estimate['method']="equal_weights"
 my_system.config.instrument_weight_estimate['method']="bootstrap"
-my_system.config.instrument_weight_estimate["monte_runs"]=10
+my_system.config.instrument_weight_estimate["monte_runs"]=1
 my_system.config.instrument_weight_estimate["bootstrap_length"]=250
 print (my_system.portfolio.get_instrument_weights())
 print(my_system.portfolio.get_instrument_diversification_multiplier())

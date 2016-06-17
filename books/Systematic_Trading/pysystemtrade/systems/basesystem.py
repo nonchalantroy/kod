@@ -1,3 +1,4 @@
+import inspect
 import pickle
 from sysdata.configdata import Config
 from syslogdiag.log import logtoscreen
@@ -358,7 +359,7 @@ class System(object):
         WARNING: Will kill protected things as well
         """
         
-        self.log.msg("Deleting %s from cache" % str(itemname))
+        print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" +"Deleting %s from cache" % str(itemname))
 
         if itemname not in self._cache:
             return None
