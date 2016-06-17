@@ -1309,7 +1309,12 @@ Then we do the following throughout the day:
 7. Re-calculate the optimal positions for this instrument
 8. This is then passed to our trading algo
 
-Because we've deleted everything specific to the instrument we'll recalculate the positions, and all intermediate stages, using the new price. However we won't have to repeat lengthy calculations that cut across instruments, such as correlation estimates, risk overlays, cross sectional data or weight estimation. That can wait till our next overnight run.
+Because we've deleted everything specific to the instrument we'll
+recalculate the positions, and all intermediate stages, using the new
+price. However we won't have to repeat lengthy calculations that cut
+across instruments, such as correlation estimates, risk overlays,
+cross sectional data or weight estimation. That can wait till our next
+overnight run.
 
 
 ### Very advanced: Caching in new or modified code
@@ -3208,7 +3213,9 @@ I plan to include ways of summarising profits over groups of assets (trading rul
 # Processes
 </a>
 
-This section gives much more detail on certain important processes that span multiple stages: logging, estimating correlations and diversification multipliers, optimisation, and capital correction.
+This section gives much more detail on certain important processes
+that span multiple stages: logging, estimating correlations and
+diversification multipliers, optimisation, and capital correction.
 
 <a name="logging">
 ## Logging
@@ -3216,7 +3223,9 @@ This section gives much more detail on certain important processes that span mul
 
 ### Basic logging
 
-The system, data, config and each stage object all have a .log attribute, to allow the system to report to the user; as do the functions provided to estimate correlations and do optimisations.
+The system, data, config and each stage object all have a .log
+attribute, to allow the system to report to the user; as do the
+functions provided to estimate correlations and do optimisations.
 
 In the current version this just prints to screen, although in future logging will be able to write to databases and files, and send emails if critical events are happening. 
 
@@ -3347,7 +3356,8 @@ From the config
 
 ### Moment estimation
 
-To do an optimisation we need estimates of correlations, means, and standard deviations. 
+To do an optimisation we need estimates of correlations, means, and
+standard deviations.
 
 From the config
 
@@ -3373,11 +3383,14 @@ forecast_weight_estimate:  ## can also be applied to instrument weights
      min_periods: 20      
 ```
 
-If you're using shrinkage or single period optimisation I'd suggest using an exponential weight for correlations, means, and volatility.
+If you're using shrinkage or single period optimisation I'd suggest
+using an exponential weight for correlations, means, and volatility.
 
 ### Methods
 
-There are four methods provided to optimise with in the function I've included. Personally I'd use shrinkage if I wanted a quick answer, then bootstrapping.
+There are four methods provided to optimise with in the function I've
+included. Personally I'd use shrinkage if I wanted a quick answer,
+then bootstrapping.
 
 #### Equal weights
 
@@ -3455,10 +3468,13 @@ If weights are *cleaned*, then in a fitting period when we need a weight, but no
 
 See [my blog post](http://qoppac.blogspot.co.uk/2016/01/correlations-weights-multipliers.html)
 
+You can estimate diversification multipliers for both instruments (IDM
+- see chapter 11) and forecasts (FDM - see chapter 8).
 
-You can estimate diversification multipliers for both instruments (IDM - see chapter 11) and forecasts (FDM - see chapter 8). 
-
-The first step is to estimate *correlations*. The process is the same, except that for forecasts you have the option to pool instruments together. As the following YAML extract shows I recommend estimating these with an exponential moving average on weekly data:
+The first step is to estimate *correlations*. The process is the same,
+except that for forecasts you have the option to pool instruments
+together. As the following YAML extract shows I recommend estimating
+these with an exponential moving average on weekly data:
 
 ```
 forecast_correlation_estimate:
@@ -3472,7 +3488,8 @@ forecast_correlation_estimate:
    cleaning: True  # Replace missing values with an average so we don't lose data early on
 ```
 
-Once we have correlations, and the forecast or instrument weights, it's a trivial calculation. 
+Once we have correlations, and the forecast or instrument weights,
+it's a trivial calculation.
 
 ```
 instrument_div_mult_estimate:
@@ -3489,7 +3506,15 @@ I've included a smoothing function, other wise jumps in the multiplier will caus
 ## Capital correction: Varying capital
 </a>
 
-Capital correction is the process by which we change the capital we have at risk, and thus our positions, according to any profits or losses made. Most of pysystemtrade assumes that capital is *fixed*. This has the advantage that risk is stable over time, and account curves can more easily be interpreted. However a more common method is to use *compounded* capital, where profits are added to capital and losses deducted. If we make money then our capital, and the risk we're taking, and the size of our positions, will all increase over time.
+Capital correction is the process by which we change the capital we
+have at risk, and thus our positions, according to any profits or
+losses made. Most of pysystemtrade assumes that capital is
+*fixed*. This has the advantage that risk is stable over time, and
+account curves can more easily be interpreted. However a more common
+method is to use *compounded* capital, where profits are added to
+capital and losses deducted. If we make money then our capital, and
+the risk we're taking, and the size of our positions, will all
+increase over time.
 
 There is much more in this [blog post](http://qoppac.blogspot.co.uk/2016/06/capital-correction-pysystemtrade.html). Capital correction is controlled by the following config parameter which selects the function used for correction using the normal dot argument (the default here being the function `fixed_capital` in the module `syscore.capital`)
 
