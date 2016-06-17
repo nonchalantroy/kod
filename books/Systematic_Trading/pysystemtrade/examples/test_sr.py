@@ -27,11 +27,9 @@ def sharpe(price, forecast):
     ann_risk = ts_capital * DEFAULT_ANN_RISK_TARGET
     daily_returns_volatility = robust_vol_calc(price.diff())
     multiplier = daily_risk_capital * 1.0 * 1.0 / 10.0
-    denominator = daily_returns_volatility
     numerator = forecast *  multiplier
-    positions = numerator.ffill() /  denominator.ffill()
+    positions = numerator.ffill() /  daily_returns_volatility.ffill()
     cum_trades = positions.shift(1).ffill()
-    trades_to_use=cum_trades.diff()
     price_returns = price.diff()
     instr_ccy_returns = cum_trades.shift(1)*price_returns 
     instr_ccy_returns=instr_ccy_returns.cumsum().ffill().reindex(price.index).diff()
