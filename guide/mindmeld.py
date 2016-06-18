@@ -175,7 +175,7 @@ def calculate(date):
 def describe(res):
    print res
    base = './doc/details'
-   print base + '/millman/' + str(res['millman'][0]) + str(res['millman'][1]) + '.html'
+   print base + '/millman/' + str(res['millman'][0]) + str(res['millman'][1]) + '.html:1:-'
    for lewi in res['lewi']: print base + '/lewi/' + str(lewi) + '.html:1:-'
    print base + '/chinese/' + str(res['chinese']) + '.html:1:-'
    print base + '/spiller/' + str(res['spiller']) + '.html:1:-'

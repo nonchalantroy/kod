@@ -29,7 +29,7 @@ if __name__ == "__main__":
 
     fout = open("%s/%s" % (os.environ['TEMP'],logfile), "a")
     while (True):
-        seed = random.choice(range(1000))
+        seed = random.choice(range(10000))
         rnd = twister.get_random_numbers(seed, 1)
         print len(files), 'files'
         rnd = rnd[0] % len(files)
