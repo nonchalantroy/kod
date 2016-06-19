@@ -7,6 +7,7 @@ Basic building blocks of trading rules, like volatility measurement and crossove
 """
 import pandas as pd
 import numpy as np
+import warnings
 
 from syscore.genutils import str2Bool
 from systems.defaults import system_defaults
@@ -56,7 +57,9 @@ def vol_estimator(x, using_exponent=True, min_periods=20, ew_lookback=250):
         vol = pd.ewmstd(x, span=ew_lookback, min_periods=min_periods).iloc[-1,:].values[0]
         
     else:
-        vol=x.apply(apply_with_min_periods,axis=0,min_periods=min_periods, my_func=np.nanstd) 
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", category=RuntimeWarning)
+            vol=x.apply(apply_with_min_periods,axis=0,min_periods=min_periods, my_func=np.nanstd) 
     
     stdev_list=list(vol)
     
