@@ -1,11 +1,4 @@
 import logging
-import logging
-import logging
-import logging
-import logging
-import logging
-import logging
-import logging
 """Here we'll check the hypothesis that we should use continous,
 rather than binary, forecasts
 

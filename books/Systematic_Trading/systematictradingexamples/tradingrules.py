@@ -1,11 +1,4 @@
 import logging
-import logging
-import logging
-import logging
-import logging
-import logging
-import logging
-import logging
 """
 Trading rules
 

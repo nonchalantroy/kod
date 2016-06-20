@@ -1,15 +1,8 @@
 import logging
-import logging
-import logging
-import logging
-import logging
-import logging
-import logging
-import logging
-"""
-This file shows how to calculate the Carry trading rule for crude oil futures
+"""This file shows how to calculate the Carry trading rule for crude oil futures
 
-As in chapter 7 / appendix B of "Systematic Trading" by Robert Carver (www.systematictrading.org)
+As in chapter 7 / appendix B of "Systematic Trading" by Robert Carver
+(www.systematictrading.org)
 
 Required: pandas, matplotlib
 
@@ -32,10 +25,11 @@ code="CRUDE_W"
 price=get_price_for_instrument(code)
 
 
-"""
-Formulation here will work whether we are trading the nearest contract or not
+"""Formulation here will work whether we are trading the nearest contract or not
 
-For other asset classes you will have to work out nerpu (net expected return in price units) yourself
+For other asset classes you will have to work out nerpu (net expected
+return in price units) yourself
+
 """
 
 data=get_carry_data(code)
