@@ -28,11 +28,8 @@ def equalise_vols(returns, default_vol):
     norm_returns.columns=returns.columns
     return norm_returns
 
-def markosolver(returns, equalisevols=True, default_vol=0.2, default_SR=1.0):        
-    if equalisevols:
-        use_returns=equalise_vols(returns, default_vol)
-    else:
-        use_returns=returns
+def markosolver(returns, default_vol=0.2, default_SR=1.0):        
+    use_returns=equalise_vols(returns, default_vol)
     
     sigma=use_returns.cov().values
 
@@ -64,7 +61,7 @@ def generate_fitting_dates(data, date_method, rollyears=20):
 
     return periods
 
-def bootstrap_portfolio(returns_to_bs, monte_carlo=1, monte_length=250, equalisevols=True, default_vol=0.2, default_SR=1.0):
+def bootstrap_portfolio(returns_to_bs, monte_carlo=1, monte_length=250, default_vol=0.2, default_SR=1.0):
 
     print ("monte_carlo=" + str(monte_carlo))
     print ("monte_length=" + str(monte_length))
@@ -74,15 +71,15 @@ def bootstrap_portfolio(returns_to_bs, monte_carlo=1, monte_length=250, equalise
         bs_idx=[int(random.uniform(0,1)*len(returns_to_bs)) for i in range(monte_length)]
         
         returns=returns_to_bs.iloc[bs_idx,:] 
-        weight=markosolver(returns, equalisevols=equalisevols, default_vol=default_vol, default_SR=default_SR)
+        weight=markosolver(returns, default_vol=default_vol, default_SR=default_SR)
         weightlist.append(weight)
      
     theweights_mean=list(np.mean(weightlist, axis=0))
     return theweights_mean
 
 def optimise_over_periods(data, date_method, fit_method,
-                          rollyears=20, equalisevols=True, 
-                          monte_carlo=40, monte_length=250):
+                          rollyears=20, monte_carlo=40,
+                          monte_length=250):
 
     fit_periods=generate_fitting_dates(data, date_method, rollyears=rollyears)
     
@@ -90,7 +87,8 @@ def optimise_over_periods(data, date_method, fit_method,
     for fit_tuple in fit_periods:
         print ("fit_tuple=" + str(fit_tuple))
         period_subset_data=data[fit_tuple[0]:fit_tuple[1]]        
-        weights=bootstrap_portfolio(period_subset_data, equalisevols=equalisevols, monte_carlo=monte_carlo, 
+        weights=bootstrap_portfolio(period_subset_data,
+                                    monte_carlo=monte_carlo,
                                     monte_length=monte_length)
         
         dindex=[fit_tuple[2]+datetime.timedelta(seconds=1), fit_tuple[3]-datetime.timedelta(seconds=1)]
@@ -105,6 +103,6 @@ def optimise_over_periods(data, date_method, fit_method,
 
 
 df = pd.read_csv("assetprices.csv", index_col=0,parse_dates=True)
-mat1=optimise_over_periods(df, "expanding", "bootstrap",  equalisevols=True)
+mat1=optimise_over_periods(df, "expanding", "bootstrap")
 mat1.plot()
 plt.show()
