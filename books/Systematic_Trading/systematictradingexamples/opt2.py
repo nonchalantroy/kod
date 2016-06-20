@@ -39,7 +39,7 @@ def markosolver(returns, default_vol, default_SR):
     ans=minimize(neg_SR, start_weights, (sigma, mus), method='SLSQP', bounds=bounds, constraints=cdict, tol=0.00001)
     return ans['x']
 
-def generate_fitting_dates(data, date_method, rollyears):
+def generate_fitting_dates(data, rollyears):
     start_date=data.index[0]
     end_date=data.index[-1]
     yearstarts=list(pd.date_range(start_date, end_date, freq="12M"))+[end_date]   
@@ -66,11 +66,12 @@ def bootstrap_portfolio(returns_to_bs, monte_carlo, monte_length, default_vol, d
     theweights_mean=list(np.mean(weightlist, axis=0))
     return theweights_mean
 
-def optimise_over_periods(data, date_method, fit_method,
+def optimise_over_periods(data,
                           rollyears=20, 
-                          monte_carlo=40, monte_length=250):
+                          monte_carlo=200,
+                          monte_length=250):
 
-    fit_periods=generate_fitting_dates(data, date_method, rollyears=rollyears)
+    fit_periods=generate_fitting_dates(data, rollyears=rollyears)
     
     weight_list=[]
     for fit_tuple in fit_periods:
@@ -89,7 +90,22 @@ def optimise_over_periods(data, date_method, fit_method,
     return weight_df
 
 random.seed(0)
-df = pd.read_csv("assetprices.csv", index_col=0,parse_dates=True)
-mat1=optimise_over_periods(df, "expanding", "bootstrap")
+#df = pd.read_csv("assetprices.csv", index_col=0,parse_dates=True)
+
+import pandas as pd, zipfile
+with zipfile.ZipFile('c:/Users/burak/Documents/classnotes/tser/tser_voltar/legacycsv.zip', 'r') as z:
+    df =  pd.read_csv(z.open('SP500_price.csv'),sep=',',index_col=0,parse_dates=True)
+    df['NASDAQ'] =  pd.read_csv(z.open('NASDAQ_price.csv'),sep=',',index_col=0,parse_dates=True)
+    df['US20'] =  pd.read_csv(z.open('US20_price.csv'),sep=',',index_col=0,parse_dates=True)
+print (df.tail())    
+df.columns = ['SP500','NASDAQ','US20']
+
+df['SP500'] = df.SP500.pct_change()
+df['NASDAQ'] = df.NASDAQ.pct_change()
+df['US20'] = df.US20.pct_change()
+
+df = df[(df.index >= '1999-08-02') & (df.index <= '2015-04-22')]
+    
+mat1=optimise_over_periods(df)
 mat1.plot()
 plt.show()
