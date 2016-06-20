@@ -28,29 +28,21 @@ def equalise_vols(returns, default_vol):
     norm_returns.columns=returns.columns
     return norm_returns
 
-def markosolver(returns, default_vol=0.2, default_SR=1.0):        
-    use_returns=equalise_vols(returns, default_vol)
-    
+def markosolver(returns, default_vol, default_SR):        
+    use_returns=equalise_vols(returns, default_vol)    
     sigma=use_returns.cov().values
-
-    mus=np.array([use_returns[asset_name].mean() for asset_name in use_returns.columns], ndmin=2).transpose()
-    
+    mus=np.array([use_returns[asset_name].mean() for asset_name in use_returns.columns], ndmin=2).transpose()    
     number_assets=use_returns.shape[1]
-    start_weights=[1.0/number_assets]*number_assets
-    
+    start_weights=[1.0/number_assets]*number_assets    
     bounds=[(0.0,1.0)]*number_assets
-    cdict=[{'type':'eq', 'fun':addem}]
-    
+    cdict=[{'type':'eq', 'fun':addem}]    
     ans=minimize(neg_SR, start_weights, (sigma, mus), method='SLSQP', bounds=bounds, constraints=cdict, tol=0.00001)
-        
     return ans['x']
 
-def generate_fitting_dates(data, date_method, rollyears=20):
+def generate_fitting_dates(data, date_method, rollyears):
     start_date=data.index[0]
     end_date=data.index[-1]
-
-    yearstarts=list(pd.date_range(start_date, end_date, freq="12M"))+[end_date]
-   
+    yearstarts=list(pd.date_range(start_date, end_date, freq="12M"))+[end_date]   
     periods=[]
     for tidx in range(len(yearstarts))[1:-1]:
         period_start=yearstarts[tidx]
@@ -61,10 +53,7 @@ def generate_fitting_dates(data, date_method, rollyears=20):
 
     return periods
 
-def bootstrap_portfolio(returns_to_bs, monte_carlo=1, monte_length=250, default_vol=0.2, default_SR=1.0):
-
-    print ("monte_carlo=" + str(monte_carlo))
-    print ("monte_length=" + str(monte_length))
+def bootstrap_portfolio(returns_to_bs, monte_carlo, monte_length, default_vol, default_SR):
             
     weightlist=[]
     for unused_index in range(monte_carlo):
@@ -89,9 +78,10 @@ def optimise_over_periods(data, date_method, fit_method,
         period_subset_data=data[fit_tuple[0]:fit_tuple[1]]        
         weights=bootstrap_portfolio(period_subset_data,
                                     monte_carlo=monte_carlo,
-                                    monte_length=monte_length)
+                                    monte_length=monte_length,
+                                    default_vol=0.2, default_SR=1.0 )
         
-        dindex=[fit_tuple[2]+datetime.timedelta(seconds=1), fit_tuple[3]-datetime.timedelta(seconds=1)]        
+        dindex=[fit_tuple[2]+datetime.timedelta(seconds=1), fit_tuple[3]-datetime.timedelta(seconds=1)] 
         weight_row=pd.DataFrame([weights]*2, index=dindex, columns=data.columns)        
         weight_list.append(weight_row)
         
