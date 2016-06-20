@@ -1,4 +1,5 @@
 import inspect
+
 '''
 Created on 21 Jan 2016
 
@@ -201,8 +202,6 @@ class GenericOptimiser(object):
 
         ## Stack everything up    
         raw_weight_df=pd.concat(weight_list, axis=0)
-
-
         
         if apply_cost_weight:
             print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" +"Applying cost weighting to optimisation results")
@@ -385,6 +384,8 @@ class optimiserWithParams(object):
     
         
         """
+        print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" + "optimiserWithParams")
+        
         fit_method_dict=dict(one_period=markosolver, bootstrap=bootstrap_portfolio, 
                              shrinkage=opt_shrinkage, equal_weights=equal_weights)
 
@@ -554,13 +555,14 @@ def markosolver(period_subset_data, moments_estimator,
                  cleaning, must_haves,
                   equalise_SR=False , equalise_vols=True,
                   **ignored_args): 
-    """
-    Returns the optimal portfolio for the returns data
+    """Returns the optimal portfolio for the returns data
     
-    If equalise_SR=True then assumes all assets have SR if False uses the asset natural SR    
+    If equalise_SR=True then assumes all assets have SR if False uses
+    the asset natural SR
     
-    If equalise_vols=True then normalises returns to have same standard deviation; the weights returned
-       will be 'risk weightings'
+    If equalise_vols=True then normalises returns to have same
+       standard deviation; the weights returned will be 'risk
+       weightings'
        
     :param subset_data: The data to optimise over
     :type subset_data: pd.DataFrame TxN
@@ -584,7 +586,7 @@ def markosolver(period_subset_data, moments_estimator,
 
 
     :returns: float
-    
+
     """
 
     rawmoments=moments_estimator.moments(period_subset_data)    
@@ -894,7 +896,7 @@ def bootstrap_portfolio(subset_data, moments_estimator,
     :returns: float
     
     """
-
+    print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" + "bootstrap_length=" + str(bootstrap_length))
                 
     all_results=[bs_one_time(subset_data, moments_estimator,
                             cleaning, must_haves, 

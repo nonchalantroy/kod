@@ -19,7 +19,8 @@ my_config = Config()
 my_config.instruments=["US20", "SP500"]
 
 ewmac_8 = TradingRule((ewmac, [], dict(Lfast=8, Lslow=32)))
-ewmac_32 = TradingRule(dict(function=ewmac, other_args=dict(Lfast=8, Lslow=32)))
+ewmac_32 = TradingRule(
+    dict(function=ewmac, other_args=dict(Lfast=32, Lslow=128)))
 my_rules = Rules(dict(ewmac8=ewmac_8, ewmac32=ewmac_32))
 
 my_system = System([Account(), PortfoliosEstimated(), PositionSizing(), ForecastScaleCap(), my_rules, ForecastCombine()], data, my_config)
