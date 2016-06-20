@@ -3,7 +3,9 @@ import matplotlib.pyplot as plt
 import numpy as np, random, datetime
 from scipy.optimize import minimize
 
-def create_dull_pd_matrix(dullvalue=0.0, dullname="A", startdate=pd.datetime(1970,1,1).date(), enddate=datetime.datetime.now().date(), index=None):
+def create_dull_pd_matrix(dullvalue=0.0, dullname="A",
+                          startdate=pd.datetime(1970,1,1).date(),
+                          enddate=datetime.datetime.now().date(), index=None):
     if index is None:
         index=pd.date_range(startdate, enddate)    
     dullvalue=np.array([dullvalue]*len(index))    
@@ -23,7 +25,9 @@ def neg_SR(weights, sigma, mus):
 
 def equalise_vols(returns, default_vol):    
     factors=(default_vol/16.0)/returns.std(axis=0)
-    facmat=create_dull_pd_matrix(dullvalue=factors, dullname=returns.columns, index=returns.index)
+    facmat=create_dull_pd_matrix(dullvalue=factors,
+                                 dullname=returns.columns,
+                                 index=returns.index)
     norm_returns=returns*facmat
     norm_returns.columns=returns.columns
     return norm_returns
@@ -31,12 +35,18 @@ def equalise_vols(returns, default_vol):
 def markosolver(returns, default_vol, default_SR):        
     use_returns=equalise_vols(returns, default_vol)    
     sigma=use_returns.cov().values
-    mus=np.array([use_returns[asset_name].mean() for asset_name in use_returns.columns], ndmin=2).transpose()    
+    mus=np.array([use_returns[asset_name].mean() for asset_name in use_returns.columns], ndmin=2)
+    mus=mus.transpose()
     number_assets=use_returns.shape[1]
     start_weights=[1.0/number_assets]*number_assets    
     bounds=[(0.0,1.0)]*number_assets
     cdict=[{'type':'eq', 'fun':addem}]    
-    ans=minimize(neg_SR, start_weights, (sigma, mus), method='SLSQP', bounds=bounds, constraints=cdict, tol=0.00001)
+    ans=minimize(neg_SR, start_weights,
+                 (sigma, mus),
+                 method='SLSQP',
+                 bounds=bounds,
+                 constraints=cdict,
+                 tol=0.00001)
     return ans['x']
 
 def generate_fitting_dates(data, rollyears):
@@ -57,8 +67,7 @@ def bootstrap_portfolio(returns_to_bs, monte_carlo, monte_length, default_vol, d
             
     weightlist=[]
     for unused_index in range(monte_carlo):
-        bs_idx=[int(random.uniform(0,1)*len(returns_to_bs)) for i in range(monte_length)]
-        
+        bs_idx=[int(random.uniform(0,1)*len(returns_to_bs)) for i in range(monte_length)]        
         returns=returns_to_bs.iloc[bs_idx,:] 
         weight=markosolver(returns, default_vol=default_vol, default_SR=default_SR)
         weightlist.append(weight)
@@ -68,11 +77,10 @@ def bootstrap_portfolio(returns_to_bs, monte_carlo, monte_length, default_vol, d
 
 def optimise_over_periods(data,
                           rollyears=20, 
-                          monte_carlo=200,
+                          monte_carlo=30,
                           monte_length=250):
 
-    fit_periods=generate_fitting_dates(data, rollyears=rollyears)
-    
+    fit_periods=generate_fitting_dates(data, rollyears=rollyears)    
     weight_list=[]
     for fit_tuple in fit_periods:
         print ("fit_tuple=" + str(fit_tuple))
@@ -82,17 +90,20 @@ def optimise_over_periods(data,
                                     monte_length=monte_length,
                                     default_vol=0.2, default_SR=1.0 )
         
-        dindex=[fit_tuple[2]+datetime.timedelta(seconds=1), fit_tuple[3]-datetime.timedelta(seconds=1)] 
-        weight_row=pd.DataFrame([weights]*2, index=dindex, columns=data.columns)        
+        dindex=[fit_tuple[2]+datetime.timedelta(seconds=1),
+                fit_tuple[3]-datetime.timedelta(seconds=1)] 
+        weight_row=pd.DataFrame([weights]*2,
+                                index=dindex,
+                                columns=data.columns) 
         weight_list.append(weight_row)
         
     weight_df=pd.concat(weight_list, axis=0)    
     return weight_df
 
-with zipfile.ZipFile('c:/Users/burak/Documents/classnotes/tser/tser_voltar/legacycsv.zip', 'r') as z:
-    df =  pd.read_csv(z.open('SP500_price.csv'),sep=',',index_col=0,parse_dates=True)
-    df['NASDAQ'] =  pd.read_csv(z.open('NASDAQ_price.csv'),sep=',',index_col=0,parse_dates=True)
-    df['US20'] =  pd.read_csv(z.open('US20_price.csv'),sep=',',index_col=0,parse_dates=True)
+base = "../pysystemtrade/sysdata/legacycsv"
+df =  pd.read_csv('%s/SP500_price.csv' % base,sep=',',index_col=0,parse_dates=True)
+df['NASDAQ'] =  pd.read_csv('%s/NASDAQ_price.csv' % base,sep=',',index_col=0,parse_dates=True)
+df['US20'] =  pd.read_csv('%s/US20_price.csv' % base,sep=',',index_col=0,parse_dates=True)
 
 df.columns = ['SP500','NASDAQ','US20']
 
