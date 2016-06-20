@@ -112,7 +112,9 @@ df['NASDAQ'] = df.NASDAQ.pct_change()
 df['US20'] = df.US20.pct_change()
 
 df = df[(df.index >= '1999-08-02') & (df.index <= '2015-04-22')]
-    
+
+random.seed(0)
+
 mat1=optimise_over_periods(df)
 mat1.plot()
 plt.show()
