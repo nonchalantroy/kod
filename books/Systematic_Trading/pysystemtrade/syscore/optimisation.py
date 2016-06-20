@@ -589,6 +589,8 @@ def markosolver(period_subset_data, moments_estimator,
 
     """
 
+    print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" + "markosolver")
+    
     rawmoments=moments_estimator.moments(period_subset_data)    
     (mean_list, corrmatrix, stdev_list)=copy(rawmoments)
 
@@ -897,7 +899,8 @@ def bootstrap_portfolio(subset_data, moments_estimator,
     
     """
     print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" + "bootstrap_length=" + str(bootstrap_length))
-                
+    print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" + "bootstrap_length=" + str(type(moments_estimator)))
+
     all_results=[bs_one_time(subset_data, moments_estimator,
                             cleaning, must_haves, 
                             bootstrap_length,

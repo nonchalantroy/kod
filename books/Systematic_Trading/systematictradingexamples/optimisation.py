@@ -1,11 +1,3 @@
-import logging
-import logging
-import logging
-import logging
-import logging
-import logging
-import logging
-import logging
 """
 This file shows how to do a number of different optimisations - 'one shot' and bootstrapping ;
   also entirely in sample, expanding, and rolling windows 
@@ -31,7 +23,7 @@ from scipy.optimize import minimize
 from copy import copy
 import random
 
-HANDCRAFTED_WTS=pd.read_csv("/home/rob/workspace/systematictradingexamples/handcraftweights.csv")
+#HANDCRAFTED_WTS=pd.read_csv("/home/rob/workspace/systematictradingexamples/handcraftweights.csv")
 
 def pd_readcsv(filename):
     """
@@ -373,7 +365,7 @@ def optimise_over_periods(data, date_method, fit_method, rollyears=20, equalisem
     
     
     """
-    
+    print ('here')
     ## Get the periods
     fit_periods=generate_fitting_dates(data, date_method, rollyears=rollyears)
     
@@ -381,24 +373,28 @@ def optimise_over_periods(data, date_method, fit_method, rollyears=20, equalisem
     ## Build up a list of weights, which we'll concat
     weight_list=[]
     for fit_tuple in fit_periods:
+        print ("fit_tuple=" + str(fit_tuple))
         ## Fit on the slice defined by first two parts of the tuple
         period_subset_data=data[fit_tuple[0]:fit_tuple[1]]
         
         ## Can be slow, if bootstrapping, so indicate where we are
         
-        print "Fitting data for %s to %s" % (str(fit_tuple[2]), str(fit_tuple[3]))
+        #print "Fitting data for %s to %s" % (str(fit_tuple[2]), str(fit_tuple[3]))
+        weights=bootstrap_portfolio(period_subset_data, equalisemeans=equalisemeans, 
+                                    equalisevols=equalisevols, monte_carlo=monte_carlo, 
+                                    monte_length=monte_length)
         
-        if fit_method=="one_period":
-            weights=markosolver(period_subset_data, equalisemeans=equalisemeans, equalisevols=equalisevols)
-        elif fit_method=="bootstrap":
-            weights=bootstrap_portfolio(period_subset_data, equalisemeans=equalisemeans, 
-                                        equalisevols=equalisevols, monte_carlo=monte_carlo, 
-                                        monte_length=monte_length)
-        elif fit_method=="shrinkage":
-            weights=opt_shrinkage(period_subset_data, shrinkage_factors=shrinkage_factors, equalisevols=equalisevols)
-            
-        else:
-            raise Exception("Fitting method %s unknown" % fit_method)
+#        if fit_method=="one_period":
+#            weights=markosolver(period_subset_data, equalisemeans=equalisemeans, equalisevols=equalisevols)
+#        elif fit_method=="bootstrap":
+#            weights=bootstrap_portfolio(period_subset_data, equalisemeans=equalisemeans, 
+#                                        equalisevols=equalisevols, monte_carlo=monte_carlo, 
+#                                        monte_length=monte_length)
+#        elif fit_method=="shrinkage":
+#            weights=opt_shrinkage(period_subset_data, shrinkage_factors=shrinkage_factors, equalisevols=equalisevols)
+#            
+#        else:
+#            raise Exception("Fitting method %s unknown" % fit_method)
         
         ## We adjust dates slightly to ensure no overlaps
         dindex=[fit_tuple[2]+datetime.timedelta(seconds=1), fit_tuple[3]-datetime.timedelta(seconds=1)]
@@ -426,7 +422,7 @@ def opt_and_plot(*args, **kwargs):
 
 ## Get the data
 
-filename="/home/rob/workspace/systematictradingexamples/assetprices.csv"
+filename="assetprices.csv"
 data=pd_readcsv(filename)
 
 ## Let's do some optimisation
@@ -440,19 +436,19 @@ if __name__=="__main__":
                               monte_carlo=200, monte_length=250
     
     """
-    opt_and_plot(data, "in_sample", "one_period", equalisemeans=False, equalisevols=False)
+    #opt_and_plot(data, "in_sample", "one_period", equalisemeans=False, equalisevols=False)
     
-    opt_and_plot(data, "in_sample", "one_period", equalisemeans=False, equalisevols=True)
+    #opt_and_plot(data, "in_sample", "one_period", equalisemeans=False, equalisevols=True)
     
-    opt_and_plot(data, "in_sample", "one_period", equalisemeans=True, equalisevols=True)
+    #opt_and_plot(data, "in_sample", "one_period", equalisemeans=True, equalisevols=True)
     
-    opt_and_plot(data, "in_sample", "bootstrap", equalisemeans=False, equalisevols=True, monte_carlo=500)
+    #opt_and_plot(data, "in_sample", "bootstrap", equalisemeans=False, equalisevols=True, monte_carlo=500)
     
-    opt_and_plot(data, "rolling", "one_period", rollyears=1, equalisemeans=False, equalisevols=True)
+    #opt_and_plot(data, "rolling", "one_period", rollyears=1, equalisemeans=False, equalisevols=True)
     
-    opt_and_plot(data, "rolling", "one_period", rollyears=5, equalisemeans=False, equalisevols=True)
+    #opt_and_plot(data, "rolling", "one_period", rollyears=5, equalisemeans=False, equalisevols=True)
     
-    opt_and_plot(data, "expanding", "one_period", equalisemeans=False, equalisevols=True)
+    #opt_and_plot(data, "expanding", "one_period", equalisemeans=False, equalisevols=True)
     
     opt_and_plot(data, "expanding", "bootstrap", equalisemeans=False, equalisevols=True)
     
