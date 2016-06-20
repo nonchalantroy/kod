@@ -321,7 +321,10 @@ Now do some fitting
 Before we do that we need a bootstrap fitter
 """
 
-def bootstrap_portfolio(returns_to_bs, monte_carlo=200, monte_length=250, equalisemeans=False, equalisevols=True, default_vol=0.2, default_SR=1.0):
+def bootstrap_portfolio(returns_to_bs, monte_carlo=1, monte_length=250, equalisemeans=False, equalisevols=True, default_vol=0.2, default_SR=1.0):
+
+    print ("monte_carlo=" + str(monte_carlo))
+    print ("monte_length=" + str(monte_length))
     
     """
     Given dataframe of returns; returns_to_bs, performs a bootstrap optimisation
@@ -353,7 +356,7 @@ def bootstrap_portfolio(returns_to_bs, monte_carlo=200, monte_length=250, equali
     return theweights_mean
 
 def optimise_over_periods(data, date_method, fit_method, rollyears=20, equalisemeans=False, equalisevols=True, 
-                          monte_carlo=200, monte_length=250, shrinkage_factors=(0.5, 0.5)):
+                          monte_carlo=20, monte_length=250, shrinkage_factors=(0.5, 0.5)):
     """
     Do an optimisation
     
@@ -365,7 +368,7 @@ def optimise_over_periods(data, date_method, fit_method, rollyears=20, equalisem
     
     
     """
-    print ('here')
+
     ## Get the periods
     fit_periods=generate_fitting_dates(data, date_method, rollyears=rollyears)
     
