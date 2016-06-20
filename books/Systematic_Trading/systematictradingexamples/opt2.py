@@ -78,8 +78,8 @@ def bootstrap_portfolio(returns_to_bs, monte_carlo=1, monte_length=250, default_
     return theweights_mean
 
 def optimise_over_periods(data, date_method, fit_method,
-                          rollyears=20, monte_carlo=40,
-                          monte_length=250):
+                          rollyears=20, 
+                          monte_carlo=40, monte_length=250):
 
     fit_periods=generate_fitting_dates(data, date_method, rollyears=rollyears)
     
@@ -101,7 +101,7 @@ def optimise_over_periods(data, date_method, fit_method,
     
     return weight_df
 
-
+random.seed(0)
 df = pd.read_csv("assetprices.csv", index_col=0,parse_dates=True)
 mat1=optimise_over_periods(df, "expanding", "bootstrap")
 mat1.plot()
