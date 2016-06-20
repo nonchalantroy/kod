@@ -117,6 +117,8 @@ def generate_fitting_dates(data, date_method, rollyears=20):
     if 'rolling' then use rollyears variable  
     """
 
+    print ("data=" + str(data.tail(4)))
+    print ("date_method=" + str(date_method))
     if date_method not in ["in_sample","rolling", "expanding"]:
         raise Exception("don't recognise date_method %s should be one of in_sample, expanding, rolling" % date_method)
     

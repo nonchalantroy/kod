@@ -182,7 +182,7 @@ class GenericOptimiser(object):
         
         print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" +"Optimising...")
         
-        for fit_period in fit_dates:
+        for fit_period in fit_dates:            
             print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" +"Optimising for data from %s to %s" % (str(fit_period.period_start), str(fit_period.period_end)))
             ## Do the optimisation for one period, using a particular optimiser instance
             results_this_period=optSinglePeriod(self, data, fit_period, optimiser, cleaning)

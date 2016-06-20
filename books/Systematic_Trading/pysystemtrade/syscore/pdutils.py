@@ -170,12 +170,13 @@ def apply_cap(pd_series, capvalue):
 
 
 def fix_weights_vs_pdm(weights, pdm):
-    """
-    Take a matrix of weights and positions/forecasts (pdm)
+    """Take a matrix of weights and positions/forecasts (pdm)
 
-    Ensure that the weights in each row add up to 1, for active positions/forecasts (not np.nan values after forward filling)
+    Ensure that the weights in each row add up to 1, for active
+    positions/forecasts (not np.nan values after forward filling)
 
-    This deals with the problem of different rules and/or instruments having different history
+    This deals with the problem of different rules and/or instruments
+    having different history
 
     :param weights: Weights to
     :type weights: TxK pd.DataFrame (same columns as weights, perhaps different length)
