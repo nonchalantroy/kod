@@ -77,7 +77,7 @@ def bootstrap_portfolio(returns_to_bs, monte_carlo, monte_length, default_vol, d
 
 def optimise_over_periods(data,
                           rollyears=20, 
-                          monte_carlo=30,
+                          monte_carlo=40,
                           monte_length=250):
 
     fit_periods=generate_fitting_dates(data, rollyears=rollyears)    

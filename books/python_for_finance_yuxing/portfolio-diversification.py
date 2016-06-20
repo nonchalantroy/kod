@@ -13,7 +13,7 @@ plt.plot(year,ret_A,lw=2)
 plt.plot(year,ret_B,lw=2)
 plt.plot(year,port_EW,lw=2)
 plt.title("Individual stocks vs. an equal-weighted 2-stock portfolio")
-plt.annotate('Equal-weighted Portfolio', xy=(2010, 0.1), xytext=(2011.,0),
-arrowprops=dict(facecolor='black',shrink=0.05),
+#plt.annotate('Equal-weighted Portfolio', xy=(2010, 0.1), xytext=(2011.,0),
+#arrowprops=dict(facecolor='black',shrink=0.05),
 plt.ylim(-0.1,0.3)
 plt.show()
