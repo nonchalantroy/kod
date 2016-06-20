@@ -91,14 +91,11 @@ def optimise_over_periods(data, date_method, fit_method,
                                     monte_carlo=monte_carlo,
                                     monte_length=monte_length)
         
-        dindex=[fit_tuple[2]+datetime.timedelta(seconds=1), fit_tuple[3]-datetime.timedelta(seconds=1)]
-        
-        weight_row=pd.DataFrame([weights]*2, index=dindex, columns=data.columns)
-        
+        dindex=[fit_tuple[2]+datetime.timedelta(seconds=1), fit_tuple[3]-datetime.timedelta(seconds=1)]        
+        weight_row=pd.DataFrame([weights]*2, index=dindex, columns=data.columns)        
         weight_list.append(weight_row)
         
-    weight_df=pd.concat(weight_list, axis=0)
-    
+    weight_df=pd.concat(weight_list, axis=0)    
     return weight_df
 
 random.seed(0)
