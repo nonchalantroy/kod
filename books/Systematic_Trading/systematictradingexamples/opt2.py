@@ -82,7 +82,7 @@ def bootstrap_portfolio(returns_to_bs, monte_carlo=1, monte_length=250, equalise
 
 def optimise_over_periods(data, date_method, fit_method,
                           rollyears=20, equalisevols=True, 
-                          monte_carlo=30, monte_length=250):
+                          monte_carlo=40, monte_length=250):
 
     fit_periods=generate_fitting_dates(data, date_method, rollyears=rollyears)
     
