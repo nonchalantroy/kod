@@ -1,7 +1,7 @@
 import inspect
-import sys; sys.path.append('..')
-import pandas as pd
 from copy import copy
+import sys; sys.path.append('..')
+import pandas as pd, numpy as np, random
 from systems.provided.example.rules import ewmac_forecast_with_defaults as ewmac
 from sysdata.configdata import Config
 from systems.account import Account
@@ -241,6 +241,8 @@ class PortfoliosEstimated(PortfoliosFixed):
         
         return calcs_of_instrument_weights
 
+random.seed(0)
+np.random.seed(0)
 
 data = csvFuturesData()
 my_config = Config()
