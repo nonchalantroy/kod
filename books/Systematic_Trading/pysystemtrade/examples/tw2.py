@@ -19,8 +19,7 @@ from syscore.pdutils import  fix_weights_vs_pdm
 from syscore.objects import update_recalc, resolve_function
 from syscore.genutils import str2Bool
 
-class PortfoliosFixed(SystemStage):
-
+class PortfoliosEstimated(SystemStage):
     def __init__(self):
         setattr(self, "name", "portfolio")
         setattr(self, "description", "fixed")
@@ -50,10 +49,6 @@ class PortfoliosFixed(SystemStage):
     def capital_multiplier(self):
         return self.parent.accounts.capital_multiplier()
         
-class PortfoliosEstimated(PortfoliosFixed):
-    def __init__(self):
-        super(PortfoliosEstimated, self).__init__()
-
     def get_instrument_correlation_matrix(self, system):
         corr_params=copy(system.config.instrument_correlation_estimate)
         corr_func=resolve_function(corr_params.pop("func"))
