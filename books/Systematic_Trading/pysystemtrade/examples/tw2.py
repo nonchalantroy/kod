@@ -22,7 +22,6 @@ from syscore.correlations import CorrelationEstimator
 from syscore.optimisation import GenericOptimiser
 
 class PortfoliosEstimated(SystemStage):
-#class PortfoliosEstimated:
     
     def __init__(self):
         setattr(self, "name", "portfolio")
