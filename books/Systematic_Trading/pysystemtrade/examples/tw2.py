@@ -58,15 +58,6 @@ class Portfolios(SystemStage):
 class PortfoliosFixed(SystemStage):
 
     def __init__(self):
-        """
-        Create a SystemStage for creating portfolios
-
-
-        """
-        protected = ["get_instrument_weights",
-                     "get_instrument_diversification_multiplier", "get_raw_instrument_weights"]
-
-        setattr(self, "_protected", protected)
 
         setattr(self, "name", "portfolio")
         setattr(self, "description", "fixed")
@@ -201,16 +192,11 @@ class PortfoliosFixed(SystemStage):
 
         def _get_position_method_buffer(system, instrument_code, this_stage):
             
-            print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" +"Calculating position method buffer for %s" % instrument_code)
-            
-            buffer_size=system.config.buffer_size
-            
-            position = this_stage.get_notional_position(instrument_code)
-            
+            print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" +"Calculating position method buffer for %s" % instrument_code)            
+            buffer_size=system.config.buffer_size            
+            position = this_stage.get_notional_position(instrument_code)            
             buffer = position * buffer_size
-
             buffer.columns=["buffer"]
-
             return buffer
 
         buffer = self.parent.calc_or_cache(
@@ -240,10 +226,8 @@ class PortfoliosFixed(SystemStage):
             idm = idm.reindex(position.index).ffill()
             vol_scalar = vol_scalar.reindex(position.index).ffill()
         
-            average_position =  vol_scalar * inst_weight_this_code * idm
-            
-            buffer = average_position * buffer_size
-             
+            average_position =  vol_scalar * inst_weight_this_code * idm            
+            buffer = average_position * buffer_size             
             return buffer
 
         buffer = self.parent.calc_or_cache(
@@ -304,17 +288,13 @@ class PortfoliosEstimated(PortfoliosFixed):
                 error_msg="You need an accounts stage in the system to estimate instrument correlations"
                 this_stage.log.critical(error_msg)
                 
-
-            ## Need to resample here, because the correlation function won't do it properly            
             frequency=corr_params['frequency']
             pandl=pandl.cumsum().resample(frequency).diff()
 
             return corr_func(pandl,  log=this_stage.log.setup(call="correlation"), **corr_params)
                             
-        ## Get some useful stuff from the config
         corr_params=copy(self.parent.config.instrument_correlation_estimate)
 
-        ## which function to use for calculation
         corr_func=resolve_function(corr_params.pop("func"))
         
         forecast_corr_list = self.parent.calc_or_cache(
@@ -329,13 +309,10 @@ class PortfoliosEstimated(PortfoliosFixed):
 
         def _get_instrument_div_multiplier(system,  NotUsed, this_stage):
 
-            print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" +"Calculating instrument div. multiplier")
-            
-            ## Get some useful stuff from the config
-            div_mult_params=copy(system.config.instrument_div_mult_estimate)
-            
-            idm_func=resolve_function(div_mult_params.pop("func"))
-            
+            print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" +"Calculating instrument div. multiplier")            
+
+            div_mult_params=copy(system.config.instrument_div_mult_estimate)            
+            idm_func=resolve_function(div_mult_params.pop("func"))            
             correlation_list_object=this_stage.get_instrument_correlation_matrix()
             weight_df=this_stage.get_instrument_weights()
 
@@ -360,16 +337,12 @@ class PortfoliosEstimated(PortfoliosFixed):
             'get_raw_instrument_weights',  ALL_KEYNAME,
             _get_raw_instrument_weights,
              self)
-
                 
         return raw_instrument_weights
-
-
 
         instrument_weights = self.parent.calc_or_cache(
             'get_instrument_weights', ALL_KEYNAME, _get_instrument_weights, self)
         return instrument_weights
-
 
     def pandl_across_subsystems(self): 
         return self.parent.accounts.pandl_across_subsystems()
