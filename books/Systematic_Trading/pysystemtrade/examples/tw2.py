@@ -18,6 +18,7 @@ from systems.basesystem import ALL_KEYNAME
 from syscore.pdutils import  fix_weights_vs_pdm
 from syscore.objects import update_recalc, resolve_function
 from syscore.genutils import str2Bool
+from syscore.correlations import CorrelationEstimator
 
 class PortfoliosEstimated(SystemStage):
     def __init__(self):
@@ -56,7 +57,7 @@ class PortfoliosEstimated(SystemStage):
         pandl=self.pandl_across_subsystems().to_frame()            
         frequency=corr_params['frequency']
         pandl=pandl.cumsum().resample(frequency).diff()
-        return corr_func(pandl, log=self.log.setup(call="correlation"), **corr_params)
+        return CorrelationEstimator(pandl, log=self.log.setup(call="correlation"), **corr_params)
 
     def get_instrument_diversification_multiplier(self, system):
 
