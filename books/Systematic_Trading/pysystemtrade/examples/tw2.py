@@ -162,78 +162,6 @@ class PortfoliosFixed(SystemStage):
             "get_instrument_diversification_multiplier", ALL_KEYNAME, _get_instrument_div_multiplier, self)
         return instrument_div_multiplier
 
-    def get_notional_position(self, instrument_code):
-
-        def _get_notional_position(system, instrument_code, this_stage):
-            
-            print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" +"Calculating notional position for %s" % instrument_code)
-            
-            idm = this_stage.get_instrument_diversification_multiplier()
-            instr_weights = this_stage.get_instrument_weights()
-            subsys_position = this_stage.get_subsystem_position(
-                instrument_code)
-
-            inst_weight_this_code = instr_weights[
-                instrument_code]
-
-            inst_weight_this_code = inst_weight_this_code.reindex(
-                subsys_position.index).ffill()
-            idm = idm.reindex(subsys_position.index).ffill()
-
-            notional_position = subsys_position * inst_weight_this_code * idm
-
-            return notional_position
-
-        notional_position = self.parent.calc_or_cache(
-            "get_notional_position", instrument_code, _get_notional_position, self)
-        return notional_position
-
-    def get_position_method_buffer(self, instrument_code):
-
-        def _get_position_method_buffer(system, instrument_code, this_stage):
-            
-            print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" +"Calculating position method buffer for %s" % instrument_code)            
-            buffer_size=system.config.buffer_size            
-            position = this_stage.get_notional_position(instrument_code)            
-            buffer = position * buffer_size
-            buffer.columns=["buffer"]
-            return buffer
-
-        buffer = self.parent.calc_or_cache(
-            "get_position_method_buffer", instrument_code, _get_position_method_buffer, self)
-        
-        return buffer
-
-    def get_forecast_method_buffer(self, instrument_code):
-
-        def _get_forecast_method_buffer(system, instrument_code, this_stage):
-            
-            print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" +"Calculating forecast method buffers for %s" % instrument_code)
-            
-            buffer_size=system.config.buffer_size
-            position = this_stage.get_notional_position(instrument_code)
-            
-            idm = this_stage.get_instrument_diversification_multiplier()
-            instr_weights = this_stage.get_instrument_weights()
-            vol_scalar = this_stage.get_volatility_scalar(
-                instrument_code)
-
-            inst_weight_this_code = instr_weights[
-                instrument_code]
-
-            inst_weight_this_code = inst_weight_this_code.reindex(
-                position.index).ffill()
-            idm = idm.reindex(position.index).ffill()
-            vol_scalar = vol_scalar.reindex(position.index).ffill()
-        
-            average_position =  vol_scalar * inst_weight_this_code * idm            
-            buffer = average_position * buffer_size             
-            return buffer
-
-        buffer = self.parent.calc_or_cache(
-            "get_forecast_method_buffer", instrument_code, _get_forecast_method_buffer, self)
-        
-        return buffer
 
     def capital_multiplier(self):
         return self.parent.accounts.capital_multiplier()
@@ -264,9 +192,7 @@ class PortfoliosEstimated(PortfoliosFixed):
         super(PortfoliosEstimated, self).__init__()
         protected = ['get_instrument_correlation_matrix']
         update_recalc(self, protected)
-
-        setattr(self, "description", "Estimated")
-    
+        setattr(self, "description", "Estimated")    
         nopickle=["calculation_of_raw_instrument_weights"]
         setattr(self, "_nopickle", nopickle)
 
@@ -281,16 +207,9 @@ class PortfoliosEstimated(PortfoliosFixed):
             print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" +"Calculating instrument correlations")
 
             instrument_codes=system.get_instrument_list()
-
-            if hasattr(system, "accounts"):
-                pandl=this_stage.pandl_across_subsystems().to_frame()
-            else:
-                error_msg="You need an accounts stage in the system to estimate instrument correlations"
-                this_stage.log.critical(error_msg)
-                
+            pandl=this_stage.pandl_across_subsystems().to_frame()            
             frequency=corr_params['frequency']
             pandl=pandl.cumsum().resample(frequency).diff()
-
             return corr_func(pandl,  log=this_stage.log.setup(call="correlation"), **corr_params)
                             
         corr_params=copy(self.parent.config.instrument_correlation_estimate)
