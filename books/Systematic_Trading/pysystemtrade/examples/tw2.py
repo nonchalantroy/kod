@@ -28,9 +28,6 @@ class PortfoliosEstimated(SystemStage):
     def get_subsystem_position(self, instrument_code):
         return self.parent.positionSize.get_subsystem_position(instrument_code)
 
-    def get_volatility_scalar(self, instrument_code):
-        return self.parent.positionSize.get_volatility_scalar(instrument_code)
-
     def get_instrument_weights(self, system):
 
         print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" +"Calculating instrument weights")
@@ -69,9 +66,6 @@ class PortfoliosEstimated(SystemStage):
         ts_idm=idm_func(correlation_list_object, weight_df, **div_mult_params)
         return ts_idm
         
-    def get_raw_instrument_weights(self, system):
-        return self.calculation_of_raw_instrument_weights(system).weights
-    
     def pandl_across_subsystems(self): 
         return self.parent.accounts.pandl_across_subsystems()
 
