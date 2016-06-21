@@ -2,7 +2,6 @@ import inspect
 from copy import copy
 import sys; sys.path.append('..')
 import pandas as pd, numpy as np, random
-from systems.provided.example.rules import ewmac_forecast_with_defaults as ewmac
 from sysdata.configdata import Config
 from systems.account import Account
 from systems.forecast_combine import ForecastCombine
@@ -34,6 +33,30 @@ ROOT_MONTHS_IN_YEAR = MONTHS_IN_YEAR**.5
 ARBITRARY_START=pd.datetime(1900,1,1)
 TARGET_ANN_SR=0.5
 FLAG_BAD_RETURN=-9999999.9
+
+def robust_vol_calc(x, days=35, min_periods=10, vol_abs_min=0.0000000001, vol_floor=True,
+                    floor_min_quant=0.05, floor_min_periods=100,
+                    floor_days=500):
+    vol = pd.ewmstd(x, span=days, min_periods=min_periods)
+    vol[vol < vol_abs_min] = vol_abs_min
+    if vol_floor:
+        vol_min = pd.rolling_quantile(
+            vol, floor_days, floor_min_quant, floor_min_periods)
+        vol_min.set_value(vol_min.index[0], 0.0)
+        vol_min = vol_min.ffill()
+        vol_with_min = pd.concat([vol, vol_min], axis=1)
+        vol_floored = vol_with_min.max(axis=1, skipna=False)
+    else:
+        vol_floored = vol
+
+    return vol_floored
+
+def ewmac(price, Lfast=32, Lslow=128):
+    fast_ewma = pd.ewma(price, span=Lfast)
+    slow_ewma = pd.ewma(price, span=Lslow)
+    raw_ewmac = fast_ewma - slow_ewma
+    vol = robust_vol_calc(price.diff())
+    return raw_ewmac / vol
 
 def un_fix_weights(mean_list, weights):
     def _unfixit(xmean, xweight):
@@ -479,6 +502,7 @@ class PortfoliosEstimated(SystemStage):
         instrument_weights = pd.ewma(instrument_weights, weighting) 
         return instrument_weights
 
+    
 if __name__ == "__main__": 
      
     random.seed(0)
