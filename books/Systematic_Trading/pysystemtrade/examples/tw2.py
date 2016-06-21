@@ -67,10 +67,11 @@ class PortfoliosEstimated(SystemStage):
         tmp=weighting_params.pop("func")
         weight_func=GenericOptimiser(log=self.log.setup(call="weighting"), **weighting_params)
         pandl=self.parent.accounts.pandl_across_subsystems()
-        (pandl_gross, pandl_costs) = decompose_group_pandl([pandl]) 
+        (pandl_gross, pandl_costs) = decompose_group_pandl([pandl])
+        #print ("pandl_gross=" + str(pandl_gross))
+        #print ("pandl_costs=" + str(pandl_costs))
         weight_func.set_up_data(data_gross = pandl_gross, data_costs = pandl_costs)
-        SR_cost_list = [0.0, 0.0]        
-        weight_func.optimise(ann_SR_costs=SR_cost_list)        
+        weight_func.optimise(ann_SR_costs=[0.0, 0.0])
         return weight_func
 
 random.seed(0)
