@@ -31,38 +31,6 @@ class PortfoliosFixed(SystemStage):
     def get_volatility_scalar(self, instrument_code):
         return self.parent.positionSize.get_volatility_scalar(instrument_code)
 
-
-    def get_raw_instrument_weights(self):
-        def _get_raw_instrument_weights(system, an_ignored_variable, this_stage):
-            print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" +"Calculating raw instrument weights")
-
-            instrument_weights = system.config.instrument_weights
-            instrument_list = sorted(instrument_weights.keys())
-
-            subsys_ts = [
-                this_stage.get_subsystem_position(instrument_code).index
-                for instrument_code in instrument_list]
-
-            earliest_date = min([min(fts) for fts in subsys_ts])
-            latest_date = max([max(fts) for fts in subsys_ts])
-
-            weight_ts = pd.date_range(start=earliest_date, end=latest_date)
-
-            instrument_weights_weights = dict([
-                (instrument_code, pd.Series([instrument_weights[
-                 instrument_code]] * len(weight_ts), index=weight_ts))
-                for instrument_code in instrument_list])
-
-            instrument_weights_weights = pd.concat(
-                instrument_weights_weights, axis=1)
-            instrument_weights_weights.columns = instrument_list
-
-            return instrument_weights_weights
-
-        instrument_weights = self.parent.calc_or_cache(
-            "get_raw_instrument_weights", ALL_KEYNAME, _get_raw_instrument_weights, self)
-        return instrument_weights
-
     def get_instrument_weights(self, system):
 
         print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" +"Calculating instrument weights")
