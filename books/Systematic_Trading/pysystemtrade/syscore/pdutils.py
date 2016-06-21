@@ -162,13 +162,6 @@ def apply_cap(pd_series, capvalue):
     joined_ts[np.isnan(pd_series)] = np.nan
     return joined_ts
 
-
-
-
-
-
-
-
 def fix_weights_vs_pdm(weights, pdm):
     """Take a matrix of weights and positions/forecasts (pdm)
 

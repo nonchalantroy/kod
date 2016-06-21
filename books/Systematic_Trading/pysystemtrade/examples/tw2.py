@@ -15,16 +15,59 @@ from systems.positionsizing import PositionSizing
 from syscore.accounting import decompose_group_pandl
 from systems.stage import SystemStage
 from systems.basesystem import ALL_KEYNAME
-from syscore.pdutils import  fix_weights_vs_pdm
 from syscore.objects import update_recalc, resolve_function
 from syscore.genutils import str2Bool
 from syscore.correlations import CorrelationEstimator
 from syscore.optimisation import GenericOptimiser
 
+def fix_weights_vs_pdm(weights, pdm):
+    pdm_ffill = pdm.ffill()
+    adj_weights = weights.reindex(pdm_ffill.index, method='ffill')
+    adj_weights = adj_weights[pdm.columns]
+    adj_weights[np.isnan(pdm_ffill)] = 0.0
+    def _sum_row_fix(weight_row):
+        swr = sum(weight_row)
+        if swr == 0.0:
+            return weight_row
+        new_weights = weight_row / swr
+        return new_weights
+    adj_weights = adj_weights.apply(_sum_row_fix, 1)
+    return adj_weights
+
+
+def diversification_mult_single_period(corrmatrix, weights, dm_max=2.5):
+    if all([x==0.0 for x in list(weights)]) or np.all(np.isnan(weights)): return 1.0
+    weights=np.array(weights, ndmin=2)    
+    dm=np.min([
+               1.0 / (
+         float(
+                np.dot(np.dot(weights, corrmatrix), weights.transpose()))
+                  **.5),
+               dm_max])
+    return dm
+
+def diversification_multiplier_from_list(correlation_list_object, weight_df_raw, 
+                                         ewma_span=125,  **kwargs):
+    weight_df=weight_df_raw[correlation_list_object.columns]
+    ref_periods=[fit_period.period_start for fit_period in correlation_list_object.fit_dates]
+    div_mult_vector=[]
+    for (corrmatrix, start_of_period) in zip(correlation_list_object.corr_list, ref_periods):    
+        weight_slice=weight_df[:start_of_period]
+        if weight_slice.shape[0]==0:
+            div_mult_vector.append(1.0)
+            continue
+        weights=list(weight_slice.iloc[-1,:].values)
+        div_multiplier=diversification_mult_single_period(corrmatrix, weights,  **kwargs)
+        div_mult_vector.append(div_multiplier)
+
+    div_mult_df=pd.Series(div_mult_vector,  index=ref_periods)
+    div_mult_df=div_mult_df.reindex(weight_df.index, method="ffill")
+    div_mult_df=pd.ewma(div_mult_df, span=ewma_span)
+    return div_mult_df
+
 class PortfoliosEstimated(SystemStage):
     
-    def __init__(self):
-        setattr(self, "name", "portfolio")
+    def __init__(self): setattr(self, "name", "portfolio")
         
     def get_instrument_correlation_matrix(self, system):
         corr_params=copy(system.config.instrument_correlation_estimate)
@@ -38,11 +81,11 @@ class PortfoliosEstimated(SystemStage):
     def get_instrument_diversification_multiplier(self, system):
 
         div_mult_params=copy(system.config.instrument_div_mult_estimate)            
-        idm_func=resolve_function(div_mult_params.pop("func"))            
+        tmp=div_mult_params.pop("func")
         correlation_list_object=self.get_instrument_correlation_matrix(system)
         weight_df=self.get_instrument_weights(system)
         print ("weight_df=" + str(weight_df))
-        ts_idm=idm_func(correlation_list_object, weight_df, **div_mult_params)
+        ts_idm=diversification_multiplier_from_list(correlation_list_object, weight_df, **div_mult_params)
         return ts_idm
 
     def get_instrument_weights(self, system):
