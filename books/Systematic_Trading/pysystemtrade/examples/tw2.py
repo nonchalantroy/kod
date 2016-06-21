@@ -11,7 +11,6 @@ from sysdata.csvdata import csvFuturesData
 from systems.forecasting import Rules
 from systems.forecasting import TradingRule
 from systems.positionsizing import PositionSizing
-from syscore.accounting import decompose_group_pandl #
 from systems.stage import SystemStage
 from systems.basesystem import ALL_KEYNAME
 from syscore.objects import update_recalc, resolve_function
@@ -308,6 +307,9 @@ def diversification_multiplier_from_list(correlation_list_object, weight_df_raw,
     div_mult_df=div_mult_df.reindex(weight_df.index, method="ffill")
     div_mult_df=pd.ewma(div_mult_df, span=ewma_span)
     return div_mult_df
+
+def decompose_group_pandl(pandl_list, pandl_this_code=None, pool_costs=True, backfillavgcosts=True):
+    return ([pandl_list[0].gross.to_frame()], [pandl_list[0].costs.to_frame()])    
 
 class optSinglePeriod(object):
     def __init__(self, parent, data, fit_period, optimiser, cleaning):
