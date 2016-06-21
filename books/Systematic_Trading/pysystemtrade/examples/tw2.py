@@ -52,7 +52,7 @@ class PortfoliosEstimated(SystemStage):
         
     def get_instrument_correlation_matrix(self, system):
         corr_params=copy(system.config.instrument_correlation_estimate)
-        corr_func=resolve_function(corr_params.pop("func"))
+        tmp = corr_params.pop("func") # pop the function, leave the args
         instrument_codes=system.get_instrument_list()
         pandl=self.pandl_across_subsystems().to_frame()            
         frequency=corr_params['frequency']
