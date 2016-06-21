@@ -18,12 +18,11 @@ from systems.basesystem import ALL_KEYNAME
 from syscore.objects import update_recalc, resolve_function
 from syscore.genutils import str2Bool
 from syscore.correlations import CorrelationEstimator
-from syscore.optimisation import optimiserWithParams
 from syslogdiag.log import logtoscreen
 from syscore.pdutils import df_from_list, must_have_item
 from syscore.dateutils import generate_fitting_dates
+from scipy.optimize import minimize
 import datetime
-
 
 CALENDAR_DAYS_IN_YEAR = 365.25
 BUSINESS_DAYS_IN_YEAR = 256.0
@@ -34,30 +33,123 @@ MONTHS_IN_YEAR = 12.0
 ROOT_MONTHS_IN_YEAR = MONTHS_IN_YEAR**.5
 ARBITRARY_START=pd.datetime(1900,1,1)
 TARGET_ANN_SR=0.5
+FLAG_BAD_RETURN=-9999999.9
 
-class optSinglePeriod(object):
-    def __init__(self, parent, data, fit_period, optimiser, cleaning):
-        if cleaning:
-            current_period_data=data[fit_period.period_start:fit_period.period_end] 
-            must_haves=must_have_item(current_period_data)
-        
+def un_fix_weights(mean_list, weights):
+    def _unfixit(xmean, xweight):
+        if xmean==FLAG_BAD_RETURN:
+            return np.nan
         else:
-            must_haves=None
-        
-        if fit_period.no_data:
-            diag=None
-            size=current_period_data.shape[1]
-            weights_with_nan=[np.nan/size]*size
-            weights=weights_with_nan
-            if cleaning:
-                weights=clean_weights(weights, must_haves)
+            return xweight    
+    fixed_weights=[_unfixit(xmean, xweight) for (xmean, xweight) in zip(mean_list, weights)]    
+    return fixed_weights
+
+
+def variance(weights, sigma):
+    return (weights*sigma*weights.transpose())[0,0]
+
+def neg_SR(weights, sigma, mus):
+    weights=np.matrix(weights)
+    estreturn=(weights*mus)[0,0]
+    std_dev=(variance(weights,sigma)**.5)    
+    return -estreturn/std_dev
+
+def addem(weights):
+    return 1.0 - sum(weights)
+
+def fix_sigma(sigma):    
+    def _fixit(x):
+        if np.isnan(x):
+            return 0.0
         else:
-            subset_fitting_data=data[fit_period.fit_start:fit_period.fit_end]    
-            (weights, diag)=optimiser.call(subset_fitting_data, cleaning, must_haves)
+            return x    
+    sigma=[[_fixit(x) for x in sigma_row] for sigma_row in sigma]    
+    sigma=np.array(sigma)    
+    return sigma
 
-        setattr(self, "diag", diag)
-        setattr(self, "weights", weights)
+def fix_mus(mean_list):
+    def _fixit(x):
+        if np.isnan(x):
+            return FLAG_BAD_RETURN
+        else:
+            return x    
+    mean_list=[_fixit(x) for x in mean_list]    
+    return mean_list
 
+def optimise( sigma, mean_list):
+    mean_list=fix_mus(mean_list)
+    sigma=fix_sigma(sigma)    
+    mus=np.array(mean_list, ndmin=2).transpose()
+    number_assets=sigma.shape[1]
+    start_weights=[1.0/number_assets]*number_assets
+    bounds=[(0.0,1.0)]*number_assets
+    cdict=[{'type':'eq', 'fun':addem}]
+    ans=minimize(neg_SR, start_weights, (sigma, mus), method='SLSQP', bounds=bounds, constraints=cdict, tol=0.00001)
+    weights=ans['x']
+    weights=un_fix_weights(mean_list, weights)    
+    return weights
+
+def sigma_from_corr_and_std(stdev_list, corrmatrix):
+    stdev=np.array(stdev_list, ndmin=2).transpose()
+    sigma=stdev*corrmatrix*stdev
+    return sigma
+
+def SR_equaliser(stdev_list, target_SR):
+    return [target_SR * asset_stdev for asset_stdev in stdev_list]
+
+def vol_equaliser(mean_list, stdev_list):
+    if np.all(np.isnan(stdev_list)):
+        return (([np.nan]*len(mean_list), [np.nan]*len(stdev_list)))
+
+    avg_stdev=np.nanmean(stdev_list)
+    norm_factor=[asset_stdev/avg_stdev for asset_stdev in stdev_list]    
+    norm_means=[mean_list[i]/norm_factor[i] for (i, notUsed) in enumerate(mean_list)]
+    norm_stdev=[stdev_list[i]/norm_factor[i] for (i, notUsed) in enumerate(stdev_list)]    
+    return (norm_means, norm_stdev)
+
+def equal_weights(period_subset_data, moments_estimator,
+                cleaning, must_haves, **other_opt_args_ignored):
+    asset_count = period_subset_data.shape[1]
+    weights= [1.0 / asset_count for i in range(asset_count)]    
+    diag=dict(raw=None, sigma=None, mean_list=None, 
+              unclean=weights, weights=weights)    
+    return (weights, diag)
+
+def opt_shrinkage(period_subset_data, moments_estimator,  
+                   cleaning, must_haves,
+                  shrinkage_SR=.9,
+                  shrinkage_corr=.5 , 
+                  equalise_vols=False, 
+                  **ignored_args):
+    rawmoments=moments_estimator.moments(period_subset_data)    
+    (mean_list, corrmatrix, stdev_list)=copy(rawmoments)
+
+    if equalise_vols:
+        (mean_list, stdev_list)=vol_equaliser(mean_list, stdev_list)
+
+    ann_target_SR=moments_estimator.ann_target_SR
+    mean_list=shrink_SR(mean_list, stdev_list, shrinkage_SR, ann_target_SR)
+    corrmatrix=shrink_corr(corrmatrix, shrinkage_corr)
+    sigma=sigma_from_corr_and_std(stdev_list, corrmatrix)
+    
+    unclean_weights=optimise( sigma, mean_list)    
+    if cleaning:
+        weights=clean_weights(unclean_weights, must_haves)
+    else:
+        weights=unclean_weights    
+    diag=dict(raw=rawmoments, sigma=sigma, mean_list=mean_list, 
+              unclean=unclean_weights, weights=weights)    
+    return (weights, diag)
+
+def bs_one_time(subset_data, moments_estimator, cleaning, must_haves,
+                bootstrap_length,**other_opt_args):
+    bs_idx=[int(random.uniform(0,1)*len(subset_data)) for notUsed in range(bootstrap_length)]    
+    returns=subset_data.iloc[bs_idx,:]     
+    (weights, diag)=markosolver(returns, moments_estimator, cleaning, must_haves, 
+                       **other_opt_args)
+    return (weights, diag)
+
+        
 def clean_weights(weights,  must_haves=None, fraction=0.5):
     if must_haves is None:
         must_haves=[True]*len(weights)    
@@ -158,50 +250,85 @@ def markosolver(period_subset_data, moments_estimator,cleaning, must_haves,
               unclean=unclean_weights, weights=weights)
     return (weights, diag)
 
-class momentsEstimator(object):
-    def __init__(self, optimise_params, annualisation=BUSINESS_DAYS_IN_YEAR, 
-                 ann_target_SR=.5):        
-        corr_estimate_params=copy(optimise_params["correlation_estimate"])
-        mean_estimate_params=copy(optimise_params["mean_estimate"])
-        vol_estimate_params=copy(optimise_params["vol_estimate"])
-        corr_estimate_func=resolve_function(corr_estimate_params.pop("func"))
-        mean_estimate_func=resolve_function(mean_estimate_params.pop("func"))
-        vol_estimate_func=resolve_function(vol_estimate_params.pop("func"))
-        setattr(self, "corr_estimate_params", corr_estimate_params)
-        setattr(self, "mean_estimate_params", mean_estimate_params)
-        setattr(self, "vol_estimate_params", vol_estimate_params)        
-        setattr(self, "corr_estimate_func", corr_estimate_func)
-        setattr(self, "mean_estimate_func", mean_estimate_func)
-        setattr(self, "vol_estimate_func", vol_estimate_func)
-        period_target_SR = ann_target_SR / (annualisation**.5)        
-        setattr(self, "annualisation", annualisation)
-        setattr(self, "period_target_SR", period_target_SR)
-        setattr(self, "ann_target_SR", ann_target_SR)
+def fix_weights_vs_pdm(weights, pdm):
+    pdm_ffill = pdm.ffill()
+    adj_weights = weights.reindex(pdm_ffill.index, method='ffill')
+    adj_weights = adj_weights[pdm.columns]
+    adj_weights[np.isnan(pdm_ffill)] = 0.0
+    def _sum_row_fix(weight_row):
+        swr = sum(weight_row)
+        if swr == 0.0: return weight_row
+        new_weights = weight_row / swr
+        return new_weights
+    adj_weights = adj_weights.apply(_sum_row_fix, 1)
+    return adj_weights
 
-    def correlation(self, data_for_estimate):
-        params=self.corr_estimate_params
-        corrmatrix=self.corr_estimate_func(data_for_estimate, **params)
-        return corrmatrix
-    
-    def means(self, data_for_estimate):
-        params=self.mean_estimate_params
-        mean_list=self.mean_estimate_func(data_for_estimate, **params)
+def diversification_mult_single_period(corrmatrix, weights, dm_max=2.5):
+    if all([x==0.0 for x in list(weights)]) or np.all(np.isnan(weights)): return 1.0
+    weights=np.array(weights, ndmin=2)    
+    dm=np.min([1.0 / (float(np.dot(np.dot(weights, corrmatrix), weights.transpose())) **.5),dm_max])
+    return dm
+
+def diversification_multiplier_from_list(correlation_list_object, weight_df_raw, 
+                                         ewma_span=125,  **kwargs):
+    weight_df=weight_df_raw[correlation_list_object.columns]
+    ref_periods=[fit_period.period_start for fit_period in correlation_list_object.fit_dates]
+    div_mult_vector=[]
+    for (corrmatrix, start_of_period) in zip(correlation_list_object.corr_list, ref_periods):    
+        weight_slice=weight_df[:start_of_period]
+        if weight_slice.shape[0]==0:
+            div_mult_vector.append(1.0)
+            continue
+        weights=list(weight_slice.iloc[-1,:].values)
+        div_multiplier=diversification_mult_single_period(corrmatrix, weights,  **kwargs)
+        div_mult_vector.append(div_multiplier)
+
+    div_mult_df=pd.Series(div_mult_vector,  index=ref_periods)
+    div_mult_df=div_mult_df.reindex(weight_df.index, method="ffill")
+    div_mult_df=pd.ewma(div_mult_df, span=ewma_span)
+    return div_mult_df
+
+class optSinglePeriod(object):
+    def __init__(self, parent, data, fit_period, optimiser, cleaning):
+        if cleaning:
+            current_period_data=data[fit_period.period_start:fit_period.period_end] 
+            must_haves=must_have_item(current_period_data)
         
-        mean_list=list(np.array(mean_list)*self.annualisation)
+        else:
+            must_haves=None
+        
+        if fit_period.no_data:
+            diag=None
+            size=current_period_data.shape[1]
+            weights_with_nan=[np.nan/size]*size
+            weights=weights_with_nan
+            if cleaning:
+                weights=clean_weights(weights, must_haves)
+        else:
+            subset_fitting_data=data[fit_period.fit_start:fit_period.fit_end]    
+            (weights, diag)=optimiser.call(subset_fitting_data, cleaning, must_haves)
 
-        return mean_list
-    
-    def vol(self, data_for_estimate):
-        params=self.vol_estimate_params
-        stdev_list=self.vol_estimate_func(data_for_estimate, **params)
-        stdev_list=list(np.array(stdev_list)*(self.annualisation**.5))
-        return stdev_list
+        setattr(self, "diag", diag)
+        setattr(self, "weights", weights)
 
-    def moments(self, data_for_estimate):
-        ans=(self.means(data_for_estimate), self.correlation(data_for_estimate),  self.vol(data_for_estimate))
-        return ans
-
-
+class optimiserWithParams(object):
+    def __init__(self, method, optimise_params, moments_estimator):
+        print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" + "optimiserWithParams")
+        
+        fit_method_dict=dict(one_period=markosolver, bootstrap=bootstrap_portfolio, 
+                             shrinkage=opt_shrinkage, equal_weights=equal_weights)
+        try:        
+            opt_func=fit_method_dict[method]    
+        except KeyError:
+            raise Exception("Fitting method %s unknown; try one of: %s " % (method, ", ".join(fit_method_dict.keys())))
+        setattr(self, "opt_func", resolve_function(opt_func))        
+        setattr(self, "params", optimise_params)        
+        setattr(self, "moments_estimator", moments_estimator)
+        
+    def call(self, optimise_data, cleaning, must_haves):        
+        params=self.params
+        return self.opt_func(optimise_data, self.moments_estimator, cleaning, must_haves, **params)
+   
 class GenericOptimiser(object):
 
     def __init__(self,  log=logtoscreen("optimiser"), frequency="W", date_method="expanding", 
@@ -281,8 +408,7 @@ class GenericOptimiser(object):
         rollyears = self.rollyears
         optimiser = self.optimiser
         cleaning = self.cleaning
-        apply_cost_weight = self.apply_cost_weight
-        
+        apply_cost_weight = self.apply_cost_weight        
         data=getattr(self, "data", None)
         if data is None:
             log.critical("You need to run .set_up_data() before .optimise()")
@@ -319,44 +445,47 @@ class GenericOptimiser(object):
         setattr(self, "weights", weight_df)
         setattr(self, "raw_weights", raw_weight_df)
 
-def fix_weights_vs_pdm(weights, pdm):
-    pdm_ffill = pdm.ffill()
-    adj_weights = weights.reindex(pdm_ffill.index, method='ffill')
-    adj_weights = adj_weights[pdm.columns]
-    adj_weights[np.isnan(pdm_ffill)] = 0.0
-    def _sum_row_fix(weight_row):
-        swr = sum(weight_row)
-        if swr == 0.0: return weight_row
-        new_weights = weight_row / swr
-        return new_weights
-    adj_weights = adj_weights.apply(_sum_row_fix, 1)
-    return adj_weights
+class momentsEstimator(object):
+    def __init__(self, optimise_params, annualisation=BUSINESS_DAYS_IN_YEAR, 
+                 ann_target_SR=.5):        
+        corr_estimate_params=copy(optimise_params["correlation_estimate"])
+        mean_estimate_params=copy(optimise_params["mean_estimate"])
+        vol_estimate_params=copy(optimise_params["vol_estimate"])
+        corr_estimate_func=resolve_function(corr_estimate_params.pop("func"))
+        mean_estimate_func=resolve_function(mean_estimate_params.pop("func"))
+        vol_estimate_func=resolve_function(vol_estimate_params.pop("func"))
+        setattr(self, "corr_estimate_params", corr_estimate_params)
+        setattr(self, "mean_estimate_params", mean_estimate_params)
+        setattr(self, "vol_estimate_params", vol_estimate_params)        
+        setattr(self, "corr_estimate_func", corr_estimate_func)
+        setattr(self, "mean_estimate_func", mean_estimate_func)
+        setattr(self, "vol_estimate_func", vol_estimate_func)
+        period_target_SR = ann_target_SR / (annualisation**.5)        
+        setattr(self, "annualisation", annualisation)
+        setattr(self, "period_target_SR", period_target_SR)
+        setattr(self, "ann_target_SR", ann_target_SR)
 
-def diversification_mult_single_period(corrmatrix, weights, dm_max=2.5):
-    if all([x==0.0 for x in list(weights)]) or np.all(np.isnan(weights)): return 1.0
-    weights=np.array(weights, ndmin=2)    
-    dm=np.min([1.0 / (float(np.dot(np.dot(weights, corrmatrix), weights.transpose())) **.5),dm_max])
-    return dm
+    def correlation(self, data_for_estimate):
+        params=self.corr_estimate_params
+        corrmatrix=self.corr_estimate_func(data_for_estimate, **params)
+        return corrmatrix
+    
+    def means(self, data_for_estimate):
+        params=self.mean_estimate_params
+        mean_list=self.mean_estimate_func(data_for_estimate, **params)        
+        mean_list=list(np.array(mean_list)*self.annualisation)
+        return mean_list
+    
+    def vol(self, data_for_estimate):
+        params=self.vol_estimate_params
+        stdev_list=self.vol_estimate_func(data_for_estimate, **params)
+        stdev_list=list(np.array(stdev_list)*(self.annualisation**.5))
+        return stdev_list
 
-def diversification_multiplier_from_list(correlation_list_object, weight_df_raw, 
-                                         ewma_span=125,  **kwargs):
-    weight_df=weight_df_raw[correlation_list_object.columns]
-    ref_periods=[fit_period.period_start for fit_period in correlation_list_object.fit_dates]
-    div_mult_vector=[]
-    for (corrmatrix, start_of_period) in zip(correlation_list_object.corr_list, ref_periods):    
-        weight_slice=weight_df[:start_of_period]
-        if weight_slice.shape[0]==0:
-            div_mult_vector.append(1.0)
-            continue
-        weights=list(weight_slice.iloc[-1,:].values)
-        div_multiplier=diversification_mult_single_period(corrmatrix, weights,  **kwargs)
-        div_mult_vector.append(div_multiplier)
-
-    div_mult_df=pd.Series(div_mult_vector,  index=ref_periods)
-    div_mult_df=div_mult_df.reindex(weight_df.index, method="ffill")
-    div_mult_df=pd.ewma(div_mult_df, span=ewma_span)
-    return div_mult_df
-
+    def moments(self, data_for_estimate):
+        ans=(self.means(data_for_estimate), self.correlation(data_for_estimate),  self.vol(data_for_estimate))
+        return ans
+        
 class PortfoliosEstimated(SystemStage):
     
     def __init__(self): setattr(self, "name", "portfolio")
@@ -404,7 +533,6 @@ class PortfoliosEstimated(SystemStage):
         weighting=system.config.instrument_weight_ewma_span  
         instrument_weights = pd.ewma(instrument_weights, weighting) 
         return instrument_weights
-    
 
 if __name__ == "__main__": 
      
