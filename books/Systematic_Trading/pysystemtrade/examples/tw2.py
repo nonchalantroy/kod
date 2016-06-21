@@ -34,7 +34,7 @@ class PortfoliosEstimated(SystemStage):
     def get_instrument_weights(self, system):
 
         print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" +"Calculating instrument weights")
-        raw_instr_weights = self.get_raw_instrument_weights(system)
+        raw_instr_weights = self.calculation_of_raw_instrument_weights(system).weights
         instrument_list = list(raw_instr_weights.columns)
 
         subsys_positions = [self.get_subsystem_position(instrument_code)
