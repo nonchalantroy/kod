@@ -45,7 +45,7 @@ class PortfoliosEstimated(SystemStage):
         corr_params=copy(system.config.instrument_correlation_estimate)
         tmp = corr_params.pop("func") # pop the function, leave the args
         instrument_codes=system.get_instrument_list()
-        pandl=self.pandl_across_subsystems().to_frame()            
+        pandl=self.parent.accounts.pandl_across_subsystems().to_frame()            
         frequency=corr_params['frequency']
         pandl=pandl.cumsum().resample(frequency).diff()
         return CorrelationEstimator(pandl, log=self.log.setup(call="correlation"), **corr_params)
@@ -60,15 +60,12 @@ class PortfoliosEstimated(SystemStage):
         ts_idm=idm_func(correlation_list_object, weight_df, **div_mult_params)
         return ts_idm
         
-    def pandl_across_subsystems(self): 
-        return self.parent.accounts.pandl_across_subsystems()
-
     def calculation_of_raw_instrument_weights(self, system):
         instrument_codes=system.get_instrument_list()
         weighting_params=copy(system.config.instrument_weight_estimate)
         weighting_func=resolve_function(weighting_params.pop("func"))        
         weight_func=weighting_func(log=self.log.setup(call="weighting"), **weighting_params)
-        pandl=self.pandl_across_subsystems()
+        pandl=self.parent.accounts.pandl_across_subsystems()
         (pandl_gross, pandl_costs) = decompose_group_pandl([pandl]) 
         weight_func.set_up_data(data_gross = pandl_gross, data_costs = pandl_costs)
         SR_cost_list = [0.0, 0.0]        
