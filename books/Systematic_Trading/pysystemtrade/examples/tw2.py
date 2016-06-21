@@ -19,24 +19,12 @@ from syscore.pdutils import  fix_weights_vs_pdm
 from syscore.objects import update_recalc, resolve_function
 from syscore.genutils import str2Bool
 
-class Portfolios(SystemStage):
-    """
-    Stage for portfolios
-    
-    This is a 'switching' class which selects eithier the fixed or the estimated flavours
-    
-    """
-    
+class Portfolios(SystemStage):    
     def __init__(self):
         setattr(self, "name", "portfolio")
         setattr(self, "description", "unswitched")
         
     def _system_init(self, system):
-        """
-        When we add this stage object to a system, this code will be run
-        
-        It will determine if we use an estimate or a fixed class of object
-        """
         if str2Bool(system.config.use_instrument_weight_estimates):
             fixed_flavour=False
         else:
@@ -52,22 +40,16 @@ class Portfolios(SystemStage):
             self.__init__()
             setattr(self, "parent", system)
 
-
-
-
 class PortfoliosFixed(SystemStage):
 
     def __init__(self):
-
         setattr(self, "name", "portfolio")
         setattr(self, "description", "fixed")
 
     def get_subsystem_position(self, instrument_code):
-
         return self.parent.positionSize.get_subsystem_position(instrument_code)
 
     def get_volatility_scalar(self, instrument_code):
-
         return self.parent.positionSize.get_volatility_scalar(instrument_code)
 
 
@@ -97,7 +79,6 @@ class PortfoliosFixed(SystemStage):
             earliest_date = min([min(fts) for fts in subsys_ts])
             latest_date = max([max(fts) for fts in subsys_ts])
 
-            # this will be daily, but will be resampled later
             weight_ts = pd.date_range(start=earliest_date, end=latest_date)
 
             instrument_weights_weights = dict([
@@ -116,8 +97,7 @@ class PortfoliosFixed(SystemStage):
         return instrument_weights
 
     def get_instrument_weights(self):
-        def _get_instrument_weights(
-                system, an_ignored_variable, this_stage):
+        def _get_instrument_weights(system, an_ignored_variable, this_stage):
 
             print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" +"Calculating instrument weights")
 
@@ -129,14 +109,10 @@ class PortfoliosFixed(SystemStage):
 
             subsys_positions = pd.concat(subsys_positions, axis=1).ffill()
             subsys_positions.columns = instrument_list
-
             instrument_weights = fix_weights_vs_pdm(
                 raw_instr_weights, subsys_positions)
-
             weighting=system.config.instrument_weight_ewma_span  
-
             instrument_weights = pd.ewma(instrument_weights, weighting) 
-
             return instrument_weights
 
         instrument_weights = self.parent.calc_or_cache(
@@ -152,40 +128,16 @@ class PortfoliosFixed(SystemStage):
 
             div_mult=system.config.instrument_div_multiplier
             weight_ts = this_stage.get_instrument_weights().index
-
-            ts_idm = pd.Series([div_mult] * len(weight_ts),
-                               index=weight_ts)
-
+            ts_idm = pd.Series([div_mult] * len(weight_ts), index=weight_ts)
             return ts_idm
 
         instrument_div_multiplier = self.parent.calc_or_cache(
             "get_instrument_diversification_multiplier", ALL_KEYNAME, _get_instrument_div_multiplier, self)
         return instrument_div_multiplier
 
-
     def capital_multiplier(self):
         return self.parent.accounts.capital_multiplier()
         
-    def get_actual_position(self, instrument_code):
-
-        def _get_actual_position(system, instrument_code, this_stage):
-            
-            print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" +"Calculating actual position for %s" % instrument_code)
-            
-            notional_position = this_stage.get_notional_position(instrument_code)
-            cap_multiplier = this_stage.capital_multiplier()
-            cap_multiplier = cap_multiplier.reindex(notional_position.index).ffill()
-            
-            actual_position = notional_position * cap_multiplier
-
-            return actual_position
-
-        actual_position = self.parent.calc_or_cache(
-            "get_actual_position", instrument_code, _get_actual_position, self)
-        return actual_position
-
-
-
 class PortfoliosEstimated(PortfoliosFixed):
     def __init__(self):
 
@@ -213,16 +165,12 @@ class PortfoliosEstimated(PortfoliosFixed):
             return corr_func(pandl,  log=this_stage.log.setup(call="correlation"), **corr_params)
                             
         corr_params=copy(self.parent.config.instrument_correlation_estimate)
-
         corr_func=resolve_function(corr_params.pop("func"))
-        
         forecast_corr_list = self.parent.calc_or_cache(
             'get_instrument_correlation_matrix', ALL_KEYNAME,  
             _get_instrument_correlation_matrix,
              self,  corr_func, **corr_params)
-        
         return forecast_corr_list
-
 
     def get_instrument_diversification_multiplier(self):
 
@@ -234,9 +182,7 @@ class PortfoliosEstimated(PortfoliosFixed):
             idm_func=resolve_function(div_mult_params.pop("func"))            
             correlation_list_object=this_stage.get_instrument_correlation_matrix()
             weight_df=this_stage.get_instrument_weights()
-
             ts_idm=idm_func(correlation_list_object, weight_df, **div_mult_params)
-
             return ts_idm
 
         instrument_div_multiplier = self.parent.calc_or_cache(
@@ -251,7 +197,6 @@ class PortfoliosEstimated(PortfoliosFixed):
 
             return this_stage.calculation_of_raw_instrument_weights().weights
 
-        ##
         raw_instrument_weights = self.parent.calc_or_cache(
             'get_raw_instrument_weights',  ALL_KEYNAME,
             _get_raw_instrument_weights,
