@@ -79,27 +79,11 @@ class PortfoliosFixed(SystemStage):
         instrument_weights = pd.ewma(instrument_weights, weighting) 
         return instrument_weights
 
-    def get_instrument_diversification_multiplier(self):
-        def _get_instrument_div_multiplier(
-                system, an_ignored_variable, this_stage):
-
-            print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" +"Calculating diversification multiplier")
-
-            div_mult=system.config.instrument_div_multiplier
-            weight_ts = this_stage.get_instrument_weights().index
-            ts_idm = pd.Series([div_mult] * len(weight_ts), index=weight_ts)
-            return ts_idm
-
-        instrument_div_multiplier = self.parent.calc_or_cache(
-            "get_instrument_diversification_multiplier", ALL_KEYNAME, _get_instrument_div_multiplier, self)
-        return instrument_div_multiplier
-
     def capital_multiplier(self):
         return self.parent.accounts.capital_multiplier()
         
 class PortfoliosEstimated(PortfoliosFixed):
     def __init__(self):
-
         super(PortfoliosEstimated, self).__init__()
         protected = ['get_instrument_correlation_matrix']
         update_recalc(self, protected)
@@ -107,35 +91,20 @@ class PortfoliosEstimated(PortfoliosFixed):
         nopickle=["calculation_of_raw_instrument_weights"]
         setattr(self, "_nopickle", nopickle)
 
-    def get_instrument_subsystem_SR_cost(self, instrument_code):
-        return self.parent.accounts.subsystem_SR_costs(instrument_code, roundpositions=False)
-    
-    def get_instrument_correlation_matrix(self):
-
-        def _get_instrument_correlation_matrix(system, NotUsed,  this_stage, 
-                                               corr_func, **corr_params):
-
-            print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" +"Calculating instrument correlations")
-
-            instrument_codes=system.get_instrument_list()
-            pandl=this_stage.pandl_across_subsystems().to_frame()            
-            frequency=corr_params['frequency']
-            pandl=pandl.cumsum().resample(frequency).diff()
-            return corr_func(pandl,  log=this_stage.log.setup(call="correlation"), **corr_params)
-                            
-        corr_params=copy(self.parent.config.instrument_correlation_estimate)
+    def get_instrument_correlation_matrix(self, system):
+        corr_params=copy(system.config.instrument_correlation_estimate)
         corr_func=resolve_function(corr_params.pop("func"))
-        forecast_corr_list = self.parent.calc_or_cache(
-            'get_instrument_correlation_matrix', ALL_KEYNAME,  
-            _get_instrument_correlation_matrix,
-             self,  corr_func, **corr_params)
-        return forecast_corr_list
+        instrument_codes=system.get_instrument_list()
+        pandl=self.pandl_across_subsystems().to_frame()            
+        frequency=corr_params['frequency']
+        pandl=pandl.cumsum().resample(frequency).diff()
+        return corr_func(pandl, log=self.log.setup(call="correlation"), **corr_params)
 
     def get_instrument_diversification_multiplier(self, system):
 
         div_mult_params=copy(system.config.instrument_div_mult_estimate)            
         idm_func=resolve_function(div_mult_params.pop("func"))            
-        correlation_list_object=self.get_instrument_correlation_matrix()
+        correlation_list_object=self.get_instrument_correlation_matrix(system)
         weight_df=self.get_instrument_weights(system)
         print ("weight_df=" + str(weight_df))
         ts_idm=idm_func(correlation_list_object, weight_df, **div_mult_params)
@@ -147,14 +116,10 @@ class PortfoliosEstimated(PortfoliosFixed):
     def pandl_across_subsystems(self): 
         return self.parent.accounts.pandl_across_subsystems()
 
-
     def calculation_of_raw_instrument_weights(self, system):
-
         instrument_codes=system.get_instrument_list()
-
         weighting_params=copy(system.config.instrument_weight_estimate)
-        weighting_func=resolve_function(weighting_params.pop("func"))
-        
+        weighting_func=resolve_function(weighting_params.pop("func"))        
         weight_func=weighting_func(log=self.log.setup(call="weighting"), **weighting_params)
         pandl=self.pandl_across_subsystems()
         (pandl_gross, pandl_costs) = decompose_group_pandl([pandl]) 
