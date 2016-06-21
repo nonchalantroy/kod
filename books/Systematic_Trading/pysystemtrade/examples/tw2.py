@@ -66,7 +66,7 @@ class PortfoliosFixed(SystemStage):
     def get_instrument_weights(self, system):
 
         print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" +"Calculating instrument weights")
-        raw_instr_weights = self.get_raw_instrument_weights()
+        raw_instr_weights = self.get_raw_instrument_weights(system)
         instrument_list = list(raw_instr_weights.columns)
 
         subsys_positions = [self.get_subsystem_position(instrument_code)
@@ -141,46 +141,27 @@ class PortfoliosEstimated(PortfoliosFixed):
         ts_idm=idm_func(correlation_list_object, weight_df, **div_mult_params)
         return ts_idm
         
-    def get_raw_instrument_weights(self):
-        return self.calculation_of_raw_instrument_weights().weights
+    def get_raw_instrument_weights(self, system):
+        return self.calculation_of_raw_instrument_weights(system).weights
     
     def pandl_across_subsystems(self): 
         return self.parent.accounts.pandl_across_subsystems()
 
 
-    def calculation_of_raw_instrument_weights(self):
-        def _calculation_of_raw_instrument_weights(system, NotUsed1, this_stage, 
-                                      weighting_func, **weighting_params):
+    def calculation_of_raw_instrument_weights(self, system):
 
+        instrument_codes=system.get_instrument_list()
 
-            print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" +"Calculating raw instrument weights")
-
-            instrument_codes=system.get_instrument_list()
-
-            weight_func=weighting_func(log=this_stage.log.setup(call="weighting"), **weighting_params)
-            pandl=this_stage.pandl_across_subsystems()
-            (pandl_gross, pandl_costs) = decompose_group_pandl([pandl]) 
-            weight_func.set_up_data(data_gross = pandl_gross, data_costs = pandl_costs)
-
-            SR_cost_list = [0.0, 0.0]
-
-            weight_func.optimise(ann_SR_costs=SR_cost_list)
-        
-            return weight_func
-
-
-        ## Get some useful stuff from the config
-        weighting_params=copy(self.parent.config.instrument_weight_estimate)
-
-        ## which function to use for calculation
+        weighting_params=copy(system.config.instrument_weight_estimate)
         weighting_func=resolve_function(weighting_params.pop("func"))
         
-        calcs_of_instrument_weights = self.parent.calc_or_cache(
-            'calculation_of_raw_instrument_weights', ALL_KEYNAME, 
-            _calculation_of_raw_instrument_weights,
-             self, weighting_func, **weighting_params)
-        
-        return calcs_of_instrument_weights
+        weight_func=weighting_func(log=self.log.setup(call="weighting"), **weighting_params)
+        pandl=self.pandl_across_subsystems()
+        (pandl_gross, pandl_costs) = decompose_group_pandl([pandl]) 
+        weight_func.set_up_data(data_gross = pandl_gross, data_costs = pandl_costs)
+        SR_cost_list = [0.0, 0.0]        
+        weight_func.optimise(ann_SR_costs=SR_cost_list)        
+        return weight_func
 
 random.seed(0)
 np.random.seed(0)
