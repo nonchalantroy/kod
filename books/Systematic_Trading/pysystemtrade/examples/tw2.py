@@ -22,26 +22,10 @@ from syscore.correlations import CorrelationEstimator
 from syscore.optimisation import GenericOptimiser
 
 class PortfoliosEstimated(SystemStage):
+#class PortfoliosEstimated:
     
     def __init__(self):
         setattr(self, "name", "portfolio")
-        setattr(self, "description", "fixed")
-
-    def get_instrument_weights(self, system):
-
-        print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" +"Calculating instrument weights")
-        raw_instr_weights = self.calculation_of_raw_instrument_weights(system).weights
-        instrument_list = list(raw_instr_weights.columns)
-
-        subsys_positions = [system.positionSize.get_subsystem_position(instrument_code)
-                            for instrument_code in instrument_list]
-
-        subsys_positions = pd.concat(subsys_positions, axis=1).ffill()
-        subsys_positions.columns = instrument_list
-        instrument_weights = fix_weights_vs_pdm(raw_instr_weights, subsys_positions)
-        weighting=system.config.instrument_weight_ewma_span  
-        instrument_weights = pd.ewma(instrument_weights, weighting) 
-        return instrument_weights
         
     def get_instrument_correlation_matrix(self, system):
         corr_params=copy(system.config.instrument_correlation_estimate)
@@ -61,8 +45,10 @@ class PortfoliosEstimated(SystemStage):
         print ("weight_df=" + str(weight_df))
         ts_idm=idm_func(correlation_list_object, weight_df, **div_mult_params)
         return ts_idm
-        
-    def calculation_of_raw_instrument_weights(self, system):
+
+    def get_instrument_weights(self, system):
+
+        print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" +"Calculating instrument weights")
         instrument_codes=system.get_instrument_list()
         weighting_params=copy(system.config.instrument_weight_estimate)
         tmp=weighting_params.pop("func")
@@ -73,7 +59,19 @@ class PortfoliosEstimated(SystemStage):
         pandl_costs[0] = pd.DataFrame(0, index=pandl_costs[0].index,columns=pandl_costs[0].columns)
         weight_func.set_up_data(data_gross = pandl_gross, data_costs = pandl_costs)
         weight_func.optimise(ann_SR_costs=[0.0, 0.0])
-        return weight_func
+        raw_instr_weights = weight_func.weights
+
+        instrument_list = list(raw_instr_weights.columns)
+        subsys_positions = [system.positionSize.get_subsystem_position(instrument_code)
+                            for instrument_code in instrument_list]
+
+        subsys_positions = pd.concat(subsys_positions, axis=1).ffill()
+        subsys_positions.columns = instrument_list
+        instrument_weights = fix_weights_vs_pdm(raw_instr_weights, subsys_positions)
+        weighting=system.config.instrument_weight_ewma_span  
+        instrument_weights = pd.ewma(instrument_weights, weighting) 
+        return instrument_weights
+    
 
 if __name__ == "__main__": 
      
