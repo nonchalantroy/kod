@@ -59,20 +59,16 @@ def addem(weights):
 
 def fix_sigma(sigma):    
     def _fixit(x):
-        if np.isnan(x):
-            return 0.0
-        else:
-            return x    
+        if np.isnan(x): return 0.0
+        else: return x    
     sigma=[[_fixit(x) for x in sigma_row] for sigma_row in sigma]    
     sigma=np.array(sigma)    
     return sigma
 
 def fix_mus(mean_list):
     def _fixit(x):
-        if np.isnan(x):
-            return FLAG_BAD_RETURN
-        else:
-            return x    
+        if np.isnan(x): return FLAG_BAD_RETURN
+        else: return x    
     mean_list=[_fixit(x) for x in mean_list]    
     return mean_list
 
@@ -100,7 +96,6 @@ def SR_equaliser(stdev_list, target_SR):
 def vol_equaliser(mean_list, stdev_list):
     if np.all(np.isnan(stdev_list)):
         return (([np.nan]*len(mean_list), [np.nan]*len(stdev_list)))
-
     avg_stdev=np.nanmean(stdev_list)
     norm_factor=[asset_stdev/avg_stdev for asset_stdev in stdev_list]    
     norm_means=[mean_list[i]/norm_factor[i] for (i, notUsed) in enumerate(mean_list)]
@@ -174,10 +169,8 @@ def work_out_net(data_gross, data_costs, annualisation=BUSINESS_DAYS_IN_YEAR,
     net = use_gross + use_costs ## costs are negative    
     return net
 
-def bootstrap_portfolio(subset_data, moments_estimator,
-                cleaning, must_haves,
-                  monte_runs=100, bootstrap_length=50,
-                  **other_opt_args):
+def bootstrap_portfolio(subset_data, moments_estimator,cleaning,must_haves,
+                        monte_runs=100, bootstrap_length=50,**other_opt_args):
     print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" + "bootstrap_length=" + str(bootstrap_length))
     print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" + "bootstrap_length=" + str(type(moments_estimator)))
 
@@ -188,21 +181,13 @@ def bootstrap_portfolio(subset_data, moments_estimator,
                                 for unused_index in range(monte_runs)]
         
     weightlist=np.array([x[0] for x in all_results], ndmin=2)
-    diaglist=[x[1] for x in all_results]
-         
-    theweights_mean=list(np.mean(weightlist, axis=0))
-    
-    diag=dict(bootstraps=diaglist)
-    
+    diaglist=[x[1] for x in all_results]         
+    theweights_mean=list(np.mean(weightlist, axis=0))    
+    diag=dict(bootstraps=diaglist)    
     return (theweights_mean, diag)
 
-def markosolver(period_subset_data,
-                moments_estimator,
-                cleaning,
-                must_haves,
-                equalise_SR=False ,
-                equalise_vols=True,
-                **ignored_args): 
+def markosolver(period_subset_data,moments_estimator,cleaning,must_haves,
+                equalise_SR=False, equalise_vols=True,**ignored_args): 
 
     print ("equalise_SR=" + str(equalise_SR))
     print ("equalise_vols=" + str(equalise_vols))
@@ -307,18 +292,10 @@ class GenericOptimiser(object):
                 
         cleaning=str2Bool(cleaning)
         optimise_params=copy(passed_params)
-
-        ## annualisation
         ann_dict=dict(D=BUSINESS_DAYS_IN_YEAR, W=WEEKS_IN_YEAR, M=MONTHS_IN_YEAR, Y=1.0)
         annualisation=ann_dict.get(frequency, 1.0)
-
-        period_target_SR=ann_target_SR/(annualisation**.5)
-        
-        ## A moments estimator works out the mean, vol, correlation
-        ## Also stores annualisation factor and target SR (used for shrinkage and equalising)
+        period_target_SR=ann_target_SR/(annualisation**.5)        
         moments_estimator=momentsEstimator(optimise_params, annualisation,  ann_target_SR)
-
-        ## The optimiser instance will do the optimation once we have the appropriate data
         optimiser=optimiserWithParams(method, optimise_params, moments_estimator)
 
         setattr(self, "optimiser", optimiser)
