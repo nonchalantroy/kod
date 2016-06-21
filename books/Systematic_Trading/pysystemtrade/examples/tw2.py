@@ -40,9 +40,6 @@ class PortfoliosEstimated(SystemStage):
         weighting=system.config.instrument_weight_ewma_span  
         instrument_weights = pd.ewma(instrument_weights, weighting) 
         return instrument_weights
-
-    def capital_multiplier(self):
-        return self.parent.accounts.capital_multiplier()
         
     def get_instrument_correlation_matrix(self, system):
         corr_params=copy(system.config.instrument_correlation_estimate)
