@@ -811,6 +811,7 @@ def optimise( sigma, mean_list):
     ## Constraints - positive weights, adding to 1.0
     bounds=[(0.0,1.0)]*number_assets
     cdict=[{'type':'eq', 'fun':addem}]
+
     ans=minimize(neg_SR, start_weights, (sigma, mus), method='SLSQP', bounds=bounds, constraints=cdict, tol=0.00001)
 
     ## anything that had a nan will now have a zero weight
