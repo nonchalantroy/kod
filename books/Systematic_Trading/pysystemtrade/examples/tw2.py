@@ -19,27 +19,6 @@ from syscore.pdutils import  fix_weights_vs_pdm
 from syscore.objects import update_recalc, resolve_function
 from syscore.genutils import str2Bool
 
-class Portfolios(SystemStage):    
-    def __init__(self):
-        setattr(self, "name", "portfolio")
-        setattr(self, "description", "unswitched")
-        
-    def _system_init(self, system):
-        if str2Bool(system.config.use_instrument_weight_estimates):
-            fixed_flavour=False
-        else:
-            fixed_flavour=True    
-        
-        if fixed_flavour:
-            self.__class__= PortfoliosFixed
-            self.__init__()
-            setattr(self, "parent", system)
-
-        else:
-            self.__class__= PortfoliosEstimated
-            self.__init__()
-            setattr(self, "parent", system)
-
 class PortfoliosFixed(SystemStage):
 
     def __init__(self):
