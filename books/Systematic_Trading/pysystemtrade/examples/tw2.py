@@ -115,32 +115,6 @@ def equal_weights(period_subset_data, moments_estimator,
               unclean=weights, weights=weights)    
     return (weights, diag)
 
-def opt_shrinkage(period_subset_data, moments_estimator,  
-                   cleaning, must_haves,
-                  shrinkage_SR=.9,
-                  shrinkage_corr=.5 , 
-                  equalise_vols=False, 
-                  **ignored_args):
-    rawmoments=moments_estimator.moments(period_subset_data)    
-    (mean_list, corrmatrix, stdev_list)=copy(rawmoments)
-
-    if equalise_vols:
-        (mean_list, stdev_list)=vol_equaliser(mean_list, stdev_list)
-
-    ann_target_SR=moments_estimator.ann_target_SR
-    mean_list=shrink_SR(mean_list, stdev_list, shrinkage_SR, ann_target_SR)
-    corrmatrix=shrink_corr(corrmatrix, shrinkage_corr)
-    sigma=sigma_from_corr_and_std(stdev_list, corrmatrix)
-    
-    unclean_weights=optimise( sigma, mean_list)    
-    if cleaning:
-        weights=clean_weights(unclean_weights, must_haves)
-    else:
-        weights=unclean_weights    
-    diag=dict(raw=rawmoments, sigma=sigma, mean_list=mean_list, 
-              unclean=unclean_weights, weights=weights)    
-    return (weights, diag)
-
 def bs_one_time(subset_data, moments_estimator, cleaning, must_haves,
                 bootstrap_length,**other_opt_args):
     bs_idx=[int(random.uniform(0,1)*len(subset_data)) for notUsed in range(bootstrap_length)]    
@@ -189,13 +163,10 @@ def work_out_net(data_gross, data_costs, annualisation=BUSINESS_DAYS_IN_YEAR,
         target_vol=np.mean(data_gross.std().values) ## assumes all have same vol
         target_mean=period_target_SR*(target_vol)
         actual_period_mean=data_gross.mean().values
-
         shifts = target_mean - actual_period_mean
         shifts = np.array([list(shifts)]*len(data_gross.index))
-        shifts=pd.DataFrame(shifts, index=data_gross.index, columns=data_gross.columns)
-    
-        use_gross = data_gross + shifts
-    
+        shifts=pd.DataFrame(shifts, index=data_gross.index, columns=data_gross.columns)    
+        use_gross = data_gross + shifts    
     else:
         use_gross = data_gross    
 
@@ -225,9 +196,16 @@ def bootstrap_portfolio(subset_data, moments_estimator,
     
     return (theweights_mean, diag)
 
-def markosolver(period_subset_data, moments_estimator,cleaning, must_haves,
-                  equalise_SR=False , equalise_vols=True,**ignored_args): 
+def markosolver(period_subset_data,
+                moments_estimator,
+                cleaning,
+                must_haves,
+                equalise_SR=False ,
+                equalise_vols=True,
+                **ignored_args): 
 
+    print ("equalise_SR=" + str(equalise_SR))
+    print ("equalise_vols=" + str(equalise_vols))
     print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" + "markosolver")
     
     rawmoments=moments_estimator.moments(period_subset_data)    
@@ -241,11 +219,7 @@ def markosolver(period_subset_data, moments_estimator,cleaning, must_haves,
     
     sigma=sigma_from_corr_and_std(stdev_list, corrmatrix)    
     unclean_weights=optimise( sigma, mean_list)
-    
-    if cleaning:
-        weights=clean_weights(unclean_weights, must_haves)
-    else:
-        weights=unclean_weights    
+    weights=clean_weights(unclean_weights, must_haves)
     diag=dict(raw=rawmoments, sigma=sigma, mean_list=mean_list, 
               unclean=unclean_weights, weights=weights)
     return (weights, diag)
@@ -313,14 +287,8 @@ class optSinglePeriod(object):
 
 class optimiserWithParams(object):
     def __init__(self, method, optimise_params, moments_estimator):
-        print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" + "optimiserWithParams")
-        
-        fit_method_dict=dict(one_period=markosolver, bootstrap=bootstrap_portfolio, 
-                             shrinkage=opt_shrinkage, equal_weights=equal_weights)
-        try:        
-            opt_func=fit_method_dict[method]    
-        except KeyError:
-            raise Exception("Fitting method %s unknown; try one of: %s " % (method, ", ".join(fit_method_dict.keys())))
+        print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" + "optimiserWithParams")        
+        opt_func=bootstrap_portfolio
         setattr(self, "opt_func", resolve_function(opt_func))        
         setattr(self, "params", optimise_params)        
         setattr(self, "moments_estimator", moments_estimator)
