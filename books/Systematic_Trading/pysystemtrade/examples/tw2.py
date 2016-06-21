@@ -160,24 +160,15 @@ class PortfoliosEstimated(PortfoliosFixed):
              self,  corr_func, **corr_params)
         return forecast_corr_list
 
-    def get_instrument_diversification_multiplier(self):
+    def get_instrument_diversification_multiplier(self, system):
 
-        def _get_instrument_div_multiplier(system,  NotUsed, this_stage):
-
-            print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" +"Calculating instrument div. multiplier")            
-
-            div_mult_params=copy(system.config.instrument_div_mult_estimate)            
-            idm_func=resolve_function(div_mult_params.pop("func"))            
-            correlation_list_object=this_stage.get_instrument_correlation_matrix()
-            weight_df=this_stage.get_instrument_weights()
-            ts_idm=idm_func(correlation_list_object, weight_df, **div_mult_params)
-            return ts_idm
-
-        instrument_div_multiplier = self.parent.calc_or_cache(
-            'get_instrument_diversification_multiplier', ALL_KEYNAME, _get_instrument_div_multiplier, 
-            self)
-        return instrument_div_multiplier
-
+        div_mult_params=copy(system.config.instrument_div_mult_estimate)            
+        idm_func=resolve_function(div_mult_params.pop("func"))            
+        correlation_list_object=self.get_instrument_correlation_matrix()
+        weight_df=self.get_instrument_weights()
+        ts_idm=idm_func(correlation_list_object, weight_df, **div_mult_params)
+        return ts_idm
+        
     def get_raw_instrument_weights(self):
 
         def _get_raw_instrument_weights(system, notUsed, this_stage):
@@ -251,8 +242,8 @@ my_system.config.forecast_weight_estimate['method']="equal_weights"
 my_system.config.instrument_weight_estimate['method']="bootstrap"
 my_system.config.instrument_weight_estimate["monte_runs"]=1
 my_system.config.instrument_weight_estimate["bootstrap_length"]=250
+print(my_system.portfolio.get_instrument_diversification_multiplier(my_system))
 print (my_system.portfolio.get_instrument_weights())
-print(my_system.portfolio.get_instrument_diversification_multiplier())
 
 # 10,250 weights=0.75,0.25 idm=1.26
 # 30,250 weights=0.75,0.25 
