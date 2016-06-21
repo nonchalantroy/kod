@@ -203,7 +203,8 @@ class PortfoliosEstimated(PortfoliosFixed):
     def calculation_of_raw_instrument_weights(self):
         def _calculation_of_raw_instrument_weights(system, NotUsed1, this_stage, 
                                       weighting_func, **weighting_params):
-            
+
+
             print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" +"Calculating raw instrument weights")
 
             instrument_codes=system.get_instrument_list()
@@ -213,7 +214,7 @@ class PortfoliosEstimated(PortfoliosFixed):
             (pandl_gross, pandl_costs) = decompose_group_pandl([pandl]) 
             weight_func.set_up_data(data_gross = pandl_gross, data_costs = pandl_costs)
 
-            SR_cost_list = [this_stage.get_instrument_subsystem_SR_cost(instr_code) for instr_code in instrument_codes]
+            SR_cost_list = [0.0, 0.0]
 
             weight_func.optimise(ann_SR_costs=SR_cost_list)
         
