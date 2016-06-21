@@ -18,7 +18,6 @@ from systems.basesystem import ALL_KEYNAME
 from syscore.pdutils import  fix_weights_vs_pdm
 from syscore.objects import update_recalc, resolve_function
 from syscore.genutils import str2Bool
-from syscore.divmultipliers import diversification_multiplier_from_list
 
 class Portfolios(SystemStage):    
     def __init__(self):
@@ -167,16 +166,20 @@ class PortfoliosEstimated(PortfoliosFixed):
 
             print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" +"Calculating instrument div. multiplier")            
 
-            div_mult_params=copy(system.config.instrument_div_mult_estimate)
+            div_mult_params=copy(system.config.instrument_div_mult_estimate)            
+            idm_func=resolve_function(div_mult_params.pop("func"))            
             correlation_list_object=this_stage.get_instrument_correlation_matrix()
             weight_df=this_stage.get_instrument_weights()
-            ts_idm=diversification_multiplier_from_list(correlation_list_object, weight_df, **div_mult_params)
+            ts_idm=idm_func(correlation_list_object, weight_df, **div_mult_params)
             return ts_idm
 
-        instrument_div_multiplier = self.parent.calc_or_cache('get_instrument_diversification_multiplier', ALL_KEYNAME, _get_instrument_div_multiplier, self)
+        instrument_div_multiplier = self.parent.calc_or_cache(
+            'get_instrument_diversification_multiplier', ALL_KEYNAME, _get_instrument_div_multiplier, 
+            self)
         return instrument_div_multiplier
 
     def get_raw_instrument_weights(self):
+
         def _get_raw_instrument_weights(system, notUsed, this_stage):
             print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" +"Getting raw instrument weights")
 
@@ -253,8 +256,8 @@ my_system.config.forecast_weight_estimate['method']="equal_weights"
 my_system.config.instrument_weight_estimate['method']="bootstrap"
 my_system.config.instrument_weight_estimate["monte_runs"]=1
 my_system.config.instrument_weight_estimate["bootstrap_length"]=250
-print(my_system.portfolio.get_instrument_diversification_multiplier())
 print (my_system.portfolio.get_instrument_weights())
+print(my_system.portfolio.get_instrument_diversification_multiplier())
 
 # 10,250 weights=0.75,0.25 idm=1.26
 # 30,250 weights=0.75,0.25 
