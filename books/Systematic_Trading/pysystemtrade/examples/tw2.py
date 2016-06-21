@@ -85,11 +85,6 @@ class PortfoliosFixed(SystemStage):
 class PortfoliosEstimated(PortfoliosFixed):
     def __init__(self):
         super(PortfoliosEstimated, self).__init__()
-        protected = ['get_instrument_correlation_matrix']
-        update_recalc(self, protected)
-        setattr(self, "description", "Estimated")    
-        nopickle=["calculation_of_raw_instrument_weights"]
-        setattr(self, "_nopickle", nopickle)
 
     def get_instrument_correlation_matrix(self, system):
         corr_params=copy(system.config.instrument_correlation_estimate)
