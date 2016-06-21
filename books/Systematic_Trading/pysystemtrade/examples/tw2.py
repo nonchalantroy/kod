@@ -217,23 +217,9 @@ class PortfoliosEstimated(PortfoliosFixed):
             instrument_codes=system.get_instrument_list()
 
             weight_func=weighting_func(log=this_stage.log.setup(call="weighting"), **weighting_params)
-            if weight_func.need_data():
-    
-                if hasattr(system, "accounts"):
-                    pandl=this_stage.pandl_across_subsystems()
-                    (pandl_gross, pandl_costs) = decompose_group_pandl([pandl])
-                    
-                    weight_func.set_up_data(data_gross = pandl_gross, data_costs = pandl_costs)
-
-                else:
-                    error_msg="You need an accounts stage in the system to estimate instrument weights"
-                    this_stage.log.critical(error_msg)
-
-            else:
-                ## equal weights doesn't need data
-
-                positions=this_stage._get_all_subsystem_positions()                
-                weight_func.set_up_data(weight_matrix=positions)
+            pandl=this_stage.pandl_across_subsystems()
+            (pandl_gross, pandl_costs) = decompose_group_pandl([pandl]) 
+            weight_func.set_up_data(data_gross = pandl_gross, data_costs = pandl_costs)
 
             SR_cost_list = [this_stage.get_instrument_subsystem_SR_cost(instr_code) for instr_code in instrument_codes]
 
