@@ -19,6 +19,7 @@ from syscore.pdutils import  fix_weights_vs_pdm
 from syscore.objects import update_recalc, resolve_function
 from syscore.genutils import str2Bool
 from syscore.correlations import CorrelationEstimator
+from syscore.optimisation import GenericOptimiser
 
 class PortfoliosEstimated(SystemStage):
     def __init__(self):
@@ -63,8 +64,8 @@ class PortfoliosEstimated(SystemStage):
     def calculation_of_raw_instrument_weights(self, system):
         instrument_codes=system.get_instrument_list()
         weighting_params=copy(system.config.instrument_weight_estimate)
-        weighting_func=resolve_function(weighting_params.pop("func"))        
-        weight_func=weighting_func(log=self.log.setup(call="weighting"), **weighting_params)
+        tmp=weighting_params.pop("func")
+        weight_func=GenericOptimiser(log=self.log.setup(call="weighting"), **weighting_params)
         pandl=self.parent.accounts.pandl_across_subsystems()
         (pandl_gross, pandl_costs) = decompose_group_pandl([pandl]) 
         weight_func.set_up_data(data_gross = pandl_gross, data_costs = pandl_costs)
@@ -80,8 +81,7 @@ my_config = Config()
 my_config.instruments=["US20", "SP500"]
 
 ewmac_8 = TradingRule((ewmac, [], dict(Lfast=8, Lslow=32)))
-ewmac_32 = TradingRule(
-    dict(function=ewmac, other_args=dict(Lfast=32, Lslow=128)))
+ewmac_32 = TradingRule(dict(function=ewmac, other_args=dict(Lfast=32, Lslow=128)))
 my_rules = Rules(dict(ewmac8=ewmac_8, ewmac32=ewmac_32))
 
 my_system = System([Account(), PortfoliosEstimated(), PositionSizing(), ForecastScaleCap(), my_rules, ForecastCombine()], data, my_config)
@@ -90,7 +90,6 @@ my_system.config.instrument_weight_estimate['method']="bootstrap"
 my_system.config.instrument_weight_estimate["monte_runs"]=1
 my_system.config.instrument_weight_estimate["bootstrap_length"]=250
 print(my_system.portfolio.get_instrument_diversification_multiplier(my_system))
-#print (my_system.portfolio.get_instrument_weights())
 
 # 10,250 weights=0.75,0.25 idm=1.26
 # 30,250 weights=0.75,0.25 
