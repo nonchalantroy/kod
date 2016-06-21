@@ -57,19 +57,7 @@ class PortfoliosFixed(SystemStage):
         def _get_raw_instrument_weights(system, an_ignored_variable, this_stage):
             print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" +"Calculating raw instrument weights")
 
-            try:
-                instrument_weights = system.config.instrument_weights
-            except:
-                instruments = self.parent.get_instrument_list()
-                weight = 1.0 / len(instruments)
-                
-                warn_msg="WARNING: No instrument weights  - using equal weights of %.4f over all %d instruments in data" % (weight, len(instruments))
-                
-                this_stage.log.warn(warn_msg)
-                
-                instrument_weights = dict(
-                    [(instrument_code, weight) for instrument_code in instruments])
-
+            instrument_weights = system.config.instrument_weights
             instrument_list = sorted(instrument_weights.keys())
 
             subsys_ts = [
