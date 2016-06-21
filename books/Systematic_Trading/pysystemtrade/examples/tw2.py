@@ -199,14 +199,6 @@ class PortfoliosEstimated(PortfoliosFixed):
     def pandl_across_subsystems(self): 
         return self.parent.accounts.pandl_across_subsystems()
 
-    def _get_all_subsystem_positions(self):
-        instrument_codes=self.parent.get_instrument_list()
-
-        positions=[self.get_subsystem_position(instr_code) for instr_code in instrument_codes]
-        positions=pd.concat(positions, axis=1)
-        positions.columns=instrument_codes
-
-        return positions
 
     def calculation_of_raw_instrument_weights(self):
         def _calculation_of_raw_instrument_weights(system, NotUsed1, this_stage, 
