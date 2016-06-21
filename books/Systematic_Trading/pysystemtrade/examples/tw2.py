@@ -22,6 +22,7 @@ from syscore.correlations import CorrelationEstimator
 from syscore.optimisation import GenericOptimiser
 
 class PortfoliosEstimated(SystemStage):
+    
     def __init__(self):
         setattr(self, "name", "portfolio")
         setattr(self, "description", "fixed")
@@ -32,7 +33,7 @@ class PortfoliosEstimated(SystemStage):
         raw_instr_weights = self.calculation_of_raw_instrument_weights(system).weights
         instrument_list = list(raw_instr_weights.columns)
 
-        subsys_positions = [self.parent.positionSize.get_subsystem_position(instrument_code)
+        subsys_positions = [system.positionSize.get_subsystem_position(instrument_code)
                             for instrument_code in instrument_list]
 
         subsys_positions = pd.concat(subsys_positions, axis=1).ffill()
@@ -46,7 +47,7 @@ class PortfoliosEstimated(SystemStage):
         corr_params=copy(system.config.instrument_correlation_estimate)
         tmp = corr_params.pop("func") # pop the function, leave the args
         instrument_codes=system.get_instrument_list()
-        pandl=self.parent.accounts.pandl_across_subsystems().to_frame()            
+        pandl=system.accounts.pandl_across_subsystems().to_frame()            
         frequency=corr_params['frequency']
         pandl=pandl.cumsum().resample(frequency).diff()
         return CorrelationEstimator(pandl, log=self.log.setup(call="correlation"), **corr_params)
@@ -66,7 +67,7 @@ class PortfoliosEstimated(SystemStage):
         weighting_params=copy(system.config.instrument_weight_estimate)
         tmp=weighting_params.pop("func")
         weight_func=GenericOptimiser(log=self.log.setup(call="weighting"), **weighting_params)
-        pandl=self.parent.accounts.pandl_across_subsystems()
+        pandl=system.accounts.pandl_across_subsystems()
         (pandl_gross, pandl_costs) = decompose_group_pandl([pandl])
         # zeros
         pandl_costs[0] = pd.DataFrame(0, index=pandl_costs[0].index,columns=pandl_costs[0].columns)
@@ -74,23 +75,25 @@ class PortfoliosEstimated(SystemStage):
         weight_func.optimise(ann_SR_costs=[0.0, 0.0])
         return weight_func
 
-random.seed(0)
-np.random.seed(0)
+if __name__ == "__main__": 
+     
+    random.seed(0)
+    np.random.seed(0)
 
-data = csvFuturesData()
-my_config = Config()
-my_config.instruments=["US20", "SP500"]
+    data = csvFuturesData()
+    my_config = Config()
+    my_config.instruments=["US20", "SP500"]
 
-ewmac_8 = TradingRule((ewmac, [], dict(Lfast=8, Lslow=32)))
-ewmac_32 = TradingRule(dict(function=ewmac, other_args=dict(Lfast=32, Lslow=128)))
-my_rules = Rules(dict(ewmac8=ewmac_8, ewmac32=ewmac_32))
+    ewmac_8 = TradingRule((ewmac, [], dict(Lfast=8, Lslow=32)))
+    ewmac_32 = TradingRule(dict(function=ewmac, other_args=dict(Lfast=32, Lslow=128)))
+    my_rules = Rules(dict(ewmac8=ewmac_8, ewmac32=ewmac_32))
 
-my_system = System([Account(), PortfoliosEstimated(), PositionSizing(), ForecastScaleCap(), my_rules, ForecastCombine()], data, my_config)
-my_system.config.forecast_weight_estimate['method']="equal_weights"
-my_system.config.instrument_weight_estimate['method']="bootstrap"
-my_system.config.instrument_weight_estimate["monte_runs"]=1
-my_system.config.instrument_weight_estimate["bootstrap_length"]=250
-print(my_system.portfolio.get_instrument_diversification_multiplier(my_system))
+    my_system = System([Account(), PortfoliosEstimated(), PositionSizing(), ForecastScaleCap(), my_rules, ForecastCombine()], data, my_config)
+    my_system.config.forecast_weight_estimate['method']="equal_weights"
+    my_system.config.instrument_weight_estimate['method']="bootstrap"
+    my_system.config.instrument_weight_estimate["monte_runs"]=1
+    my_system.config.instrument_weight_estimate["bootstrap_length"]=250
+    print(my_system.portfolio.get_instrument_diversification_multiplier(my_system))
 
-# 10,250 weights=0.75,0.25 idm=1.26
-# 30,250 weights=0.75,0.25 
+    # 10,250 weights=0.75,0.25 idm=1.26
+    # 30,250 weights=0.75,0.25 
