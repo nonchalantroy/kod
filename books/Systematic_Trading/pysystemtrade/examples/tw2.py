@@ -18,7 +18,306 @@ from systems.basesystem import ALL_KEYNAME
 from syscore.objects import update_recalc, resolve_function
 from syscore.genutils import str2Bool
 from syscore.correlations import CorrelationEstimator
-from syscore.optimisation import GenericOptimiser
+from syscore.optimisation import optimiserWithParams
+from syslogdiag.log import logtoscreen
+from syscore.pdutils import df_from_list, must_have_item
+from syscore.dateutils import generate_fitting_dates
+import datetime
+
+
+CALENDAR_DAYS_IN_YEAR = 365.25
+BUSINESS_DAYS_IN_YEAR = 256.0
+ROOT_BDAYS_INYEAR = BUSINESS_DAYS_IN_YEAR**.5
+WEEKS_IN_YEAR = CALENDAR_DAYS_IN_YEAR / 7.0
+ROOT_WEEKS_IN_YEAR = WEEKS_IN_YEAR**.5
+MONTHS_IN_YEAR = 12.0
+ROOT_MONTHS_IN_YEAR = MONTHS_IN_YEAR**.5
+ARBITRARY_START=pd.datetime(1900,1,1)
+TARGET_ANN_SR=0.5
+
+class optSinglePeriod(object):
+    def __init__(self, parent, data, fit_period, optimiser, cleaning):
+        if cleaning:
+            current_period_data=data[fit_period.period_start:fit_period.period_end] 
+            must_haves=must_have_item(current_period_data)
+        
+        else:
+            must_haves=None
+        
+        if fit_period.no_data:
+            diag=None
+            size=current_period_data.shape[1]
+            weights_with_nan=[np.nan/size]*size
+            weights=weights_with_nan
+            if cleaning:
+                weights=clean_weights(weights, must_haves)
+        else:
+            subset_fitting_data=data[fit_period.fit_start:fit_period.fit_end]    
+            (weights, diag)=optimiser.call(subset_fitting_data, cleaning, must_haves)
+
+        setattr(self, "diag", diag)
+        setattr(self, "weights", weights)
+
+def clean_weights(weights,  must_haves=None, fraction=0.5):
+    if must_haves is None:
+        must_haves=[True]*len(weights)    
+    if not any(must_haves):
+        return [0.0]*len(weights)    
+    needs_replacing=[(np.isnan(x) or x==0.0) and must_haves[i] for (i,x) in enumerate(weights)]
+    keep_empty=[(np.isnan(x) or x==0.0) and not must_haves[i] for (i,x) in enumerate(weights)]
+    no_replacement_needed=[(not keep_empty[i]) and (not needs_replacing[i]) for (i,x) in enumerate(weights)]
+    if not any(needs_replacing):
+        return weights    
+    missing_weights=sum(needs_replacing)
+    total_for_missing_weights=fraction*missing_weights/(
+        float(np.nansum(no_replacement_needed)+np.nansum(missing_weights)))
+    
+    adjustment_on_rest=(1.0-total_for_missing_weights)    
+    each_missing_weight=total_for_missing_weights/missing_weights    
+    def _good_weight(value, idx, needs_replacing, keep_empty, 
+                     each_missing_weight, adjustment_on_rest):        
+        if needs_replacing[idx]:
+            return each_missing_weight
+        if keep_empty[idx]:
+            return 0.0
+        else:
+            return value*adjustment_on_rest
+
+    weights=[_good_weight(value, idx, needs_replacing, keep_empty, 
+                          each_missing_weight, adjustment_on_rest) 
+             for (idx, value) in enumerate(weights)]    
+    xsum=sum(weights)
+    weights=[x/xsum for x in weights]    
+    return weights
+        
+def work_out_net(data_gross, data_costs, annualisation=BUSINESS_DAYS_IN_YEAR,   
+                 equalise_gross=False, cost_multiplier=1.0,
+                 period_target_SR=TARGET_ANN_SR/(BUSINESS_DAYS_IN_YEAR**.5)):
+    if equalise_gross:
+        target_vol=np.mean(data_gross.std().values) ## assumes all have same vol
+        target_mean=period_target_SR*(target_vol)
+        actual_period_mean=data_gross.mean().values
+
+        shifts = target_mean - actual_period_mean
+        shifts = np.array([list(shifts)]*len(data_gross.index))
+        shifts=pd.DataFrame(shifts, index=data_gross.index, columns=data_gross.columns)
+    
+        use_gross = data_gross + shifts
+    
+    else:
+        use_gross = data_gross    
+
+    use_costs = data_costs * cost_multiplier 
+    net = use_gross + use_costs ## costs are negative    
+    return net
+
+def bootstrap_portfolio(subset_data, moments_estimator,
+                cleaning, must_haves,
+                  monte_runs=100, bootstrap_length=50,
+                  **other_opt_args):
+    print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" + "bootstrap_length=" + str(bootstrap_length))
+    print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" + "bootstrap_length=" + str(type(moments_estimator)))
+
+    all_results=[bs_one_time(subset_data, moments_estimator,
+                            cleaning, must_haves, 
+                            bootstrap_length,
+                            **other_opt_args)
+                                for unused_index in range(monte_runs)]
+        
+    weightlist=np.array([x[0] for x in all_results], ndmin=2)
+    diaglist=[x[1] for x in all_results]
+         
+    theweights_mean=list(np.mean(weightlist, axis=0))
+    
+    diag=dict(bootstraps=diaglist)
+    
+    return (theweights_mean, diag)
+
+def markosolver(period_subset_data, moments_estimator,cleaning, must_haves,
+                  equalise_SR=False , equalise_vols=True,**ignored_args): 
+
+    print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" + "markosolver")
+    
+    rawmoments=moments_estimator.moments(period_subset_data)    
+    (mean_list, corrmatrix, stdev_list)=copy(rawmoments)
+
+    if equalise_vols:
+        (mean_list, stdev_list)=vol_equaliser(mean_list, stdev_list)        
+    if equalise_SR:
+        ann_target_SR = moments_estimator.ann_target_SR
+        mean_list=SR_equaliser(stdev_list, ann_target_SR)
+    
+    sigma=sigma_from_corr_and_std(stdev_list, corrmatrix)    
+    unclean_weights=optimise( sigma, mean_list)
+    
+    if cleaning:
+        weights=clean_weights(unclean_weights, must_haves)
+    else:
+        weights=unclean_weights    
+    diag=dict(raw=rawmoments, sigma=sigma, mean_list=mean_list, 
+              unclean=unclean_weights, weights=weights)
+    return (weights, diag)
+
+class momentsEstimator(object):
+    def __init__(self, optimise_params, annualisation=BUSINESS_DAYS_IN_YEAR, 
+                 ann_target_SR=.5):        
+        corr_estimate_params=copy(optimise_params["correlation_estimate"])
+        mean_estimate_params=copy(optimise_params["mean_estimate"])
+        vol_estimate_params=copy(optimise_params["vol_estimate"])
+        corr_estimate_func=resolve_function(corr_estimate_params.pop("func"))
+        mean_estimate_func=resolve_function(mean_estimate_params.pop("func"))
+        vol_estimate_func=resolve_function(vol_estimate_params.pop("func"))
+        setattr(self, "corr_estimate_params", corr_estimate_params)
+        setattr(self, "mean_estimate_params", mean_estimate_params)
+        setattr(self, "vol_estimate_params", vol_estimate_params)        
+        setattr(self, "corr_estimate_func", corr_estimate_func)
+        setattr(self, "mean_estimate_func", mean_estimate_func)
+        setattr(self, "vol_estimate_func", vol_estimate_func)
+        period_target_SR = ann_target_SR / (annualisation**.5)        
+        setattr(self, "annualisation", annualisation)
+        setattr(self, "period_target_SR", period_target_SR)
+        setattr(self, "ann_target_SR", ann_target_SR)
+
+    def correlation(self, data_for_estimate):
+        params=self.corr_estimate_params
+        corrmatrix=self.corr_estimate_func(data_for_estimate, **params)
+        return corrmatrix
+    
+    def means(self, data_for_estimate):
+        params=self.mean_estimate_params
+        mean_list=self.mean_estimate_func(data_for_estimate, **params)
+        
+        mean_list=list(np.array(mean_list)*self.annualisation)
+
+        return mean_list
+    
+    def vol(self, data_for_estimate):
+        params=self.vol_estimate_params
+        stdev_list=self.vol_estimate_func(data_for_estimate, **params)
+        stdev_list=list(np.array(stdev_list)*(self.annualisation**.5))
+        return stdev_list
+
+    def moments(self, data_for_estimate):
+        ans=(self.means(data_for_estimate), self.correlation(data_for_estimate),  self.vol(data_for_estimate))
+        return ans
+
+
+class GenericOptimiser(object):
+
+    def __init__(self,  log=logtoscreen("optimiser"), frequency="W", date_method="expanding", 
+                         rollyears=20, method="bootstrap", cleaning=True, 
+                         cost_multiplier=1.0, apply_cost_weight=True, 
+                         ann_target_SR=TARGET_ANN_SR, equalise_gross=False,
+                         **passed_params):
+                
+        cleaning=str2Bool(cleaning)
+        optimise_params=copy(passed_params)
+
+        ## annualisation
+        ann_dict=dict(D=BUSINESS_DAYS_IN_YEAR, W=WEEKS_IN_YEAR, M=MONTHS_IN_YEAR, Y=1.0)
+        annualisation=ann_dict.get(frequency, 1.0)
+
+        period_target_SR=ann_target_SR/(annualisation**.5)
+        
+        ## A moments estimator works out the mean, vol, correlation
+        ## Also stores annualisation factor and target SR (used for shrinkage and equalising)
+        moments_estimator=momentsEstimator(optimise_params, annualisation,  ann_target_SR)
+
+        ## The optimiser instance will do the optimation once we have the appropriate data
+        optimiser=optimiserWithParams(method, optimise_params, moments_estimator)
+
+        setattr(self, "optimiser", optimiser)
+        setattr(self, "log", log)
+        setattr(self, "frequency", frequency)
+        setattr(self, "method", method)
+        setattr(self, "equalise_gross", equalise_gross)
+        setattr(self, "cost_multiplier", cost_multiplier)
+        setattr(self, "annualisation", annualisation)
+        setattr(self, "period_target_SR", period_target_SR)
+        setattr(self, "date_method", date_method)
+        setattr(self, "rollyears", rollyears)
+        setattr(self, "cleaning", cleaning)
+        setattr(self, "apply_cost_weight", apply_cost_weight)
+
+    def need_data(self):
+        if self.method=="equal_weights":
+            return False
+        else:
+            return True
+
+    def set_up_data(self, data_gross=None, data_costs=None, weight_matrix=None):
+        if weight_matrix is not None:
+            setattr(self, "data", weight_matrix.ffill())
+            return None
+        
+        log=self.log
+        frequency=self.frequency
+        equalise_gross = self.equalise_gross
+        cost_multiplier = self.cost_multiplier
+        annualisation = self.annualisation
+        period_target_SR = self.period_target_SR
+
+        data_gross = [data_item.cumsum().resample(frequency, how="last").diff() for
+                       data_item in data_gross]
+        
+        data_costs = [data_item.cumsum().resample(frequency, how="last").diff() for
+                      data_item in data_costs]
+
+        data_gross=df_from_list(data_gross)    
+        data_costs=df_from_list(data_costs)    
+
+        if equalise_gross:
+            print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" +"Setting all gross returns to be identical - optimisation driven only by costs")
+        if cost_multiplier!=1.0:
+            print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" +"Using cost multiplier on optimisation of %.2f" % cost_multiplier)                
+        data = work_out_net(data_gross, data_costs, annualisation=annualisation,
+                            equalise_gross=equalise_gross, cost_multiplier=cost_multiplier,
+                            period_target_SR=period_target_SR)                    
+        setattr(self, "data", data)
+
+    def optimise(self, ann_SR_costs=None):
+        log=self.log
+        date_method = self.date_method
+        rollyears = self.rollyears
+        optimiser = self.optimiser
+        cleaning = self.cleaning
+        apply_cost_weight = self.apply_cost_weight
+        
+        data=getattr(self, "data", None)
+        if data is None:
+            log.critical("You need to run .set_up_data() before .optimise()")
+        
+        fit_dates = generate_fitting_dates(data, date_method=date_method, rollyears=rollyears)
+        setattr(self, "fit_dates", fit_dates)    
+        weight_list=[]
+        opt_results=[]
+        print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" +"Optimising...")
+        
+        for fit_period in fit_dates:            
+            print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" +"Optimising for data from %s to %s" % (str(fit_period.period_start), str(fit_period.period_end)))
+
+            results_this_period=optSinglePeriod(self, data, fit_period, optimiser, cleaning)
+
+            opt_results.append(results_this_period)
+
+            weights=results_this_period.weights
+
+            dindex=[fit_period.period_start+datetime.timedelta(days=1), 
+                    fit_period.period_end-datetime.timedelta(days=1)]            
+
+            weight_row=pd.DataFrame([weights]*2, index=dindex, columns=data.columns)
+            weight_list.append(weight_row)
+        raw_weight_df=pd.concat(weight_list, axis=0)
+        
+        if apply_cost_weight:
+            print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" +"Applying cost weighting to optimisation results")
+            weight_df = apply_cost_weighting(raw_weight_df, ann_SR_costs)
+        else:
+            weight_df =raw_weight_df 
+        
+        setattr(self, "results", opt_results)
+        setattr(self, "weights", weight_df)
+        setattr(self, "raw_weights", raw_weight_df)
 
 def fix_weights_vs_pdm(weights, pdm):
     pdm_ffill = pdm.ffill()
@@ -27,23 +326,16 @@ def fix_weights_vs_pdm(weights, pdm):
     adj_weights[np.isnan(pdm_ffill)] = 0.0
     def _sum_row_fix(weight_row):
         swr = sum(weight_row)
-        if swr == 0.0:
-            return weight_row
+        if swr == 0.0: return weight_row
         new_weights = weight_row / swr
         return new_weights
     adj_weights = adj_weights.apply(_sum_row_fix, 1)
     return adj_weights
 
-
 def diversification_mult_single_period(corrmatrix, weights, dm_max=2.5):
     if all([x==0.0 for x in list(weights)]) or np.all(np.isnan(weights)): return 1.0
     weights=np.array(weights, ndmin=2)    
-    dm=np.min([
-               1.0 / (
-         float(
-                np.dot(np.dot(weights, corrmatrix), weights.transpose()))
-                  **.5),
-               dm_max])
+    dm=np.min([1.0 / (float(np.dot(np.dot(weights, corrmatrix), weights.transpose())) **.5),dm_max])
     return dm
 
 def diversification_multiplier_from_list(correlation_list_object, weight_df_raw, 
@@ -79,7 +371,6 @@ class PortfoliosEstimated(SystemStage):
         return CorrelationEstimator(pandl, log=self.log.setup(call="correlation"), **corr_params)
 
     def get_instrument_diversification_multiplier(self, system):
-
         div_mult_params=copy(system.config.instrument_div_mult_estimate)            
         tmp=div_mult_params.pop("func")
         correlation_list_object=self.get_instrument_correlation_matrix(system)
@@ -94,7 +385,7 @@ class PortfoliosEstimated(SystemStage):
         instrument_codes=system.get_instrument_list()
         weighting_params=copy(system.config.instrument_weight_estimate)
         tmp=weighting_params.pop("func")
-        weight_func=GenericOptimiser(log=self.log.setup(call="weighting"), **weighting_params)
+        weight_func=GenericOptimiser(**weighting_params)
         pandl=system.accounts.pandl_across_subsystems()
         (pandl_gross, pandl_costs) = decompose_group_pandl([pandl])
         # zeros
