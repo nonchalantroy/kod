@@ -11,7 +11,7 @@ from sysdata.csvdata import csvFuturesData
 from systems.forecasting import Rules
 from systems.forecasting import TradingRule
 from systems.positionsizing import PositionSizing
-from syscore.accounting import decompose_group_pandl
+from syscore.accounting import decompose_group_pandl #
 from systems.stage import SystemStage
 from systems.basesystem import ALL_KEYNAME
 from syscore.objects import update_recalc, resolve_function
@@ -19,7 +19,6 @@ from syscore.genutils import str2Bool
 from syscore.correlations import CorrelationEstimator
 from syslogdiag.log import logtoscreen
 from syscore.pdutils import df_from_list, must_have_item
-from syscore.dateutils import generate_fitting_dates
 from scipy.optimize import minimize
 import datetime
 
@@ -33,6 +32,46 @@ ROOT_MONTHS_IN_YEAR = MONTHS_IN_YEAR**.5
 ARBITRARY_START=pd.datetime(1900,1,1)
 TARGET_ANN_SR=0.5
 FLAG_BAD_RETURN=-9999999.9
+
+def generate_fitting_dates(data, date_method, rollyears=20):
+
+    print ("date_method=" + str(date_method))
+    if date_method not in ["in_sample","rolling", "expanding"]:
+        raise Exception("don't recognise date_method %s should be one of in_sample, expanding, rolling" % date_method)
+    
+    if type(data) is list:
+        start_date=min([dataitem.index[0] for dataitem in data])
+        end_date=max([dataitem.index[-1] for dataitem in data])
+    else:
+        start_date=data.index[0]
+        end_date=data.index[-1]
+
+    if date_method=="in_sample":
+        return [fit_dates_object(start_date, end_date, start_date, end_date)]
+
+    yearstarts=list(pd.date_range(start_date, end_date, freq="12M"))+[end_date]
+
+    periods=[]
+    for tidx in range(len(yearstarts))[1:-1]:
+        period_start=yearstarts[tidx]
+        period_end=yearstarts[tidx+1]
+        if date_method=="expanding":
+            fit_start=start_date
+        elif date_method=="rolling":
+            yearidx_to_use=max(0, tidx-rollyears)
+            fit_start=yearstarts[yearidx_to_use]
+        else:
+            raise Exception("don't recognise date_method %s should be one of in_sample, expanding, rolling" % date_method)
+            
+        if date_method in ['rolling', 'expanding']:
+            fit_end=period_start
+        else:
+            raise Exception("don't recognise date_method %s " % date_method)        
+        periods.append(fit_dates_object(fit_start, fit_end, period_start, period_end))
+    if date_method in ['rolling', 'expanding']:
+        periods=[fit_dates_object(start_date, start_date, start_date, yearstarts[1], no_data=True)]+periods
+
+    return periods
 
 def robust_vol_calc(x, days=35, min_periods=10, vol_abs_min=0.0000000001, vol_floor=True,
                     floor_min_quant=0.05, floor_min_periods=100,
@@ -453,7 +492,23 @@ class momentsEstimator(object):
     def moments(self, data_for_estimate):
         ans=(self.means(data_for_estimate), self.correlation(data_for_estimate),  self.vol(data_for_estimate))
         return ans
+
+
+class fit_dates_object(object):
+    def __init__(self, fit_start, fit_end, period_start, period_end, no_data=False):
+        setattr(self, "fit_start", fit_start)
+        setattr(self, "fit_end", fit_end)
+        setattr(self, "period_start", period_start)
+        setattr(self, "period_end", period_end)
+        setattr(self, "no_data", no_data)
         
+    def __repr__(self):
+        if self.no_data:
+            return "Fit without data, use from %s to %s" % (self.period_start, self.period_end)
+        else:
+            return "Fit from %s to %s, use in %s to %s" % (self.fit_start, self.fit_end, self.period_start, self.period_end)
+        
+    
 class PortfoliosEstimated(SystemStage):
     
     def __init__(self): setattr(self, "name", "portfolio")
