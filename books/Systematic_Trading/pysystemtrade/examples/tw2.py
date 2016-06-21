@@ -56,27 +56,6 @@ class Portfolios(SystemStage):
 
 
 class PortfoliosFixed(SystemStage):
-    """
-    Stage for portfolios
-
-    Gets the position, accounts for instrument weights and diversification multiplier
-
-    This version involves fixed weights and multipliers.
-
-    Note: At this stage we're dealing with a notional, fixed, amount of capital.
-         We'll need to work out p&l to scale positions properly
-
-    KEY INPUTS: system.positionSize.get_subsystem_position(instrument_code)
-                found in self.get_subsystem_position(instrument_code)
-                
-                system.positionSize.get_volatility_scalar(instrument_code)
-                found in self.get_volatility_scalar
-
-    KEY OUTPUTS: system.portfolio.get_notional_position(instrument_code)
-                system.portfolio.get_buffers_for_position(instrument_code)
-
-    Name: portfolio
-    """
 
     def __init__(self):
         """
@@ -93,89 +72,15 @@ class PortfoliosFixed(SystemStage):
         setattr(self, "description", "fixed")
 
     def get_subsystem_position(self, instrument_code):
-        """
-        Get the position assuming all capital in one position, from a previous module
-
-        :param instrument_code: instrument to get values for
-        :type instrument_code: str
-
-        :returns: Tx1 pd.DataFrame
-
-        KEY INPUT
-
-        >>> from systems.tests.testdata import get_test_object_futures_with_pos_sizing
-        >>> from systems.basesystem import System
-        >>> (posobject, combobject, capobject, rules, rawdata, data, config)=get_test_object_futures_with_pos_sizing()
-        >>> system=System([rawdata, rules, posobject, combobject, capobject,PortfoliosFixed()], data, config)
-        >>>
-        >>> ## from config
-        >>> system.portfolio.get_subsystem_position("EDOLLAR").tail(2)
-                    ss_position
-        2015-12-10     1.811465
-        2015-12-11     2.544598
-
-        """
 
         return self.parent.positionSize.get_subsystem_position(instrument_code)
 
     def get_volatility_scalar(self, instrument_code):
-        """
-        Get the vol scalar, from a previous module
-
-        :param instrument_code: instrument to get values for
-        :type instrument_code: str
-
-        :returns: Tx1 pd.DataFrame
-
-        KEY INPUT
-
-        >>> from systems.tests.testdata import get_test_object_futures_with_pos_sizing
-        >>> from systems.basesystem import System
-        >>> (posobject, combobject, capobject, rules, rawdata, data, config)=get_test_object_futures_with_pos_sizing()
-        >>> system=System([rawdata, rules, posobject, combobject, capobject,PortfoliosFixed()], data, config)
-        >>>
-        >>> ## from config
-        >>> system.portfolio.get_volatility_scalar("EDOLLAR").tail(2)
-                    vol_scalar
-        2015-12-10   11.187869
-        2015-12-11   10.332930
-        """
 
         return self.parent.positionSize.get_volatility_scalar(instrument_code)
 
 
     def get_raw_instrument_weights(self):
-        """
-        Get the instrument weights
-
-        These are 'raw' because we need to account for potentially missing positions, and weights that don't add up.
-
-        From: (a) passed into subsystem when created
-              (b) ... if not found then: in system.config.instrument_weights
-
-        :returns: TxK pd.DataFrame containing weights, columns are instrument names, T covers all subsystem positions
-
-        >>> from systems.tests.testdata import get_test_object_futures_with_pos_sizing
-        >>> from systems.basesystem import System
-        >>> (posobject, combobject, capobject, rules, rawdata, data, config)=get_test_object_futures_with_pos_sizing()
-        >>> config.instrument_weights=dict(EDOLLAR=0.1, US10=0.9)
-        >>> system=System([rawdata, rules, posobject, combobject, capobject,PortfoliosFixed()], data, config)
-        >>>
-        >>> ## from config
-        >>> system.portfolio.get_instrument_weights().tail(2)
-                    EDOLLAR  US10
-        2015-12-10      0.1   0.9
-        2015-12-11      0.1   0.9
-        >>>
-        >>> del(config.instrument_weights)
-        >>> system2=System([rawdata, rules, posobject, combobject, capobject,PortfoliosFixed()], data, config)
-        >>> system2.portfolio.get_instrument_weights().tail(2)
-        WARNING: No instrument weights  - using equal weights of 0.3333 over all 3 instruments in data
-                        BUND   EDOLLAR      US10
-        2015-12-10  0.333333  0.333333  0.333333
-        2015-12-11  0.333333  0.333333  0.333333
-
-        """
         def _get_raw_instrument_weights(system, an_ignored_variable, this_stage):
             print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" +"Calculating raw instrument weights")
 
@@ -192,9 +97,6 @@ class PortfoliosFixed(SystemStage):
                 instrument_weights = dict(
                     [(instrument_code, weight) for instrument_code in instruments])
 
-            # Now we have a dict, fixed_weights.
-            # Need to turn into a timeseries covering the range of forecast
-            # dates
             instrument_list = sorted(instrument_weights.keys())
 
             subsys_ts = [
@@ -223,13 +125,6 @@ class PortfoliosFixed(SystemStage):
         return instrument_weights
 
     def get_instrument_weights(self):
-        """
-        Get the time series of instrument weights, accounting for potentially missing positions, and weights that don't add up.
-
-        :returns: TxK pd.DataFrame containing weights, columns are instrument names, T covers all subsystem positions
-
-
-        """
         def _get_instrument_weights(
                 system, an_ignored_variable, this_stage):
 
@@ -249,7 +144,6 @@ class PortfoliosFixed(SystemStage):
 
             weighting=system.config.instrument_weight_ewma_span  
 
-            # smooth
             instrument_weights = pd.ewma(instrument_weights, weighting) 
 
             return instrument_weights
@@ -349,47 +243,13 @@ class PortfoliosFixed(SystemStage):
             average_position =  vol_scalar * inst_weight_this_code * idm
             
             buffer = average_position * buffer_size
-            
+             
             return buffer
 
         buffer = self.parent.calc_or_cache(
             "get_forecast_method_buffer", instrument_code, _get_forecast_method_buffer, self)
         
         return buffer
-
-    def get_buffers_for_position(self, instrument_code):
-
-        def _get_buffers_for_position(system, instrument_code, this_stage):
-            
-            print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" +"Calculating buffers for %s" % instrument_code)
-            
-            buffer_method=system.config.buffer_method
-            
-            if buffer_method=="forecast":
-                buffer = this_stage.get_forecast_method_buffer(instrument_code)
-            elif buffer_method=="position":
-                buffer = this_stage.get_position_method_buffer(instrument_code)
-            else:
-                this_stage.log.critical("Buffer method %s not recognised - not buffering" % buffer_method)
-                position = this_stage.get_notional_position(instrument_code)
-                max_max_position= float(position.abs().max())*10.0
-                buffer = pd.Series([max_max_position] * position.shape[0], index=position.index)
-            
-            position = this_stage.get_notional_position(instrument_code)
-            
-            top_position = position + buffer.ffill()
-            
-            bottom_position = position - buffer.ffill()
-
-            pos_buffers = pd.concat([top_position, bottom_position], axis=1)
-            pos_buffers.columns = ["top_pos", "bot_pos"]
-
-            return pos_buffers
-
-        pos_buffers = self.parent.calc_or_cache(
-            "get_buffers_for_position", instrument_code, _get_buffers_for_position, self)
-        
-        return pos_buffers
 
     def capital_multiplier(self):
         return self.parent.accounts.capital_multiplier()
