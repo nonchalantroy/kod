@@ -25,16 +25,13 @@ class PortfoliosEstimated(SystemStage):
         setattr(self, "name", "portfolio")
         setattr(self, "description", "fixed")
 
-    def get_subsystem_position(self, instrument_code):
-        return self.parent.positionSize.get_subsystem_position(instrument_code)
-
     def get_instrument_weights(self, system):
 
         print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" +"Calculating instrument weights")
         raw_instr_weights = self.calculation_of_raw_instrument_weights(system).weights
         instrument_list = list(raw_instr_weights.columns)
 
-        subsys_positions = [self.get_subsystem_position(instrument_code)
+        subsys_positions = [self.parent.positionSize.get_subsystem_position(instrument_code)
                             for instrument_code in instrument_list]
 
         subsys_positions = pd.concat(subsys_positions, axis=1).ffill()
