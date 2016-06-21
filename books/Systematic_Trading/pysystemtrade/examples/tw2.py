@@ -63,29 +63,21 @@ class PortfoliosFixed(SystemStage):
             "get_raw_instrument_weights", ALL_KEYNAME, _get_raw_instrument_weights, self)
         return instrument_weights
 
-    def get_instrument_weights(self):
-        def _get_instrument_weights(system, an_ignored_variable, this_stage):
+    def get_instrument_weights(self, system):
 
-            print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" +"Calculating instrument weights")
+        print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" +"Calculating instrument weights")
+        raw_instr_weights = self.get_raw_instrument_weights()
+        instrument_list = list(raw_instr_weights.columns)
 
-            raw_instr_weights = this_stage.get_raw_instrument_weights()
-            instrument_list = list(raw_instr_weights.columns)
+        subsys_positions = [self.get_subsystem_position(instrument_code)
+                            for instrument_code in instrument_list]
 
-            subsys_positions = [this_stage.get_subsystem_position(instrument_code)
-                                for instrument_code in instrument_list]
-
-            subsys_positions = pd.concat(subsys_positions, axis=1).ffill()
-            subsys_positions.columns = instrument_list
-            instrument_weights = fix_weights_vs_pdm(
-                raw_instr_weights, subsys_positions)
-            weighting=system.config.instrument_weight_ewma_span  
-            instrument_weights = pd.ewma(instrument_weights, weighting) 
-            return instrument_weights
-
-        instrument_weights = self.parent.calc_or_cache(
-            "get_instrument_weights", ALL_KEYNAME, _get_instrument_weights, self)
+        subsys_positions = pd.concat(subsys_positions, axis=1).ffill()
+        subsys_positions.columns = instrument_list
+        instrument_weights = fix_weights_vs_pdm(raw_instr_weights, subsys_positions)
+        weighting=system.config.instrument_weight_ewma_span  
+        instrument_weights = pd.ewma(instrument_weights, weighting) 
         return instrument_weights
-
 
     def get_instrument_diversification_multiplier(self):
         def _get_instrument_div_multiplier(
@@ -144,28 +136,14 @@ class PortfoliosEstimated(PortfoliosFixed):
         div_mult_params=copy(system.config.instrument_div_mult_estimate)            
         idm_func=resolve_function(div_mult_params.pop("func"))            
         correlation_list_object=self.get_instrument_correlation_matrix()
-        weight_df=self.get_instrument_weights()
+        weight_df=self.get_instrument_weights(system)
+        print ("weight_df=" + str(weight_df))
         ts_idm=idm_func(correlation_list_object, weight_df, **div_mult_params)
         return ts_idm
         
     def get_raw_instrument_weights(self):
-
-        def _get_raw_instrument_weights(system, notUsed, this_stage):
-            print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" +"Getting raw instrument weights")
-
-            return this_stage.calculation_of_raw_instrument_weights().weights
-
-        raw_instrument_weights = self.parent.calc_or_cache(
-            'get_raw_instrument_weights',  ALL_KEYNAME,
-            _get_raw_instrument_weights,
-             self)
-                
-        return raw_instrument_weights
-
-        instrument_weights = self.parent.calc_or_cache(
-            'get_instrument_weights', ALL_KEYNAME, _get_instrument_weights, self)
-        return instrument_weights
-
+        return self.calculation_of_raw_instrument_weights().weights
+    
     def pandl_across_subsystems(self): 
         return self.parent.accounts.pandl_across_subsystems()
 
@@ -222,7 +200,7 @@ my_system.config.instrument_weight_estimate['method']="bootstrap"
 my_system.config.instrument_weight_estimate["monte_runs"]=1
 my_system.config.instrument_weight_estimate["bootstrap_length"]=250
 print(my_system.portfolio.get_instrument_diversification_multiplier(my_system))
-print (my_system.portfolio.get_instrument_weights())
+#print (my_system.portfolio.get_instrument_weights())
 
 # 10,250 weights=0.75,0.25 idm=1.26
 # 30,250 weights=0.75,0.25 
