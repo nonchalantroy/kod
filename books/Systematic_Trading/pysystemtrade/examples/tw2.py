@@ -215,17 +215,8 @@ def clean_weights(weights,  must_haves=None, fraction=0.5):
 def work_out_net(data_gross, data_costs, annualisation=BUSINESS_DAYS_IN_YEAR,   
                  equalise_gross=False, cost_multiplier=1.0,
                  period_target_SR=TARGET_ANN_SR/(BUSINESS_DAYS_IN_YEAR**.5)):
-    if equalise_gross:
-        target_vol=np.mean(data_gross.std().values) ## assumes all have same vol
-        target_mean=period_target_SR*(target_vol)
-        actual_period_mean=data_gross.mean().values
-        shifts = target_mean - actual_period_mean
-        shifts = np.array([list(shifts)]*len(data_gross.index))
-        shifts=pd.DataFrame(shifts, index=data_gross.index, columns=data_gross.columns)    
-        use_gross = data_gross + shifts    
-    else:
-        use_gross = data_gross    
-
+    
+    use_gross = data_gross    
     use_costs = data_costs * cost_multiplier 
     net = use_gross + use_costs ## costs are negative    
     return net
@@ -313,8 +304,7 @@ class optSinglePeriod(object):
     def __init__(self, parent, data, fit_period, optimiser, cleaning):
         if cleaning:
             current_period_data=data[fit_period.period_start:fit_period.period_end] 
-            must_haves=must_have_item(current_period_data)
-        
+            must_haves=must_have_item(current_period_data)        
         else:
             must_haves=None
         
@@ -334,7 +324,7 @@ class optSinglePeriod(object):
 
 class optimiserWithParams(object):
     def __init__(self, method, optimise_params, moments_estimator):
-        print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" + "optimiserWithParams")        
+        print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" + "optimiserWithParams") 
         opt_func=bootstrap_portfolio
         setattr(self, "opt_func", resolve_function(opt_func))        
         setattr(self, "params", optimise_params)        
