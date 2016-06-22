@@ -6,7 +6,6 @@ at zero before the calculation is done, to avoid dangerously inflating
 the multiplier.
 
 
-
 ```python
 import pandas as pd
 df = pd.read_csv('US20_SP500_returns.csv')
@@ -22,12 +21,24 @@ print df.tail()
 4870  2016-05-11  0.000358 -0.000303
 ```
 
-```python
 
+```python
+corrs = df.corr()
+corrs = corrs.clip(lower=0)
+print corrs
+
+#W = np.array([[0.38276063,  0.61723937]])
+W = np.array([[0.25,  0.75]])
+dm=1.0 / (float(np.dot(np.dot(W, corrs), W.transpose()))) **.5
+print dm
 ```
 
-
-
+```text
+           US20     SP500
+US20   1.000000  0.052576
+SP500  0.052576  1.000000
+1.24541983886
+```
 
 
 
