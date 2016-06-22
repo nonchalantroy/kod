@@ -112,7 +112,7 @@ def calc_ewmac_forecast(price,slow,fast):
 if __name__ == "__main__": 
  
     random.seed(0)
-    base = "../sysdata/legacycsv"
+    base = "../pysystemtrade/sysdata/legacycsv"
     df = pd.read_csv('%s/SP500_price.csv' % base, index_col=0,parse_dates=True )
     df['x'] = pd.read_csv('%s/US20_price.csv' % base, index_col=0,parse_dates=True )
     df.columns = ['SP500','US20']
