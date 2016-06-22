@@ -112,10 +112,9 @@ def calc_ewmac_forecast(price,slow,fast):
 if __name__ == "__main__": 
  
     random.seed(0)
-    base = "c:/Users/burak/Documents/quant_at/alg"
-    with zipfile.ZipFile('%s/legacycsv.zip' % base, 'r') as z:
-         df = pd.read_csv(z.open('SP500_price.csv'), index_col=0,parse_dates=True )
-         df['x'] = pd.read_csv(z.open('US20_price.csv'), index_col=0,parse_dates=True )
+    base = "../sysdata/legacycsv"
+    df = pd.read_csv('%s/SP500_price.csv' % base, index_col=0,parse_dates=True )
+    df['x'] = pd.read_csv('%s/US20_price.csv' % base, index_col=0,parse_dates=True )
     df.columns = ['SP500','US20']
     
     forecast = df.copy()
