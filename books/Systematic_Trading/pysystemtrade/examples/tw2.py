@@ -250,8 +250,6 @@ def bootstrap_portfolio(subset_data, moments_estimator,cleaning,must_haves,
 def markosolver(period_subset_data,moments_estimator,cleaning,must_haves,
                 equalise_SR=False, equalise_vols=True,**ignored_args): 
 
-    print ("equalise_SR=" + str(equalise_SR))
-    print ("equalise_vols=" + str(equalise_vols))
     print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" + "markosolver")
     
     rawmoments=moments_estimator.moments(period_subset_data)    
@@ -374,12 +372,6 @@ class GenericOptimiser(object):
         setattr(self, "rollyears", rollyears)
         setattr(self, "cleaning", cleaning)
         setattr(self, "apply_cost_weight", apply_cost_weight)
-
-    def need_data(self):
-        if self.method=="equal_weights":
-            return False
-        else:
-            return True
 
     def set_up_data(self, data_gross=None, data_costs=None, weight_matrix=None):
         if weight_matrix is not None:
