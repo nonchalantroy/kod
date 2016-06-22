@@ -63,7 +63,11 @@ def generate_fitting_dates(data, rollyears):
 
     return periods
 
-def bootstrap_portfolio(returns_to_bs, monte_carlo, monte_length, default_vol, default_SR):
+def bootstrap_portfolio(returns_to_bs,
+                        monte_carlo,
+                        monte_length,
+                        default_vol,
+                        default_SR):
             
     weightlist=[]
     for unused_index in range(monte_carlo):
@@ -75,10 +79,7 @@ def bootstrap_portfolio(returns_to_bs, monte_carlo, monte_length, default_vol, d
     theweights_mean=list(np.mean(weightlist, axis=0))
     return theweights_mean
 
-def optimise_over_periods(data,
-                          rollyears=20, 
-                          monte_carlo=100,
-                          monte_length=250):
+def optimise_over_periods(data,rollyears, monte_carlo,monte_length):
 
     fit_periods=generate_fitting_dates(data, rollyears=rollyears)    
     weight_list=[]
@@ -131,11 +132,13 @@ if __name__ == "__main__":
     forecast['SP500'] = forecast['SP500'] / forecast['SP500'].mean() * 10
     forecast.loc[forecast.US20 > 20, 'US20'] = 20.
     forecast.loc[forecast.SP500 > 20, 'SP500'] = 20.
+    forecast.loc[forecast.US20 < -20, 'US20'] = -20.
+    forecast.loc[forecast.SP500 < -20, 'SP500'] = -20.
 
-    df['US20'] = df['US20'].pct_change() * forecast.shift(1).US20 / 10
-    df['SP500'] = df['SP500'].pct_change() * forecast.shift(1).SP500 / 10
+    df['US20'] = df['US20'].pct_change() * forecast.shift(1).US20 / 10.
+    df['SP500'] = df['SP500'].pct_change() * forecast.shift(1).SP500 / 10.
     df = df[['US20','SP500']]
 
-    mat1=optimise_over_periods(df)
+    mat1=optimise_over_periods(df,rollyears=20, monte_carlo=50,monte_length=250)
     mat1.plot()
     plt.show()
