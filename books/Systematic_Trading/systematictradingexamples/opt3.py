@@ -77,7 +77,7 @@ def bootstrap_portfolio(returns_to_bs, monte_carlo, monte_length, default_vol, d
 
 def optimise_over_periods(data,
                           rollyears=20, 
-                          monte_carlo=40,
+                          monte_carlo=100,
                           monte_length=250):
 
     fit_periods=generate_fitting_dates(data, rollyears=rollyears)    
@@ -100,12 +100,6 @@ def optimise_over_periods(data,
     weight_df=pd.concat(weight_list, axis=0)    
     return weight_df
 
-base = "c:/Users/burak/Documents/quant_at/alg"
-with zipfile.ZipFile('%s/legacycsv.zip' % base, 'r') as z:
-     df = pd.read_csv(z.open('SP500_price.csv'), index_col=0,parse_dates=True )
-     df['x'] = pd.read_csv(z.open('US20_price.csv'), index_col=0,parse_dates=True )
-df.columns = ['SP500','US20']
-df = df.sort_index()
 
 def calc_ewmac_forecast(price,slow,fast):
     vol = util.robust_vol_calc(price.diff())
@@ -113,17 +107,35 @@ def calc_ewmac_forecast(price,slow,fast):
     slow_ewma = pd.ewma(price, span=fast)
     raw_ewmac = fast_ewma - slow_ewma
     return raw_ewmac /  vol 
+
+if __name__ == "__main__": 
+ 
+    random.seed(0)
+    base = "c:/Users/burak/Documents/quant_at/alg"
+    with zipfile.ZipFile('%s/legacycsv.zip' % base, 'r') as z:
+         df = pd.read_csv(z.open('SP500_price.csv'), index_col=0,parse_dates=True )
+         df['x'] = pd.read_csv(z.open('US20_price.csv'), index_col=0,parse_dates=True )
+    df.columns = ['SP500','US20']
     
-df['US20_ewmac8_32'] = calc_ewmac_forecast(df['US20'], 8, 32)
-df['US20_ewmac32_128'] = calc_ewmac_forecast(df['US20'], 8, 32)
-df['SP500_ewmac8_32'] = calc_ewmac_forecast(df['SP500'], 32, 128)
-df['SP500_ewmac32_128'] = calc_ewmac_forecast(df['SP500'], 32, 128)
-df['US20'] = (df['US20_ewmac8_32'] + df['US20_ewmac32_128']) / 2
-df['SP500'] = (df['SP500_ewmac8_32'] + df['SP500_ewmac32_128']) / 2
-df = df[['SP500','US20']]
+    forecast = df.copy()
+    df = df.sort_index()
 
-random.seed(0)
+    df['US20_ewmac8_32'] = calc_ewmac_forecast(df['US20'], 8, 32)
+    df['US20_ewmac32_128'] = calc_ewmac_forecast(df['US20'], 8, 32)
+    df['SP500_ewmac8_32'] = calc_ewmac_forecast(df['SP500'], 32, 128)
+    df['SP500_ewmac32_128'] = calc_ewmac_forecast(df['SP500'], 32, 128)
 
-mat1=optimise_over_periods(df)
-mat1.plot()
-plt.show()
+    forecast['US20'] = (df['US20_ewmac8_32'] + df['US20_ewmac32_128']) / 2
+    forecast['SP500'] = (df['SP500_ewmac8_32'] + df['SP500_ewmac32_128']) / 2
+    forecast['US20'] = forecast['US20'] / forecast['US20'].mean() * 10
+    forecast['SP500'] = forecast['SP500'] / forecast['SP500'].mean() * 10
+    forecast.loc[forecast.US20 > 20, 'US20'] = 20.
+    forecast.loc[forecast.SP500 > 20, 'SP500'] = 20.
+
+    df['US20'] = df['US20'].pct_change() * forecast.shift(1).US20 / 10
+    df['SP500'] = df['SP500'].pct_change() * forecast.shift(1).SP500 / 10
+    df = df[['US20','SP500']]
+
+    mat1=optimise_over_periods(df)
+    mat1.plot()
+    plt.show()
