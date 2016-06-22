@@ -127,8 +127,14 @@ if __name__ == "__main__":
 
     forecast['US20'] = (df['US20_ewmac8_32'] + df['US20_ewmac32_128']) / 2
     forecast['SP500'] = (df['SP500_ewmac8_32'] + df['SP500_ewmac32_128']) / 2
-    forecast['US20'] = forecast['US20'] / forecast['US20'].mean() * 10
-    forecast['SP500'] = forecast['SP500'] / forecast['SP500'].mean() * 10
+    print ("forecast['US20'].mean()=" + str(forecast['US20'].mean()))
+    print ("forecast['SP500'].mean()=" + str(forecast['SP500'].mean()))
+
+    ewmac8_32_scalar = 10.6
+    ewmac8_32_scalar = 2.65
+    
+    forecast['US20'] = forecast['US20'] * ewmac8_32_scalar /10. # pg. 321
+    forecast['SP500'] = forecast['SP500'] * ewmac8_32_scalar/10.
     forecast.loc[forecast.US20 > 20, 'US20'] = 20.
     forecast.loc[forecast.SP500 > 20, 'SP500'] = 20.
     forecast.loc[forecast.US20 < -20, 'US20'] = -20.
