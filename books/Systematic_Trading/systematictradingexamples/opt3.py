@@ -63,11 +63,7 @@ def generate_fitting_dates(data, rollyears):
 
     return periods
 
-def bootstrap_portfolio(returns_to_bs,
-                        monte_carlo,
-                        monte_length,
-                        default_vol,
-                        default_SR):
+def bootstrap_portfolio(returns_to_bs,monte_carlo,monte_length,default_vol,default_SR):
             
     weightlist=[]
     for unused_index in range(monte_carlo):
@@ -120,21 +116,21 @@ if __name__ == "__main__":
     forecast = df.copy()
     df = df.sort_index()
 
-    df['US20_ewmac8_32'] = calc_ewmac_forecast(df['US20'], 8, 32)
-    df['US20_ewmac32_128'] = calc_ewmac_forecast(df['US20'], 8, 32)
-    df['SP500_ewmac8_32'] = calc_ewmac_forecast(df['SP500'], 32, 128)
-    df['SP500_ewmac32_128'] = calc_ewmac_forecast(df['SP500'], 32, 128)
+    print ("forecast['US20'].mean()=" + str(forecast['US20'].mean()))
+    print ("forecast['SP500'].mean()=" + str(forecast['SP500'].mean()))
+    ewmac8_32_scalar = 10.6 # pg. 321
+    ewmac32_128_scalar = 2.65
+
+    df['US20_ewmac8_32'] = calc_ewmac_forecast(df['US20'], 8, 32) * ewmac8_32_scalar /10. 
+    df['US20_ewmac32_128'] = calc_ewmac_forecast(df['US20'], 8, 32) * ewmac8_32_scalar /10. 
+    df['SP500_ewmac8_32'] = calc_ewmac_forecast(df['SP500'], 32, 128) * ewmac32_128_scalar/10.
+    df['SP500_ewmac32_128'] = calc_ewmac_forecast(df['SP500'], 32, 128) * ewmac32_128_scalar/10.
 
     forecast['US20'] = (df['US20_ewmac8_32'] + df['US20_ewmac32_128']) / 2
     forecast['SP500'] = (df['SP500_ewmac8_32'] + df['SP500_ewmac32_128']) / 2
-    print ("forecast['US20'].mean()=" + str(forecast['US20'].mean()))
-    print ("forecast['SP500'].mean()=" + str(forecast['SP500'].mean()))
-
-    ewmac8_32_scalar = 10.6
-    ewmac8_32_scalar = 2.65
     
-    forecast['US20'] = forecast['US20'] * ewmac8_32_scalar /10. # pg. 321
-    forecast['SP500'] = forecast['SP500'] * ewmac8_32_scalar/10.
+    forecast['US20'] = forecast['US20'] 
+    forecast['SP500'] = forecast['SP500']
     forecast.loc[forecast.US20 > 20, 'US20'] = 20.
     forecast.loc[forecast.SP500 > 20, 'SP500'] = 20.
     forecast.loc[forecast.US20 < -20, 'US20'] = -20.
