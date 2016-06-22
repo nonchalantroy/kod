@@ -100,21 +100,22 @@ def optimise_over_periods(data,
     weight_df=pd.concat(weight_list, axis=0)    
     return weight_df
 
+if __name__ == "__main__": 
+ 
 base = "../pysystemtrade/sysdata/legacycsv"
-df =  pd.read_csv('%s/SP500_price.csv' % base,sep=',',index_col=0,parse_dates=True)
-df['NASDAQ'] =  pd.read_csv('%s/NASDAQ_price.csv' % base,sep=',',index_col=0,parse_dates=True)
-df['US20'] =  pd.read_csv('%s/US20_price.csv' % base,sep=',',index_col=0,parse_dates=True)
+    random.seed(0)
 
-df.columns = ['SP500','NASDAQ','US20']
+    df =  pd.read_csv('%s/SP500_price.csv' % base,sep=',',index_col=0,parse_dates=True)
+    df['NASDAQ'] =  pd.read_csv('%s/NASDAQ_price.csv' % base,sep=',',index_col=0,parse_dates=True)
+    df['US20'] =  pd.read_csv('%s/US20_price.csv' % base,sep=',',index_col=0,parse_dates=True)
+    df.columns = ['SP500','NASDAQ','US20']
 
-df['SP500'] = df.SP500.pct_change()
-df['NASDAQ'] = df.NASDAQ.pct_change()
-df['US20'] = df.US20.pct_change()
+    df['SP500'] = df.SP500.pct_change()
+    df['NASDAQ'] = df.NASDAQ.pct_change()
+    df['US20'] = df.US20.pct_change()
 
-df = df[(df.index >= '1999-08-02') & (df.index <= '2015-04-22')]
+    df = df[(df.index >= '1999-08-02') & (df.index <= '2015-04-22')]
 
-random.seed(0)
-
-mat1=optimise_over_periods(df)
-mat1.plot()
-plt.show()
+    mat1=optimise_over_periods(df)
+    mat1.plot()
+    plt.show()
