@@ -116,8 +116,6 @@ if __name__ == "__main__":
     forecast = df.copy()
     df = df.sort_index()
 
-    print ("forecast['US20'].mean()=" + str(forecast['US20'].mean()))
-    print ("forecast['SP500'].mean()=" + str(forecast['SP500'].mean()))
     ewmac8_32_scalar = 10.6 # pg. 321
     ewmac32_128_scalar = 2.65
 
@@ -139,7 +137,11 @@ if __name__ == "__main__":
     df['US20'] = df['US20'].pct_change() * forecast.shift(1).US20 / 10.
     df['SP500'] = df['SP500'].pct_change() * forecast.shift(1).SP500 / 10.
     df = df[['US20','SP500']]
+    #df.to_csv('US20_SP500_returns.csv') # 0.38276063  0.61723937
+    
+    weights=optimise_over_periods(df,rollyears=20, monte_carlo=50,monte_length=250)
 
-    mat1=optimise_over_periods(df,rollyears=20, monte_carlo=50,monte_length=250)
-    mat1.plot()
-    plt.show()
+    print np.array(weights.tail(1))
+    
+    #weights.plot()
+    #plt.show()
