@@ -52,6 +52,7 @@ dir = os.environ['TEMP']
 template_formula = """
 \\documentclass[preview]{standalone}
 \\usepackage{palatino,eulervm}
+\usepackage{cancel}
 \\newcommand*\mlabel[1]{\\qquad (#1)}
 \\usepackage{amsfonts}
 \\begin{document} %s \\end{document}

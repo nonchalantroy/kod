@@ -603,7 +603,7 @@ This command does not push erased text to kill-ring."
  '("\$$ \n \\begin{array}{lll}\n "   (s)   "\n\\end{array}" "$$"  ) "")
 
 (tempo-define-template  "new-equation-page"	
- '("\\documentclass[12pt,fleqn]{article}\\usepackage{../common}\n"
+ '("\\documentclass[12pt,fleqn]{article}\\usepackage{../../common}\n"
    "\\begin{document}\n"   (s)   "\n\\end{document}\n"   )          "")
 
 (tempo-define-template  "python-main" 

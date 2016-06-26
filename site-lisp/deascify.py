@@ -35,7 +35,7 @@ def convert():
               ("kontur",),("ODE",),("Oklit",u'Öklit'),("karekok",u'karekök'),
               ("kismi", u'kısmi'),("integral",),("oldugu",u'olduğu'),
               ("acilimi",u'açılımı'),("acilim",u'açılım'),("aci",u'açı'),
-              ("minimize",),("gayri",u'olduğu'),("Pandas",),("algoritma",),
+              ("minimize",),("gayri",u'gayrı'),("Pandas",),("algoritma",),
               ("gayri",u'gayrı'),("sigma",),("volatility",)]
               
     r_list_coded = []

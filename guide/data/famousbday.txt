@@ -39679,3 +39679,5 @@ Egemen Bagis:Politician:23/4/1970
 Fatih Terim:Antrenor:14/9/1953
 Arda Turan:Futbolcu:30/1/1987
 Fehmi Koru:Columnist:25/7/1950
+Nick Clegg:Politician:7/1/1967
+Yasar Nuri Ozturk:Cleric:22/6/1945
