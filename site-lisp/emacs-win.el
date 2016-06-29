@@ -256,6 +256,7 @@ This command does not push erased text to kill-ring."
    ["Html Code" tempo-template-cdata]
    ["Python Main" tempo-template-python-main]
    ["Pandas" tempo-template-pandas]
+   ["All Imports" tempo-template-pyall]
    ["Regression" tempo-template-reg]
    ["Tex Minted Python (File)" tempo-template-tex-listings-python-file]
    ["Tex Minted Python" tempo-template-tex-listings-python]
@@ -568,6 +569,9 @@ This command does not push erased text to kill-ring."
 (tempo-define-template  "pandas"
  '("import pandas as pd\n\n" "df = pd.read_csv('" (s) "')") "d"     "") 
 
+(tempo-define-template  "pyall"
+ '("import pandas as pd\nimport numpy as np\nimport matplotlib.pyplot as plt\n\n" (s) ) "")
+ 
 (tempo-define-template  "reg"
  '("import statsmodels.formula.api as smf\n" "results = smf.ols('"
   (s) "', data=df).fit()\n" "print results.summary()") "d"  "") 
