@@ -82,7 +82,10 @@ if __name__ == "__main__":
         
     if len(sys.argv) != 2: print "Usage: rndplay.py [base directory]"; exit()
     base_dir = sys.argv[1]
-    files = glob.glob(base_dir + '/*.mp3')
+    files1 = glob.glob(base_dir + '/*.mp3')
+    files2 = glob.glob(base_dir + '/*.flac')
+    files = files1 + files2
+    print len(files), 'files'
     fout = open("%s/%s" % (os.environ['TEMP'],logfile), "a")
     while (True):
         seed = random.choice(range(1000))
