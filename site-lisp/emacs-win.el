@@ -87,6 +87,7 @@ This command does not push erased text to kill-ring."
   (my-delete-word (- arg)))
 
 
+(modify-coding-system-alist 'file "*compilation*" 'utf-8)
 (modify-coding-system-alist 'file "\\.pl\\'" 'latin-5)
 (modify-coding-system-alist 'file "\\.tex\\'" 'latin-5)
 (modify-coding-system-alist 'file "\\.htm\\'" 'utf-8)
