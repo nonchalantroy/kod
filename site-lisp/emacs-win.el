@@ -230,6 +230,7 @@ This command does not push erased text to kill-ring."
    ["Git Show Older Version" githist-do-show-version]
    ["Use Python 3" use-python-3]   
    ["Repeat Last Command..." repeat-complex-command]   
+   ["News..." news-show]   
    ))
 (easy-menu-add my-jde-mode-menu)
 
@@ -819,6 +820,7 @@ This command does not push erased text to kill-ring."
 
 (pymacs-load "c:/Users/burak/Documents/kod/site-lisp/peval")
 (pymacs-load "c:/Users/burak/Documents/kod/site-lisp/deascify")
+(pymacs-load "c:/Users/burak/Documents/kod/site-lisp/news")
 (global-set-key "\M-," 'peval-pexec)
 (global-unset-key "\M-]")
 (global-set-key "\C-x\]" 'deascify-convert)
