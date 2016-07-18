@@ -10,10 +10,10 @@ if sys.argv[1] == "d":
     os.system("python rsync.py c:\\Users\\burak\\Documents\\quant_at D:\\archive\\quant_at --delete")
 
 if sys.argv[1] == "e":
-    os.system("python rsync.py c:\\Users\\burak\\Documents\\classnotes E:\\classnotes --delete")
-    os.system("python rsync.py c:\\Users\\burak\\Documents\\kod E:\\kod --delete")
-    os.system("python rsync.py c:\\Users\\burak\\Documents\\book_idx E:\\book_idx --delete")
-    os.system("python rsync.py c:\\Users\\burak\\Documents\\quant_at E:\\quant_at --delete")
+    os.system("python rsync.py c:\\Users\\burak\\Documents\\classnotes d:\\classnotes --delete")
+    os.system("python rsync.py c:\\Users\\burak\\Documents\\kod d:\\kod --delete")
+    os.system("python rsync.py c:\\Users\\burak\\Documents\\book_idx d:\\book_idx --delete")
+    os.system("python rsync.py c:\\Users\\burak\\Documents\\quant_at d:\\quant_at --delete")
     
 if sys.argv[1] == "ed":
     os.system("python rsync.py E:\\kitaplar D:\\archive\\kitaplar")

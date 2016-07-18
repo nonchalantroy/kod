@@ -1,16 +1,14 @@
 import inspect
-import inspect
 import logging
 import sys; sys.path.append('../..')
 from matplotlib.pyplot import show, title
 
 from systems.provided.futures_chapter15.estimatedsystem import futures_system
-
 system=futures_system()
-
 #system.forecastScaleCap.get_scaled_forecast("EDOLLAR", "ewmac64_256").plot()
-res=system.rules.get_raw_forecast("EDOLLAR", "ewmac2_8").dropna().head(5)
-print (res)
+res=system.rules.get_raw_forecast("CRUDE_W", "carry")
+res.to_csv("out.csv")
+print (res.head(5))
 
 #            ewmac2_8
 #1983-10-10  0.695929

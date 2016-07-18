@@ -23,22 +23,26 @@
 
 (defun move-back-one-char ()  
   (interactive)                  
-  (backward-char 1)              
+  (backward-char 1)
+  (backward-delete-char)
   )
 
 (defun move-back-three-chars ()  
   (interactive)                  
   (backward-char 3)              
+  (backward-delete-char)
   )
 
 (defun move-back-four-chars ()  
   (interactive)                  
   (backward-char 4)              
+  (backward-delete-char)
   )
 
 (defun move-back-seven-chars ()  
   (interactive)                  
   (backward-char 7)              
+  (backward-delete-char)
   )
 
 ;; set name of abbrev file with .el extension
