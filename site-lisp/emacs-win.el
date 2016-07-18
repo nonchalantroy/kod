@@ -234,9 +234,17 @@ This command does not push erased text to kill-ring."
    ["Git Show Older Version" githist-do-show-version]
    ["Use Python 3" use-python-3]   
    ["Repeat Last Command..." repeat-complex-command]   
-   ["News..." news-show]   
+   ["News..." news-retrieve]   
    ))
 (easy-menu-add my-jde-mode-menu)
+
+(defun news-retrieve()
+  (interactive)
+  (compile "python c:/Users/burak/Documents/kod/news.py")
+  (delete-other-windows)
+  (switch-to-buffer "*compilation*")
+  (org-mode)
+  )
 
 ;;
 ;; bu bir ziplama fonksiyonu cunku tempo-template-tex-itemize
