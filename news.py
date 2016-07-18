@@ -14,14 +14,16 @@ feeds = [
     ("Al-Jazeera","http://aljazeera.com.tr/rss.xml"),
     ("Acik Gazete","https://www.acikgazete.com/feed/"),
     ("Diken","http://www.diken.com.tr/feed/"),
-    ("T24","https://twitrss.me/twitter_user_to_rss/?user=t24comtr"),
-    ("Fuat Avni","https://twitrss.me/twitter_user_to_rss/?user=fuatavni_f")
+    ("T24","https://twitrss.me/twitter_user_to_rss/?user=t24comtr")
 ]
 
      
 def show():
     sys.stdout = codecs.getwriter('utf8')(sys.stdout)
     sys.stderr = codecs.getwriter('utf8')(sys.stderr)
+
+    if len(sys.argv) == 2 and sys.argv[1] == "x":
+        feeds.append(("Fuat Avni","https://twitrss.me/twitter_user_to_rss/?user=fuatavni_f"))
     
     for feed in feeds:
         print("\n")
@@ -29,8 +31,9 @@ def show():
         print("\n")
         d = feedparser.parse(feed[1])
         for post in d.entries:
-            if len(re.findall(r"Erdo.an", repr(post.title))) > 0: continue
-            print("[[%s][%s]]" % (post.link, post.title))
+            link = post.link; title = post.title
+            if len(re.findall(r"Erdo.an", title)) > 0: continue
+            print("[[%s][%s]]" % (link,title))
 
 
 show()            
