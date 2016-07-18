@@ -56,7 +56,8 @@ def ewmac(price, vol, Lfast, Lslow):
 
 def carry(daily_ann_roll, vol, smooth_days=90):
     """
-    Calculate raw carry forecast, given annualised roll and volatility series (which must match)
+    Calculate raw carry forecast, given annualised roll and volatility
+    series (which must match)
 
     Assumes that everything is daily data
 
@@ -75,6 +76,7 @@ def carry(daily_ann_roll, vol, smooth_days=90):
     2015-12-10    0.411686
     2015-12-11    0.411686
     Freq: B, dtype: float64
+
     """
 
     ann_stdev = vol * ROOT_BDAYS_INYEAR

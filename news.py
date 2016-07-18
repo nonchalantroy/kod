@@ -10,6 +10,7 @@ feeds = [
     ("Reuters (World)",'http://feeds.reuters.com/reuters/worldNews'),
     ("Reuters (Business)", "http://feeds.reuters.com/reuters/businessNews"),
     ("Reuters (Economy)", "http://feeds.reuters.com/news/economy"),
+    ("Bloomberg","https://twitrss.me/twitter_user_to_rss/?user=business"),
     ('BBC','http://newsrss.bbc.co.uk/rss/newsonline_world_edition/front_page/rss.xml'),
     ('Huffington Post','http://www.huffingtonpost.com/feeds/verticals/world/index.xml'),
     ("The Guardian","http://www.theguardian.com/world/rss"),
@@ -27,7 +28,7 @@ def show():
     sys.stderr = codecs.getwriter('utf8')(sys.stderr)
 
     if len(sys.argv) == 2 and sys.argv[1] == "x":
-        feeds.append(("Fuat Avni","https://twitrss.me/twitter_user_to_rss/?user=fuatavni_f"))
+        feeds = [("Fuat Avni","https://twitrss.me/twitter_user_to_rss/?user=fuatavni_f")]
     
     for feed in feeds:
         print("\n")
