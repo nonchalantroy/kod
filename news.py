@@ -13,7 +13,9 @@ feeds = [
     ("Hurriyet", "http://www.hurriyet.com.tr/rss/gundem"),
     ("Al-Jazeera","http://aljazeera.com.tr/rss.xml"),
     ("Acik Gazete","https://www.acikgazete.com/feed/"),
-    ("Diken","http://www.diken.com.tr/feed/")
+    ("Diken","http://www.diken.com.tr/feed/"),
+    ("T24","https://twitrss.me/twitter_user_to_rss/?user=t24comtr"),
+    ("Fuat Avni","https://twitrss.me/twitter_user_to_rss/?user=fuatavni_f")
 ]
 
      
