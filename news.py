@@ -10,7 +10,10 @@ feeds = [
     ('BBC','http://newsrss.bbc.co.uk/rss/newsonline_world_edition/front_page/rss.xml'),
     ('Huffington Post','http://www.huffingtonpost.com/feeds/verticals/world/index.xml'),
     ("The Guardian","http://www.theguardian.com/world/rss"),
-    ("Hurriyet", "http://www.hurriyet.com.tr/rss/gundem")
+    ("Hurriyet", "http://www.hurriyet.com.tr/rss/gundem"),
+    ("Al-Jazeera","http://aljazeera.com.tr/rss.xml"),
+    ("Acik Gazete","https://www.acikgazete.com/feed/"),
+    ("Diken","http://www.diken.com.tr/feed/")
 ]
 
      
