@@ -23,7 +23,7 @@ def show():
         ("Diken","http://www.diken.com.tr/feed/"),
         ("T24","https://twitrss.me/twitter_user_to_rss/?user=t24comtr")
     ]
-
+    
     sys.stdout = codecs.getwriter('utf8')(sys.stdout)
     sys.stderr = codecs.getwriter('utf8')(sys.stderr)
 
@@ -38,7 +38,8 @@ def show():
         for post in d.entries:
             link = post.link; title = post.title
             if len(re.findall(r"Erdo.an", title)) > 0: continue
-            print("[[%s][%s]]" % (link,title))
+            #print("[[%s][%s]]" % (link,title))
+            print("[[%s][%s]]" % (link,unicode(title)))
 
 
 show()            
