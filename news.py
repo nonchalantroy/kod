@@ -13,17 +13,17 @@ def show():
     feeds = [("The Guardian","http://www.theguardian.com/world/rss"),
              ("Diken","http://www.diken.com.tr/feed/"),
              ("Cumhuriyet","http://www.cumhuriyet.com.tr/rss/son_dakika.xml"),
-             ("Hurriyet", "http://www.hurriyet.com.tr/rss/gundem"),
+             (u"Hürriyet", "http://www.hurriyet.com.tr/rss/gundem"),
              ("Al-Jazeera","http://aljazeera.com.tr/rss.xml"),
-             ("Acik Gazete","https://www.acikgazete.com/feed/"),
+             (u"Açık Gazete","https://www.acikgazete.com/feed/"),
              ("T24","https://twitrss.me/twitter_user_to_rss/?user=t24comtr"),
              ("Reuters (Top News)",'http://feeds.reuters.com/reuters/topNews'),
              ("Reuters (World)",'http://feeds.reuters.com/reuters/worldNews'),
              ("Reuters (Business)", "http://feeds.reuters.com/reuters/businessNews"),
-             ("Reuters (Economy)", "http://feeds.reuters.com/news/economy"),
              ("Bloomberg","https://twitrss.me/twitter_user_to_rss/?user=business"),
              ('Huffington Post','http://www.huffingtonpost.com/feeds/verticals/world/index.xml'),
-             ('BBC','http://newsrss.bbc.co.uk/rss/newsonline_world_edition/front_page/rss.xml')
+             ('BBC','http://newsrss.bbc.co.uk/rss/newsonline_world_edition/front_page/rss.xml'),
+             ("Sputnik News","http://tr.sputniknews.com/export/rss2/archive/index.xml")
     ]
 
     if len(sys.argv) == 2 and sys.argv[1] == "x":
