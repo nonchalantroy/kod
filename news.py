@@ -23,7 +23,9 @@ def show():
              ("Bloomberg","https://twitrss.me/twitter_user_to_rss/?user=business"),
              ('Huffington Post','http://www.huffingtonpost.com/feeds/verticals/world/index.xml'),
              ('BBC','http://newsrss.bbc.co.uk/rss/newsonline_world_edition/front_page/rss.xml'),
-             ("Sputnik News","http://tr.sputniknews.com/export/rss2/archive/index.xml")
+             ("Sputnik News","http://tr.sputniknews.com/export/rss2/archive/index.xml"),
+             ("EB","https://twitrss.me/twitter_user_to_rss/?user=ebabahan"),
+             ("Akyol","https://twitrss.me/twitter_user_to_rss/?user=akyolmustafa")             
     ]
 
     if len(sys.argv) == 2 and sys.argv[1] == "x":

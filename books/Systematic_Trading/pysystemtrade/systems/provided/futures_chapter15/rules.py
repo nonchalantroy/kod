@@ -78,6 +78,7 @@ def carry(daily_ann_roll, vol, smooth_days=90):
     Freq: B, dtype: float64
 
     """
+    print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" +"inside carry")
 
     ann_stdev = vol * ROOT_BDAYS_INYEAR
     raw_carry = daily_ann_roll / ann_stdev

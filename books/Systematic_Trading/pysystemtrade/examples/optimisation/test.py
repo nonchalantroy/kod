@@ -1,5 +1,6 @@
 import inspect
 import logging
+import pandas as pd
 import sys; sys.path.append('../..')
 from matplotlib.pyplot import show, title
 
@@ -10,11 +11,11 @@ res=system.rules.get_raw_forecast("CRUDE_W", "carry")
 res.to_csv("out.csv")
 print (res.head(5))
 
-#            ewmac2_8
-#1983-10-10  0.695929
-#1983-10-11 -0.604704
-#1983-10-12 -0.536305
-#1983-10-13 -0.737899
-#1983-10-14 -0.242641
+    
+f = '../../sysdata/legacycsv/CRUDE_W_price.csv'
+df = pd.read_csv(f,index_col=0,parse_dates=True)
+from syscore.accounting import accountCurve
+account = accountCurve(df.PRICE, forecast=res)
+tmp = account.percent()
+print(tmp.stats())
 
-#show()
