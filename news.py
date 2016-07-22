@@ -28,7 +28,7 @@ def show():
              ("EB","https://twitrss.me/twitter_user_to_rss/?user=ebabahan",-1),
              ("Fuat Avni","https://twitrss.me/twitter_user_to_rss/?user=fuatavni_f",-1)
     ]
-
+    
     for name,url,lim in feeds:
         print("\n")
         print("## " + name)
@@ -38,6 +38,6 @@ def show():
             link = post.link; title = post.title
             if len(re.findall(r"Erdo.an", title)) > 0: continue
             print("[[%s][%s]]" % (link,unicode(title)))
-            if lim > 0 and i==lim: break
-
-show()            
+            if lim > 0 and i==int(lim):
+                break
+show()
