@@ -8,6 +8,24 @@ import re, time, os
 sys.stdout = codecs.getwriter('utf8')(sys.stdout)
 sys.stderr = codecs.getwriter('utf8')(sys.stderr)
 
+import base64
+def encode(key, clear):
+    enc = []
+    for i in range(len(clear)):
+        key_c = key[i % len(key)]
+        enc_c = chr((ord(clear[i]) + ord(key_c)) % 256)
+        enc.append(enc_c)
+    return base64.urlsafe_b64encode("".join(enc))
+
+def decode(key, enc):
+    dec = []
+    enc = base64.urlsafe_b64decode(enc)
+    for i in range(len(enc)):
+        key_c = key[i % len(key)]
+        dec_c = chr((256 + ord(enc[i]) - ord(key_c)) % 256)
+        dec.append(dec_c)
+    return "".join(dec)
+
 def show():
 
     feeds = [("The Guardian","http://www.theguardian.com/world/rss",10),
@@ -26,9 +44,12 @@ def show():
              ('BBC','http://newsrss.bbc.co.uk/rss/newsonline_world_edition/front_page/rss.xml',20),
              ("Sputnik News","http://tr.sputniknews.com/export/rss2/archive/index.xml",15),
              ("EB","https://twitrss.me/twitter_user_to_rss/?user=ebabahan",-1),
-             ("Fuat Avni","https://twitrss.me/twitter_user_to_rss/?user=fuatavni_f",-1)
+             ("Fuat Avni","https://twitrss.me/twitter_user_to_rss/?user=fuatavni_f",-1),
+             ("Taraf","http://www.taraf.com.tr/feed",-1),
+             ("O",decode('1234', "maanpGthYqOVk6eqX5WioWCkpqdfopuk"),-1),
+             ("A", decode('1234', "maanpGthYpWfmJSekqCmYpShoGOjpaY="),-1)
     ]
-    
+
     for name,url,lim in feeds:
         print("\n")
         print("## " + name)
