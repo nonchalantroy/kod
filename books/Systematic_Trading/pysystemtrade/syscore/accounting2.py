@@ -28,6 +28,5 @@ def skew(price, forecast):
     price_returns = price.diff()
     instr_ccy_returns = cum_trades.shift(1)* price_returns 
     instr_ccy_returns=instr_ccy_returns.cumsum().ffill().reindex(price.index).diff()
-    base_ccy_returns = instr_ccy_returns * use_fx        
-    pct = 100.0 * base_ccy_returns / base_capital
+    pct = 100.0 * instr_ccy_returns / base_capital
     return scipy.stats.skew(pct[pd.isnull(pct) == False])
