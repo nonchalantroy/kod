@@ -1,4 +1,5 @@
 import inspect
+import pandas as pd, random, numpy as np
 from copy import copy, deepcopy
 from pandas.tseries.offsets import BDay
 from scipy.stats import skew, ttest_rel, ttest_1samp
@@ -7,9 +8,6 @@ from syscore.pdutils import  drawdown
 from syscore.dateutils import BUSINESS_DAYS_IN_YEAR, ROOT_BDAYS_INYEAR, WEEKS_IN_YEAR, ROOT_WEEKS_IN_YEAR
 from syscore.dateutils import MONTHS_IN_YEAR, ROOT_MONTHS_IN_YEAR
 import scipy.stats as stats
-import pandas as pd
-import random
-import numpy as np
 
 DEFAULT_CAPITAL = 10000000.0
 DEFAULT_ANN_RISK_TARGET = 0.16
@@ -97,7 +95,6 @@ class accountCurveSingleElementOneFreq(pd.Series):
         return 100.0 * self.as_ts() / self.capital
 
     def curve(self):
-        # we cache this since it's used so much
         if hasattr(self, "_curve"):
             return self._curve
         else:
@@ -114,16 +111,10 @@ class accountCurveSingleElement(accountCurveSingleElementOneFreq):
         daily_returns = returns_df.resample("1B", how="sum")
         super().__init__(daily_returns, capital, frequency="D",  weighted_flag=weighted_flag)
 
-    def __repr__(self):
-        return super().__repr__()+ "\n Use object.freq.method() to access periods (freq=daily, weekly, monthly, annual) default: daily"
-
-
 
 class accountCurveSingle(accountCurveSingleElement):
-    def __init__(self, gross_returns, net_returns, costs, capital, weighted_flag=False):
-        
-        super().__init__(net_returns,  capital, weighted_flag=weighted_flag)
-        
+    def __init__(self, gross_returns, net_returns, costs, capital, weighted_flag=False):        
+        super().__init__(net_returns,  capital, weighted_flag=weighted_flag)        
         setattr(self, "net", accountCurveSingleElement(net_returns, capital, weighted_flag=weighted_flag))
         setattr(self, "gross", accountCurveSingleElement(gross_returns, capital, weighted_flag=weighted_flag))
         setattr(self, "costs", accountCurveSingleElement(costs,  capital, weighted_flag=weighted_flag))
@@ -166,10 +157,4 @@ class accountCurve(accountCurveSingle):
             
         setattr(self, "weighted_flag", weighted_flag)
         setattr(self, "weighting", use_weighting)
-
-
-if __name__ == '__main__':
-    import doctest
-    doctest.testmod()
-
 
