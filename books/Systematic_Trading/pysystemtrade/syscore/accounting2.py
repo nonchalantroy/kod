@@ -38,8 +38,9 @@ class accountCurveSingleElementOneFreq(pd.Series):
 
     def percent(self):        
         perc_returns=self.as_percent()
-        new_curve=accountCurveSingleElementOneFreq(perc_returns, 100.0, self.frequency)
-        print("accounting percent" + str(new_curve.tail())) 
+        new_curve=accountCurveSingleElementOneFreq(perc_returns,
+                                                   100.0,
+                                                   self.frequency)
         return new_curve
 
     def as_percent(self):
@@ -54,15 +55,14 @@ class accountCurveSingleElement(accountCurveSingleElementOneFreq):
         super().__init__(daily_returns, capital, frequency="D")
 
 class accountCurveSingle(accountCurveSingleElement):
-    def __init__(self, gross_returns, net_returns, capital): 
-        super().__init__(net_returns,  capital)        
-        setattr(self, "net", accountCurveSingleElement(net_returns, capital))
-        setattr(self, "gross", accountCurveSingleElement(gross_returns, capital))
+    def __init__(self, returns, capital): 
+        super().__init__(returns,  capital)        
+        setattr(self, "net", accountCurveSingleElement(returns, capital))
+        setattr(self, "gross", accountCurveSingleElement(returns, capital))
 
 class accountCurve(accountCurveSingle):
 
-    def __init__(self, price, forecast):
-        
+    def __init__(self, price, forecast):        
         base_capital = DEFAULT_CAPITAL
         daily_risk_capital = DEFAULT_CAPITAL * DEFAULT_ANN_RISK_TARGET / ROOT_BDAYS_INYEAR
         use_fx = pd.Series([1.0] * len(price.index),index=price.index)
@@ -77,7 +77,6 @@ class accountCurve(accountCurveSingle):
         instr_ccy_returns = cum_trades.shift(1)* price_returns 
         instr_ccy_returns=instr_ccy_returns.cumsum().ffill().reindex(price.index).diff()
         base_ccy_returns = instr_ccy_returns * use_fx    
-
-        super().__init__(base_ccy_returns, base_ccy_returns, base_capital)          
+        super().__init__(base_ccy_returns, base_capital)          
 
 
