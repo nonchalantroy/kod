@@ -625,55 +625,6 @@ class accountCurve(accountCurveSingle):
 
 
 
-
-
-def weighted(account_curve,  weighting, apply_weight_to_costs_only=False, allow_reweighting=False):
-        """
-        Creates a copy of account curve with weights applied 
-
-        :param account_curve: Curve to copy from
-        :type account_curve: accountCurve
-        
-        :param weighting: Weighting scheme to apply to returns 
-        :type weighting: Tx1 pd.Series
-
-        :param apply_weight_to_costs_only: Apply weights only to costs, not gross returns
-        :type apply_weight_to_costs_only: bool
-
-        :param allow_reweighting: Apply weights only to costs, not gross returns
-        :type allow_reweighting: bool
-
-        :returns: accountCurve
-        
-        """
-        if account_curve.weighted_flag:
-            if allow_reweighting:
-                pass
-            else:
-                raise Exception("You can't reweight weighted returns!")
-
-        ## very clunky but I can't make copy, deepcopy or inheritance work for this use case...
-        base_capital=copy(account_curve.capital)
-        gross_returns=copy(account_curve.gross.as_ts())
-        costs_base_ccy=copy(account_curve.costs.as_ts())
-        unweighted_instr_ccy_pandl=copy(account_curve.unweighted_instr_ccy_pandl)
-
-        returns_data=(account_curve.cum_trades, account_curve.trades_to_use, 
-                      unweighted_instr_ccy_pandl["gross"],
-                gross_returns, account_curve.fx, account_curve.value_of_price_point)
-
-        pre_calc_data=(returns_data, base_capital, costs_base_ccy, unweighted_instr_ccy_pandl)
-        
-        ## Create a cloned account curve with the pre calculated data
-        ## recalculate the returns with weighting applied
-        new_account_curve=accountCurve(pre_calc_data=pre_calc_data,
-                                        weighted_flag=True,
-                                       weighting=weighting, 
-                                       apply_weight_to_costs_only=apply_weight_to_costs_only)
-        
-        
-        return new_account_curve
-
         
 def calc_costs(returns_data, cash_costs, SR_cost, ann_risk):
 
