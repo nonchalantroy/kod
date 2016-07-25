@@ -120,8 +120,6 @@ class accountCurve(accountCurveSingle):
         daily_risk_capital = DEFAULT_CAPITAL * DEFAULT_ANN_RISK_TARGET / ROOT_BDAYS_INYEAR                
         returns_data=pandl_with_data(price, daily_risk_capital=daily_risk_capital,  **kwargs)    
         (cum_trades, trades_to_use, instr_ccy_returns,base_ccy_returns, use_fx, value_of_price_point)=returns_data        
-        costs_base_ccy=pd.Series([0.0]*len(cum_trades), index=cum_trades.index)
-        costs_instr_ccy=pd.Series([0.0]*len(cum_trades), index=cum_trades.index)        
         self._calc_and_set_returns(base_ccy_returns, base_capital, 
                                     weighted_flag=weighted_flag, weighting=weighting)
         
