@@ -676,26 +676,6 @@ def weighted(account_curve,  weighting, apply_weight_to_costs_only=False, allow_
 
         
 def calc_costs(returns_data, cash_costs, SR_cost, ann_risk):
-    """
-    Calculate costs
-    
-    :param returns_data: returns data
-    :type returns_data: 5 tuple returned by pandl data function
-    
-    :param cash_costs: Cost in local currency units per instrument block 
-    :type cash_costs: 3 tuple of floats; value_total_per_block, value_of_pertrade_commission, percentage_cost
-    
-    :param SR_cost: Cost in annualised Sharpe Ratio units (0.01 = 0.01 SR)
-    :type SR_cost: float
-
-    Set to None if not using. If both included use SR_cost
-
-    :param ann_risk: Capital (capital * ann vol) at risk on annaulised basis. Used for SR calculations
-    :type ann_risk: Tx1 pd.Series
-    
-    :returns : Tx1 pd.Series of costs. Minus numbers are losses
-    
-    """
 
     (cum_trades, trades_to_use, instr_ccy_returns,
         base_ccy_returns, use_fx, value_of_price_point)=returns_data
@@ -742,29 +722,6 @@ def calc_costs(returns_data, cash_costs, SR_cost, ann_risk):
     return (costs_base_ccy, costs_instr_ccy)
 
 def resolve_capital(ts_to_scale_to, capital=None, ann_risk_target=None):
-    """
-    Resolve and setup capital
-    We need capital for % returns and possibly for SR stuff
-
-    Capital is used for:
-    
-      - going from forecast to position in profit and loss calculation (fixed or a time series): daily_risk_capital
-      - calculating costs from SR costs (always a time series): ann_risk
-      - calculating percentage returns (maybe fixed or variable time series): capital
-
-    :param ts_to_scale_to: If capital is fixed, what time series to scale it to  
-    :type capital: Tx1 pd.DataFrame
-    
-    :param capital: Capital at risk. Used for % returns, and calculating daily risk for SR costs  
-    :type capital: None, int, float or Tx1 pd.DataFrame
-    
-    :param ann_risk_target: Annual risk target, as % of capital 0.10 is 10%. Used to calculate daily risk for SR costs
-    :type ann_risk_target: None or float
-    
-    :returns tuple: 3 tuple of Tx1 pd.Series / float, pd.Series, pd.Series or float
-    (capital, ann_risk, daily_risk_capital)
-
-    """
     if capital is None:
         base_capital=copy(DEFAULT_CAPITAL)
     else:
@@ -807,60 +764,6 @@ def acc_list_to_pd_frame(list_of_ac_curves, asset_columns):
     ans=ans.cumsum().ffill().diff()
     
     return ans
-
-
-def total_from_list(list_of_ac_curves, asset_columns, capital):
-    """
-    
-    Return a single accountCurveSingleElement whose returns are the total across the portfolio
-
-    :param acc_curve_for_type_list: Elements to include in group
-    :type acc_curve_for_type_list: list of accountCurveSingleElement
-
-    :param asset_columns: Names of each asset
-    :type asset_columns: list of str 
-
-    :param capital: Capital, if None will discover from list elements
-    :type capital: None, float, or pd.Series 
-    
-    :returns: 2 tuple of pd.Series
-    """
-    pdframe=acc_list_to_pd_frame(list_of_ac_curves, asset_columns)
-    
-    def _resolve_capital_for_total(capital, pdframe):
-        if type(capital) is float:
-            return pd.Series([capital]*len(pdframe), pdframe.index)
-        else:
-            return capital 
-    
-    def _all_float(list_of_ac_curves):
-        curve_type_float = [type(x)==float for x in list_of_ac_curves] 
-        
-        return all(curve_type_float)
-            
-    def _resolve_capital_list(pdframe, list_of_ac_curves, capital):
-        if capital is not None:
-            return capital
-        
-        if _all_float(list_of_ac_curves):
-            capital=np.mean([x.capital for x in list_of_ac_curves])
-            return 
-
-        ## at least some time series        
-        capital = pd.concat([_resolve_capital_for_total(x.capital, pdframe) for x in list_of_ac_curves], axis=1)
-    
-        ## should all be the same, but just in case ...
-        capital = np.mean(capital, axis=1)
-        capital = capital.reindex(pdframe.index).ffill()
-        
-        return capital
-    
-    ## all on daily freq so just add up
-    totalac=pdframe.sum(axis=1)
-    capital = _resolve_capital_list(pdframe, list_of_ac_curves, capital)
-    
-    return (totalac, capital)
-    
 
 if __name__ == '__main__':
     import doctest
