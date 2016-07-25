@@ -42,11 +42,6 @@ class accountCurveSingleElementOneFreq(pd.Series):
         print("accounting percent" + str(new_curve.tail())) 
         return new_curve
 
-    def cumulative(self):        
-        cum_returns = self.as_cumulative()
-        new_curve = accountCurveSingleElementOneFreq(cum_returns, self.capital, self.frequency)        
-        return new_curve
-
     def as_percent(self):
         return 100.0 * self.as_ts() / self.capital
 
@@ -82,7 +77,6 @@ class accountCurve(accountCurveSingle):
         instr_ccy_returns = cum_trades.shift(1)* price_returns 
         instr_ccy_returns=instr_ccy_returns.cumsum().ffill().reindex(price.index).diff()
         base_ccy_returns = instr_ccy_returns * use_fx    
-
 
         super().__init__(base_ccy_returns, base_ccy_returns, base_capital)          
         setattr(self, "cum_trades", cum_trades)
