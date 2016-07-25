@@ -285,19 +285,8 @@ class accountCurveSingleElementOneFreq(pd.Series):
         x = [z for z in self.values if not np.isnan(z)]
         return x
 
-    def min(self):
-
-        return np.nanmin(self.vals())
-
-    def max(self):
-        return np.max(self.vals())
-
-    def median(self):
-        return np.median(self.vals())
-
     def skew(self):
         return skew(self.vals())
-
 
 
     def __repr__(self):
