@@ -73,42 +73,9 @@ def get_positions_from_forecasts(price, get_daily_returns_volatility, forecast,
     numerator = forecast *  multiplier
     positions = numerator.ffill() /  denominator.ffill()
     return positions
-
-    
-def percent(accurve):
-    """
-    Takes any account curve object
-    
-    Returns accountCurveSingleElementOneFreq - anything else is lost
-    """
-    pass
-
+   
 class accountCurveSingleElementOneFreq(pd.Series):
-    """
-    A single account curve for one asset (instrument / trading rule variation, ...)
-     and one part of it (gross, net, costs)
-     and for one frequency (daily, weekly, monthly...)
-    
-    Inherits from series
-
-    We never init these directly but only as part of accountCurveSingleElement
-    
-    """
     def __init__(self, returns_df, capital, weighted_flag=False, frequency="D"):
-        """
-        :param returns_df: series of returns
-        :type returns_df: Tx1 pd.Series
-
-        :param weighted_flag: Does this curve have weighted returns?
-        :type weighted: bool
-
-        :param frequency: Frequency D days, W weeks, M months, Y years
-        :type frequency: str
-
-        :param capital: used to calculate extrapolated and % curves
-        :type capital: float or pd.Series
-
-        """
         super().__init__(returns_df)
         
         try:
@@ -149,8 +116,6 @@ class accountCurveSingleElementOneFreq(pd.Series):
         new_curve = accountCurveSingleElementOneFreq(cum_returns, self.capital, self.weighted_flag, self.frequency)
         
         return new_curve
-
-
 
     def as_percent(self):
         print ("capital " + str(self.capital))
