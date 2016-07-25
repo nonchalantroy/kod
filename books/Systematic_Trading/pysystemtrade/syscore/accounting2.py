@@ -164,16 +164,12 @@ class accountCurve(accountCurveSingle):
                 
         (costs_base_ccy, costs_instr_ccy)=calc_costs(returns_data, cash_costs, SR_cost, ann_risk)
             
-        unweighted_instr_ccy_pandl=dict(gross=instr_ccy_returns, costs=costs_instr_ccy, 
-                                        net=instr_ccy_returns+costs_instr_ccy)
-
         self._calc_and_set_returns(base_ccy_returns, costs_base_ccy, base_capital, 
                                     weighted_flag=weighted_flag, weighting=weighting,
                                     apply_weight_to_costs_only=apply_weight_to_costs_only)
         
         ## Save all kinds of useful statistics
 
-        setattr(self, "unweighted_instr_ccy_pandl", unweighted_instr_ccy_pandl)
         setattr(self, "cum_trades", cum_trades)
         setattr(self, "trades_to_use", trades_to_use)
         setattr(self, "capital", base_capital)
@@ -197,7 +193,6 @@ class accountCurve(accountCurveSingle):
 
     def __repr__(self):
         return super().__repr__()+ "\n Use object.calc_data() to see calculation details"
-
 
 
 def calc_costs(returns_data, cash_costs, SR_cost, ann_risk):
