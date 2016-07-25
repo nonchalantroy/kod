@@ -67,7 +67,6 @@ class accountCurveSingle(accountCurveSingleElement):
 class accountCurve(accountCurveSingle):
 
     def __init__(self, price, forecast):
-
         
         base_capital = DEFAULT_CAPITAL
         daily_risk_capital = DEFAULT_CAPITAL * DEFAULT_ANN_RISK_TARGET / ROOT_BDAYS_INYEAR
@@ -85,16 +84,10 @@ class accountCurve(accountCurveSingle):
         base_ccy_returns = instr_ccy_returns * use_fx    
 
 
-        self._calc_and_set_returns(base_ccy_returns,
-                                   base_capital)
-        
+        super().__init__(base_ccy_returns, base_ccy_returns, base_capital)          
         setattr(self, "cum_trades", cum_trades)
         setattr(self, "trades_to_use", trades_to_use)
         setattr(self, "capital", base_capital)
         setattr(self, "fx", use_fx)
 
-    def _calc_and_set_returns(self, base_ccy_returns,  base_capital):
-        use_weighting = None
-        net_base_returns=base_ccy_returns         
-        super().__init__(base_ccy_returns, net_base_returns, base_capital)  
 
