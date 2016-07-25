@@ -559,42 +559,7 @@ class accountCurve(accountCurveSingle):
     def _calc_and_set_returns(self, base_ccy_returns, costs_base_ccy, base_capital, 
                               weighted_flag=False, weighting=None, 
                               apply_weight_to_costs_only=False):
-        """
-        This hidden method is called when we setup the account curve, to 
-        
-        Also called again if we get a weighted version of this account curve
-
-        :param base_ccy_returns: Pre-cost returns in base currency terms (unweighted)
-        :type base_ccy_returns: Tx1 pd.Series
-
-        :param costs_base_ccy: Costs in base currency terms, aligned to base_ccy_returns (unweighted)
-        :type costs_base_ccy: Tx1 pd.Series
-
-        :param base_capital: base_capital in base currency terms
-        :type base_capital: Tx1 pd.Series (aligned to base_ccy_returns) or float
-        
-        :param weighted_flag: Apply a weighting scheme, or not
-        :type weighted_flag: bool
-
-        :param weighting: Weighting scheme to apply to returns, MAY NOT BE aligned to base_ccy_returns
-        :type weighting: Tx1 pd.Series
-
-        :param apply_weight_to_costs_only: Apply weights only to costs, not gross returns
-        :type apply_weight_to_costs_only: bool
-
-        """
-
-        
-        if weighted_flag:
-            use_weighting = weighting.reindex(base_ccy_returns.index).ffill()
-            if not apply_weight_to_costs_only:
-                ## only apply to gross returns if they aren't already weighted
-                base_ccy_returns = base_ccy_returns* use_weighting
-            
-            ## Always apply to costs
-            costs_base_ccy = costs_base_ccy* use_weighting
-        else:
-            use_weighting = None
+        use_weighting = None
 
         net_base_returns=base_ccy_returns + costs_base_ccy ## costs are negative returns
         
