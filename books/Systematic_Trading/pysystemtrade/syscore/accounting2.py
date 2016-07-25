@@ -478,69 +478,19 @@ class accountCurve(accountCurveSingle):
                  weighted_flag = False, weighting=None, 
                 apply_weight_to_costs_only=False,
                  **kwargs):
-        """
-        Create an account curve; from which many lovely statistics can be gathered
-        
-        
-        We create by passing **kwargs which will be used by the pandl function
-        
-        :param cash_cost: Cost in local currency units per instrument block 
-        :type cash_cost: float
-        
-        :param SR_cost: Cost in annualised Sharpe Ratio units (0.01 = 0.01 SR)
-        :type SR_cost: float
-        
-        Note if both are included then cash_cost will be disregarded
-        
-        :param capital: Capital at risk. Used for % returns, and calculating daily risk for SR costs  
-        :type capital: None, float, int, or Tx1 
-        
-        :param ann_risk_target: Annual risk target, as % of capital. Used to calculate daily risk for SR costs
-        :type ann_risk_target: None or float
-
-        :param pre_calc_data: Used by the weighting function, to speed things up and inherit pre-calculated
-                            stuff from an existing account curve
-        :type pre_calc_data: None or a big tuple
 
         
-        **kwargs  passed to profit and loss calculation
-         (price, trades, marktomarket, positions,
-          delayfill, roundpositions,
-          get_daily_returns_volatility, forecast, use_fx,
-          value_of_price_point)
+        (base_capital, ann_risk, daily_risk_capital)=resolve_capital(price, capital, ann_risk_target)
         
-        """
-        if pre_calc_data:
-            (returns_data, base_capital, costs_base_ccy, unweighted_instr_ccy_pandl)=pre_calc_data
-            
-            (cum_trades, trades_to_use, instr_ccy_returns,
-                base_ccy_returns, use_fx, value_of_price_point)=returns_data
-
-        else:
-            """
-            Capital is used for:
-            
-              - going from forecast to position in profit and loss calculation (fixed or a time series): daily_risk_capital
-              - calculating costs from SR costs (always a time series): ann_risk
-              - calculating percentage returns (maybe fixed or variable time series): base_capital
-            """
-            (base_capital, ann_risk, daily_risk_capital)=resolve_capital(price, capital, ann_risk_target)
-
-            returns_data=pandl_with_data(price, daily_risk_capital=daily_risk_capital,  **kwargs)
+        returns_data=pandl_with_data(price, daily_risk_capital=daily_risk_capital,  **kwargs)
     
-            (cum_trades, trades_to_use, instr_ccy_returns,
-                base_ccy_returns, use_fx, value_of_price_point)=returns_data
+        (cum_trades, trades_to_use, instr_ccy_returns,
+         base_ccy_returns, use_fx, value_of_price_point)=returns_data
                 
-            ## always returns a time series
-            (costs_base_ccy, costs_instr_ccy)=calc_costs(returns_data, cash_costs, SR_cost, ann_risk)
+        (costs_base_ccy, costs_instr_ccy)=calc_costs(returns_data, cash_costs, SR_cost, ann_risk)
             
-            ## keep track of this
-            unweighted_instr_ccy_pandl=dict(gross=instr_ccy_returns, costs=costs_instr_ccy, 
-                                 net=instr_ccy_returns+costs_instr_ccy)
-
-
-        ## Initially we have an unweighted version
-        
+        unweighted_instr_ccy_pandl=dict(gross=instr_ccy_returns, costs=costs_instr_ccy, 
+                                        net=instr_ccy_returns+costs_instr_ccy)
 
         self._calc_and_set_returns(base_ccy_returns, costs_base_ccy, base_capital, 
                                     weighted_flag=weighted_flag, weighting=weighting,
