@@ -19,10 +19,9 @@ ewmac = calc_ewmac_forecast(price, 32, 128)
 ewmac.columns=['forecast']
 print(ewmac.tail(5))
 ewmac.to_csv("out.csv")
-from syscore.accounting2 import accountCurve
+from syscore.accounting2 import skew
 #from syscore.accounting import accountCurve
-account = accountCurve(price, forecast=ewmac)
-tmp = account.percent()
-print (tmp.tail())
-print(tmp.skew())
+#account = accountCurve(price, forecast=ewmac)
+#print(tmp.skew())
+print (skew(price, forecast=ewmac))
 # -8.45
