@@ -13,12 +13,14 @@ DEFAULT_CAPITAL = 10000000.0
 DEFAULT_ANN_RISK_TARGET = 0.16
 DEFAULT_DAILY_CAPITAL=DEFAULT_CAPITAL * DEFAULT_ANN_RISK_TARGET / ROOT_BDAYS_INYEAR
 
-
-def pandl_with_data(price, trades=None, marktomarket=True, positions=None,
-          delayfill=True, roundpositions=False,
-          get_daily_returns_volatility=None, forecast=None, fx=None,
-          daily_risk_capital=None, 
-          value_of_price_point=1.0):
+def pandl_with_data(price,
+                    trades=None,
+                    marktomarket=True,
+                    positions=None,
+                    delayfill=True, roundpositions=False,
+                    get_daily_returns_volatility=None, forecast=None, fx=None,
+                    daily_risk_capital=None, 
+                    value_of_price_point=1.0):
     
     use_fx = pd.Series([1.0] * len(price.index),index=price.index)
     get_daily_returns_volatility = robust_vol_calc(price.diff())
@@ -34,7 +36,6 @@ def pandl_with_data(price, trades=None, marktomarket=True, positions=None,
     base_ccy_returns = instr_ccy_returns * use_fx    
     return (cum_trades, trades_to_use, instr_ccy_returns,
             base_ccy_returns, use_fx, value_of_price_point)
-
     
 class accountCurveSingleElementOneFreq(pd.Series):
     def __init__(self, returns_df, capital, weighted_flag=False, frequency="D"):
@@ -59,7 +60,6 @@ class accountCurveSingleElementOneFreq(pd.Series):
 
     def as_df(self):
         print("Deprecated accountCurve.as_df use .as_ts() please")
-        ## backward compatibility
         return self.as_ts()
 
     def as_ts(self):
@@ -67,7 +67,6 @@ class accountCurveSingleElementOneFreq(pd.Series):
 
     def percent(self):        
         perc_returns=self.as_percent()
-        print ("perc " + str(perc_returns.tail()))
         new_curve=accountCurveSingleElementOneFreq(perc_returns, 100.0, self.weighted_flag, self.frequency)
         print("accounting percent" + str(new_curve.tail())) 
         return new_curve
@@ -78,11 +77,10 @@ class accountCurveSingleElementOneFreq(pd.Series):
         return new_curve
 
     def as_percent(self):
-        print ("capital " + str(self.capital))
-        print ("as ts " + str(self.as_ts().tail()))
         return 100.0 * self.as_ts() / self.capital
 
     def curve(self):
+        print ("hasattr=" + str(hasattr(self, "_curve")))
         if hasattr(self, "_curve"):
             return self._curve
         else:
@@ -117,8 +115,8 @@ class accountCurve(accountCurveSingle):
 
         
         base_capital = DEFAULT_CAPITAL
-        daily_risk_capital = DEFAULT_CAPITAL * DEFAULT_ANN_RISK_TARGET / ROOT_BDAYS_INYEAR                
-        returns_data=pandl_with_data(price, daily_risk_capital=daily_risk_capital,  **kwargs)    
+        daily_risk_capital = DEFAULT_CAPITAL * DEFAULT_ANN_RISK_TARGET / ROOT_BDAYS_INYEAR
+        returns_data=pandl_with_data(price, daily_risk_capital=daily_risk_capital,  **kwargs)
         (cum_trades, trades_to_use, instr_ccy_returns,base_ccy_returns, use_fx, value_of_price_point)=returns_data        
         self._calc_and_set_returns(base_ccy_returns, base_capital, 
                                     weighted_flag=weighted_flag, weighting=weighting)
