@@ -342,8 +342,9 @@ class accountCurveSingleElementOneFreq(pd.Series):
     def percent(self):
         
         perc_returns=self.as_percent()
+        print ("perc " + str(perc_returns.tail()))
         new_curve=accountCurveSingleElementOneFreq(perc_returns, 100.0, self.weighted_flag, self.frequency)
-        
+        print("accounting percent" + str(new_curve.tail())) 
         return new_curve
 
     def cumulative(self):
@@ -356,6 +357,8 @@ class accountCurveSingleElementOneFreq(pd.Series):
 
 
     def as_percent(self):
+        print ("capital " + str(self.capital))
+        print ("as ts " + str(self.as_ts().tail()))
         return 100.0 * self.as_ts() / self.capital
 
 

@@ -18,8 +18,9 @@ price = pd.read_csv(f,index_col=0,parse_dates=True).PRICE
 ewmac = calc_ewmac_forecast(price, 32, 128)
 ewmac.columns=['forecast']
 print(ewmac.tail(5))
-
-from syscore.accounting import accountCurve
+ewmac.to_csv("out.csv")
+from syscore.accounting2 import accountCurve
 account = accountCurve(price, forecast=ewmac)
 tmp = account.percent()
+print (tmp.tail())
 print(tmp.stats())
