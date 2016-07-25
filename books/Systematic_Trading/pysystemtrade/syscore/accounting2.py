@@ -79,9 +79,5 @@ class accountCurve(accountCurveSingle):
         base_ccy_returns = instr_ccy_returns * use_fx    
 
         super().__init__(base_ccy_returns, base_ccy_returns, base_capital)          
-        setattr(self, "cum_trades", cum_trades)
-        setattr(self, "trades_to_use", trades_to_use)
-        setattr(self, "capital", base_capital)
-        setattr(self, "fx", use_fx)
 
 
