@@ -246,9 +246,6 @@ class accountCurve(accountCurveSingle):
         
         return calc_dict
 
-
-
-        
 def calc_costs(returns_data, cash_costs, SR_cost, ann_risk):
 
     (cum_trades, trades_to_use, instr_ccy_returns,
@@ -287,15 +284,6 @@ def resolve_capital(ts_to_scale_to, capital=None, ann_risk_target=None):
     ann_risk = ts_capital * ann_risk_target
     
     return (base_capital, ann_risk, daily_risk_capital)
-
-def acc_list_to_pd_frame(list_of_ac_curves, asset_columns):
-    list_of_df=[acc.as_ts() for acc in list_of_ac_curves]
-    ans=pd.concat(list_of_df, axis=1,  join="outer")
-    
-    ans.columns=asset_columns
-    ans=ans.cumsum().ffill().diff()
-    
-    return ans
 
 if __name__ == '__main__':
     import doctest
