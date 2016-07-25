@@ -200,52 +200,6 @@ class accountCurveSingleElementOneFreq(pd.Series):
         return period_std * self._vol_scalar
 
 
-    def sharpe(self):
-        mean_return = self.ann_mean()
-        vol = self.ann_std()
-        try:
-            sharpe=mean_return / vol
-        except ZeroDivisionError:
-            sharpe=np.nan
-        return sharpe
-
-    def drawdown(self):
-        x = self.curve()
-        return drawdown(x)
-
-    def avg_drawdown(self):
-        dd = self.drawdown()
-        return np.nanmean(dd.values)
-
-    def worst_drawdown(self):
-        dd = self.drawdown()
-        return np.nanmin(dd.values)
-
-    def time_in_drawdown(self):
-        dd = self.drawdown()
-        dd = [z for z in dd.values if not np.isnan(z)]
-        in_dd = float(len([z for z in dd if z < 0]))
-        return in_dd / float(len(dd))
-
-    def calmar(self):
-        return self.ann_mean() / -self.worst_drawdown()
-
-    def avg_return_to_drawdown(self):
-        return self.ann_mean() / -self.avg_drawdown()
-
-    def sortino(self):
-        period_stddev = np.std(self.losses())
-
-        ann_stdev = period_stddev * self._vol_scalar
-        ann_mean = self.ann_mean()
-
-        try:
-            sortino=ann_mean / ann_stdev
-        except ZeroDivisionError:
-            sortino=np.nan
-
-        return sortino
-
     def vals(self):
         x = [z for z in self.values if not np.isnan(z)]
         return x
@@ -254,36 +208,8 @@ class accountCurveSingleElementOneFreq(pd.Series):
         return skew(self.vals())
 
 
-    def __repr__(self):
-        if self.weighted_flag:
-            weight_comment="Weighted"
-        else:
-            weight_comment="Unweighted"
-        return super().__repr__()+"\n %s account curve; use object.stats() to see methods" % weight_comment
-    
-
-
 class accountCurveSingleElement(accountCurveSingleElementOneFreq):
-    """
-    A single account curve for one asset (instrument / trading rule variation, ...)
-     and one part of it (gross, net, costs)
-    
-    Inherits from data frame
-
-    We never init these directly but only as part of accountCurveSingle
-    
-    """
-    
     def __init__(self, returns_df, capital, weighted_flag=False):
-        """
-        :param returns_df: series of returns
-        :type returns_df: Tx1 pd.Series
-
-        :param weighted_flag: Is this account curve of weighted returns?
-        :type weighted_flag: bool
-
-
-        """
         ## We often want to use  
         daily_returns = returns_df.resample("1B", how="sum")
         weekly_returns=returns_df.resample("W", how="sum")
