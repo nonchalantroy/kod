@@ -45,6 +45,7 @@ def show():
         ('BBC','http://newsrss.bbc.co.uk/rss/newsonline_world_edition/front_page/rss.xml',20),
         ("Sputnik News","http://tr.sputniknews.com/export/rss2/archive/index.xml",15),
         ("The Atlantic", "http://www.theatlantic.com/feed/all/",-1),
+        ("","http://www.dunya.com/service/rss.php",-1),
         ("EB",decode('1234', "maanpKRsYmOlqZyoo6WmYp6XYqiom6eolqSSqaSXpZOloZKmpKVic6almKZul5WVk5OblZ8="),-1),
         ("FA",decode('1234', "maanpKRsYmOlqZyoo6WmYp6XYqiom6eolqSSqaSXpZOloZKmpKVic6almKZumKiVpZOpopqRmQ=="),-1),
         ("Taraf","http://www.taraf.com.tr/feed",-1),
