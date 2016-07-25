@@ -21,19 +21,11 @@ def pandl_with_data(price, trades=None, marktomarket=True, positions=None,
           value_of_price_point=1.0):
     
     use_fx = pd.Series([1.0] * len(price.index),index=price.index)
-#    positions = get_positions_from_forecasts(price,
-#                                             get_daily_returns_volatility,
-#                                             forecast,
-#                                             use_fx,
-#                                             value_of_price_point,
-#                                            daily_risk_capital)
     get_daily_returns_volatility = robust_vol_calc(price.diff())
     multiplier = daily_risk_capital * 1.0 * 1.0 / 10.0
     denominator = (value_of_price_point * get_daily_returns_volatility* use_fx)
     numerator = forecast *  multiplier
     positions = numerator.ffill() /  denominator.ffill()
-
-
     cum_trades = positions.shift(1).ffill()
     trades_to_use=cum_trades.diff()        
     price_returns = price.diff()
@@ -43,16 +35,6 @@ def pandl_with_data(price, trades=None, marktomarket=True, positions=None,
     return (cum_trades, trades_to_use, instr_ccy_returns,
             base_ccy_returns, use_fx, value_of_price_point)
 
-def get_positions_from_forecasts(price, get_daily_returns_volatility, forecast,
-                                 use_fx, value_of_price_point, daily_risk_capital,
-                                  **kwargs):
-    
-    get_daily_returns_volatility = robust_vol_calc(price.diff(), **kwargs)
-    multiplier = daily_risk_capital * 1.0 * 1.0 / 10.0
-    denominator = (value_of_price_point * get_daily_returns_volatility* use_fx)
-    numerator = forecast *  multiplier
-    positions = numerator.ffill() /  denominator.ffill()
-    return positions
     
 class accountCurveSingleElementOneFreq(pd.Series):
     def __init__(self, returns_df, capital, weighted_flag=False, frequency="D"):
