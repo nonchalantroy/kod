@@ -93,12 +93,10 @@ class accountCurveSingleElementOneFreq(pd.Series):
         ## backward compatibility
         return self.as_ts()
 
-
     def as_ts(self):
         return pd.Series(self._returns_df)
 
-    def percent(self):
-        
+    def percent(self):        
         perc_returns=self.as_percent()
         print ("perc " + str(perc_returns.tail()))
         new_curve=accountCurveSingleElementOneFreq(perc_returns, 100.0, self.weighted_flag, self.frequency)
@@ -123,30 +121,9 @@ class accountCurveSingleElementOneFreq(pd.Series):
             curve = self.cumsum().ffill()
             setattr(self, "_curve", curve)
             return curve
-
-    def mean(self):
-        return float(self.as_ts().mean())
     
-    def std(self):
-        return float(self.as_ts().std())
-
-    def ann_mean(self):
-        avg = self.mean()
-
-        return avg * self._returns_scalar
-
-    def ann_std(self):
-        period_std = self.std()
-
-        return period_std * self._vol_scalar
-
-
-    def vals(self):
-        x = [z for z in self.values if not np.isnan(z)]
-        return x
-
     def skew(self):
-        return skew(self.vals())
+        return skew(self.values[pd.isnull(self.values) == False])
 
 
 class accountCurveSingleElement(accountCurveSingleElementOneFreq):
@@ -221,20 +198,7 @@ class accountCurve(accountCurveSingle):
     def __repr__(self):
         return super().__repr__()+ "\n Use object.calc_data() to see calculation details"
 
-        
 
-    def calc_data(self):
-        """
-        Returns detailed calculation information
-        
-        :returns: dictionary of float
-        """
-        calc_items=["cum_trades",  "trades_to_use",    "unweighted_instr_ccy_pandl",
-                     "capital",  "weighting", "fx","value_of_price_point"]
-        
-        calc_dict=dict([(calc_name, getattr(self, calc_name)) for calc_name in calc_items])
-        
-        return calc_dict
 
 def calc_costs(returns_data, cash_costs, SR_cost, ann_risk):
 
