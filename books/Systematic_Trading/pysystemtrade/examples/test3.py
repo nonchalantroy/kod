@@ -23,4 +23,4 @@ from syscore.accounting2 import accountCurve
 account = accountCurve(price, forecast=ewmac)
 tmp = account.percent()
 print (tmp.tail())
-print(tmp.stats())
+print(tmp.skew())

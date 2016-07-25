@@ -147,7 +147,6 @@ class accountCurveSingleElementOneFreq(pd.Series):
 
         return period_std * self._vol_scalar
 
-
     def vals(self):
         x = [z for z in self.values if not np.isnan(z)]
         return x
@@ -155,29 +154,6 @@ class accountCurveSingleElementOneFreq(pd.Series):
     def skew(self):
         return skew(self.vals())
 
-    def stats(self):
-
-        stats_list = ["skew"]
-
-        build_stats = []
-        for stat_name in stats_list:
-            stat_method = getattr(self, stat_name)
-            ans = stat_method()
-            build_stats.append((stat_name, "{0:.4g}".format(ans)))
-
-        comment1 = ("You can also plot / print:", [
-                    "rolling_ann_std", "drawdown", "curve", "percent", "cumulative"])
-
-
-        return [build_stats, comment1]
-
-    def __repr__(self):
-        if self.weighted_flag:
-            weight_comment="Weighted"
-        else:
-            weight_comment="Unweighted"
-        return super().__repr__()+"\n %s account curve; use object.stats() to see methods" % weight_comment
-    
 
 
 class accountCurveSingleElement(accountCurveSingleElementOneFreq):
