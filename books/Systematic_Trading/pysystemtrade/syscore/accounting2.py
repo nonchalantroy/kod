@@ -12,30 +12,6 @@ import scipy.stats as stats
 DEFAULT_CAPITAL = 10000000.0
 DEFAULT_ANN_RISK_TARGET = 0.16
 DEFAULT_DAILY_CAPITAL=DEFAULT_CAPITAL * DEFAULT_ANN_RISK_TARGET / ROOT_BDAYS_INYEAR
-
-def pandl_with_data(price,
-                    trades=None,
-                    marktomarket=True,
-                    positions=None,
-                    delayfill=True, roundpositions=False,
-                    get_daily_returns_volatility=None, forecast=None, fx=None,
-                    daily_risk_capital=None, 
-                    value_of_price_point=1.0):
-    
-    use_fx = pd.Series([1.0] * len(price.index),index=price.index)
-    get_daily_returns_volatility = robust_vol_calc(price.diff())
-    multiplier = daily_risk_capital * 1.0 * 1.0 / 10.0
-    denominator = (value_of_price_point * get_daily_returns_volatility* use_fx)
-    numerator = forecast *  multiplier
-    positions = numerator.ffill() /  denominator.ffill()
-    cum_trades = positions.shift(1).ffill()
-    trades_to_use=cum_trades.diff()        
-    price_returns = price.diff()
-    instr_ccy_returns = cum_trades.shift(1)* price_returns 
-    instr_ccy_returns=instr_ccy_returns.cumsum().ffill().reindex(price.index).diff()
-    base_ccy_returns = instr_ccy_returns * use_fx    
-    return (cum_trades, trades_to_use, instr_ccy_returns,
-            base_ccy_returns, use_fx, value_of_price_point)
     
 class accountCurveSingleElementOneFreq(pd.Series):
     def __init__(self, returns_df, capital, frequency="D"):
@@ -95,9 +71,6 @@ class accountCurve(accountCurveSingle):
         
         base_capital = DEFAULT_CAPITAL
         daily_risk_capital = DEFAULT_CAPITAL * DEFAULT_ANN_RISK_TARGET / ROOT_BDAYS_INYEAR
-#        returns_data=pandl_with_data(price, daily_risk_capital=daily_risk_capital,  **kwargs)
-#        (cum_trades, trades_to_use, instr_ccy_returns,base_ccy_returns, use_fx, value_of_price_point)=returns_data
-
         use_fx = pd.Series([1.0] * len(price.index),index=price.index)
         get_daily_returns_volatility = robust_vol_calc(price.diff())
         multiplier = daily_risk_capital * 1.0 * 1.0 / 10.0
