@@ -28,7 +28,6 @@ def pandl_with_data(price, trades=None, marktomarket=True, positions=None,
     
     use_fx = pd.Series([1.0] * len(price.index),
                        index=price.index)
-    prices_to_use = copy(price)
     positions = get_positions_from_forecasts(price,
                                              get_daily_returns_volatility,
                                              forecast,
@@ -38,8 +37,8 @@ def pandl_with_data(price, trades=None, marktomarket=True, positions=None,
 
     cum_trades = positions.shift(1).ffill()
     trades_to_use=cum_trades.diff()        
-    price_returns = prices_to_use.diff()
-    instr_ccy_returns = cum_trades.shift(1)* price_returns * value_of_price_point    
+    price_returns = price.diff()
+    instr_ccy_returns = cum_trades.shift(1)* price_returns 
     instr_ccy_returns=instr_ccy_returns.cumsum().ffill().reindex(price.index).diff()
     base_ccy_returns = instr_ccy_returns * use_fx    
     return (cum_trades, trades_to_use, instr_ccy_returns,
