@@ -155,7 +155,9 @@ class accountCurve(accountCurveSingle):
                  **kwargs):
 
         
-        (base_capital, ann_risk, daily_risk_capital)=resolve_capital(price, capital, ann_risk_target)
+        #(base_capital, ann_risk, daily_risk_capital)=resolve_capital(price, capital, ann_risk_target)
+        base_capital = DEFAULT_CAPITAL
+        daily_risk_capital = DEFAULT_CAPITAL * DEFAULT_ANN_RISK_TARGET / ROOT_BDAYS_INYEAR        
         
         returns_data=pandl_with_data(price, daily_risk_capital=daily_risk_capital,  **kwargs)
     
