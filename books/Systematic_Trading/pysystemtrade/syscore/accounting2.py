@@ -2,15 +2,14 @@ import inspect
 from copy import copy, deepcopy
 import pandas as pd
 from pandas.tseries.offsets import BDay
-import numpy as np
 from scipy.stats import skew, ttest_rel, ttest_1samp
-import scipy.stats as stats
-import random
-
 from syscore.algos import robust_vol_calc
 from syscore.pdutils import  drawdown
 from syscore.dateutils import BUSINESS_DAYS_IN_YEAR, ROOT_BDAYS_INYEAR, WEEKS_IN_YEAR, ROOT_WEEKS_IN_YEAR
 from syscore.dateutils import MONTHS_IN_YEAR, ROOT_MONTHS_IN_YEAR
+import scipy.stats as stats
+import random
+import numpy as np
 
 """
 some defaults
@@ -155,24 +154,16 @@ class accountCurve(accountCurveSingle):
                  **kwargs):
 
         
-        #(base_capital, ann_risk, daily_risk_capital)=resolve_capital(price, capital, ann_risk_target)
         base_capital = DEFAULT_CAPITAL
-        daily_risk_capital = DEFAULT_CAPITAL * DEFAULT_ANN_RISK_TARGET / ROOT_BDAYS_INYEAR        
-        
-        returns_data=pandl_with_data(price, daily_risk_capital=daily_risk_capital,  **kwargs)
-    
-        (cum_trades, trades_to_use, instr_ccy_returns,
-         base_ccy_returns, use_fx, value_of_price_point)=returns_data
-        
+        daily_risk_capital = DEFAULT_CAPITAL * DEFAULT_ANN_RISK_TARGET / ROOT_BDAYS_INYEAR                
+        returns_data=pandl_with_data(price, daily_risk_capital=daily_risk_capital,  **kwargs)    
+        (cum_trades, trades_to_use, instr_ccy_returns,base_ccy_returns, use_fx, value_of_price_point)=returns_data        
         costs_base_ccy=pd.Series([0.0]*len(cum_trades), index=cum_trades.index)
-        costs_instr_ccy=pd.Series([0.0]*len(cum_trades), index=cum_trades.index)
-        
+        costs_instr_ccy=pd.Series([0.0]*len(cum_trades), index=cum_trades.index)        
         self._calc_and_set_returns(base_ccy_returns, costs_base_ccy, base_capital, 
                                     weighted_flag=weighted_flag, weighting=weighting,
                                     apply_weight_to_costs_only=apply_weight_to_costs_only)
         
-        ## Save all kinds of useful statistics
-
         setattr(self, "cum_trades", cum_trades)
         setattr(self, "trades_to_use", trades_to_use)
         setattr(self, "capital", base_capital)
@@ -189,33 +180,9 @@ class accountCurve(accountCurveSingle):
         
         super().__init__(base_ccy_returns, net_base_returns, costs_base_ccy, base_capital, weighted_flag=weighted_flag)
             
-        ## save useful stats
-        ## have to do this after super() call
         setattr(self, "weighted_flag", weighted_flag)
         setattr(self, "weighting", use_weighting)
 
-def resolve_capital(ts_to_scale_to, capital=None, ann_risk_target=None):
-    if capital is None:
-        base_capital=copy(DEFAULT_CAPITAL)
-    else:
-        base_capital = copy(capital)
-        
-    if ann_risk_target is None:
-        ann_risk_target=DEFAULT_ANN_RISK_TARGET
-        
-    ## might be a float or a Series, depending on capital
-    daily_risk_capital = base_capital * ann_risk_target / ROOT_BDAYS_INYEAR
-
-    if type(base_capital) is float or type(base_capital) is int:
-        ts_capital=pd.Series([base_capital]*len(ts_to_scale_to), index=ts_to_scale_to.index)
-        base_capital = float(base_capital)
-    else:
-        ts_capital=copy(base_capital)
-    
-    ## always a time series
-    ann_risk = ts_capital * ann_risk_target
-    
-    return (base_capital, ann_risk, daily_risk_capital)
 
 if __name__ == '__main__':
     import doctest
