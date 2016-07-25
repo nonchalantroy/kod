@@ -1,11 +1,5 @@
 import inspect
-"""
-Suite of things to work out p&l, and statistics thereof
-
-"""
-
 from copy import copy, deepcopy
-
 import pandas as pd
 from pandas.tseries.offsets import BDay
 import numpy as np
@@ -35,21 +29,16 @@ def pandl_with_data(price, trades=None, marktomarket=True, positions=None,
     use_fx = pd.Series([1.0] * len(price.index),
                        index=price.index)
     prices_to_use = copy(price)
-    if positions is None:
-            positions = get_positions_from_forecasts(price,
-                                                     get_daily_returns_volatility,
-                                                     forecast,
-                                                     use_fx,
-                                                     value_of_price_point,
-                                                     daily_risk_capital)
-    if roundpositions:
-        use_positions = positions.round()
-    else:
-        use_positions = copy(positions)
+    positions = get_positions_from_forecasts(price,
+                                             get_daily_returns_volatility,
+                                             forecast,
+                                             use_fx,
+                                             value_of_price_point,
+                                             daily_risk_capital)
 
-    if delayfill:
-        use_positions = use_positions.shift(1)
+    use_positions = copy(positions)
 
+    use_positions = use_positions.shift(1)
 
     cum_trades = use_positions.ffill()
     trades_to_use=cum_trades.diff()
@@ -65,9 +54,6 @@ def pandl_with_data(price, trades=None, marktomarket=True, positions=None,
     return (cum_trades, trades_to_use, instr_ccy_returns,
             base_ccy_returns, use_fx, value_of_price_point)
 
-
-
-
 def get_positions_from_forecasts(price, get_daily_returns_volatility, forecast,
                                  use_fx, value_of_price_point, daily_risk_capital,
                                   **kwargs):
@@ -77,13 +63,9 @@ def get_positions_from_forecasts(price, get_daily_returns_volatility, forecast,
         daily_risk_capital=DEFAULT_DAILY_CAPITAL
         
     multiplier = daily_risk_capital * 1.0 * 1.0 / 10.0
-
     denominator = (value_of_price_point * get_daily_returns_volatility* use_fx)
-
     numerator = forecast *  multiplier
-
     positions = numerator.ffill() /  denominator.ffill()
-
     return positions
 
     
@@ -96,16 +78,6 @@ def percent(accurve):
     pass
 
 class accountCurveSingleElementOneFreq(pd.Series):
-    """
-    A single account curve for one asset (instrument / trading rule variation, ...)
-     and one part of it (gross, net, costs)
-     and for one frequency (daily, weekly, monthly...)
-    
-    Inherits from series
-
-    We never init these directly but only as part of accountCurveSingleElement
-    
-    """
     def __init__(self, returns_df, capital, weighted_flag=False, frequency="D"):
         super().__init__(returns_df)
         
@@ -143,36 +115,15 @@ class accountCurveSingleElementOneFreq(pd.Series):
         print("accounting percent" + str(new_curve.tail())) 
         return new_curve
 
-    def cumulative(self):
-        
+    def cumulative(self):        
         cum_returns = self.as_cumulative()
-        new_curve = accountCurveSingleElementOneFreq(cum_returns, self.capital, self.weighted_flag, self.frequency)
-        
+        new_curve = accountCurveSingleElementOneFreq(cum_returns, self.capital, self.weighted_flag, self.frequency)        
         return new_curve
-
-
 
     def as_percent(self):
         print ("capital " + str(self.capital))
         print ("as ts " + str(self.as_ts().tail()))
         return 100.0 * self.as_ts() / self.capital
-
-
-    def as_cumulative(self):
-        if type(self.capital) is pd.core.series.Series:        
-            print("You shouldn't cumulate returns when capital is varying. Using the first value of capital only")
-            use_capital = self.capital[0]
-        else:
-            use_capital=self.capital
-        
-        perc_ac_returns = self.as_percent() / 100.0
-        
-        cum_returns = (1.0 + perc_ac_returns).cumprod()
-        
-        cum_returns = cum_returns * use_capital
-        
-        return cum_returns.diff()
-
 
     def curve(self):
         # we cache this since it's used so much
@@ -348,18 +299,6 @@ def resolve_capital(ts_to_scale_to, capital=None, ann_risk_target=None):
     return (base_capital, ann_risk, daily_risk_capital)
 
 def acc_list_to_pd_frame(list_of_ac_curves, asset_columns):
-    """
-    
-    Returns a pandas data frame
-
-    :param list_of_ac_curves: Elements to include
-    :type list_of_ac_curves: list of any accountcurve like object
-
-    :param asset_columns: Names of each asset
-    :type asset_columns: list of str 
-
-    :returns: TxN pd.DataFrame
-    """
     list_of_df=[acc.as_ts() for acc in list_of_ac_curves]
     ans=pd.concat(list_of_df, axis=1,  join="outer")
     
