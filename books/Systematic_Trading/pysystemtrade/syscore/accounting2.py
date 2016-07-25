@@ -142,20 +142,6 @@ class accountCurveSingleElementOneFreq(pd.Series):
     
     """
     def __init__(self, returns_df, capital, weighted_flag=False, frequency="D"):
-        """
-        :param returns_df: series of returns
-        :type returns_df: Tx1 pd.Series
-
-        :param weighted_flag: Does this curve have weighted returns?
-        :type weighted: bool
-
-        :param frequency: Frequency D days, W weeks, M months, Y years
-        :type frequency: str
-
-        :param capital: used to calculate extrapolated and % curves
-        :type capital: float or pd.Series
-
-        """
         super().__init__(returns_df)
         
         try:
@@ -312,65 +298,7 @@ class accountCurveSingleElementOneFreq(pd.Series):
     def skew(self):
         return skew(self.vals())
 
-    def losses(self):
-        x = self.vals()
-        return [z for z in x if z < 0]
 
-    def gains(self):
-        x = self.vals()
-        return [z for z in x if z > 0]
-
-    def avg_loss(self):
-        return np.mean(self.losses())
-
-    def avg_gain(self):
-        return np.mean(self.gains())
-
-    def gaintolossratio(self):
-        return self.avg_gain() / -self.avg_loss()
-
-    def profitfactor(self):
-        return sum(self.gains()) / -sum(self.losses())
-
-    def hitrate(self):
-        no_gains = float(len(self.gains()))
-        no_losses = float(len(self.losses()))
-        return no_gains / (no_losses + no_gains)
-
-    def rolling_ann_std(self, window=40):
-        y = pd.rolling_std(self.as_ts(), window, min_periods=4, center=True).to_frame()
-        return y * self._vol_scalar
-
-    def t_test(self):
-        return ttest_1samp(self.vals(), 0.0)
-
-    def t_stat(self):
-        return float(self.t_test()[0])
-
-    def p_value(self):
-        return float(self.t_test()[1])
-
-
-    def stats(self):
-
-        stats_list = ["min", "max", "median", "mean", "std", "skew",
-                      "ann_mean", "ann_std", "sharpe", "sortino",
-                      "avg_drawdown", "time_in_drawdown",
-                      "calmar", "avg_return_to_drawdown",
-                      "avg_loss", "avg_gain", "gaintolossratio", "profitfactor", "hitrate",
-                      "t_stat", "p_value"]
-
-        build_stats = []
-        for stat_name in stats_list:
-            stat_method = getattr(self, stat_name)
-            ans = stat_method()
-            build_stats.append((stat_name, "{0:.4g}".format(ans)))
-
-        comment1 = ("You can also plot / print:", [
-                    "rolling_ann_std", "drawdown", "curve", "percent", "cumulative"])
-
-
-        return [build_stats, comment1]
 
     def __repr__(self):
         if self.weighted_flag:
@@ -421,54 +349,13 @@ class accountCurveSingleElement(accountCurveSingleElementOneFreq):
 
 
 class accountCurveSingle(accountCurveSingleElement):
-    """
-    A single account curve for one asset (instrument / trading rule variation, ...)
-    
-    Inherits from data frame
-    
-    On the surface we see the 'net' but there's also a gross and cost part included
-    
-    """
     def __init__(self, gross_returns, net_returns, costs, capital, weighted_flag=False):
-        """
-        :param gross_returns: series of returns, no costs applied
-        :type gross_returns: Tx1 pd.Series
-
-        :param costs: series of costs (minus is a cost)
-        :type costs: Tx1 pd.Series
-
-        :param net_returns: series of costs (minus is a cost)
-        :type net_returns: Tx1 pd.Series
-
-        :param weighted_flag: Is this account curve of weighted returns?
-        :type weighted_flag: bool
-
-        :param capital: capital
-        :type capital: Tx1 pd.Series of float
-
-        
-        """
         
         super().__init__(net_returns,  capital, weighted_flag=weighted_flag)
         
         setattr(self, "net", accountCurveSingleElement(net_returns, capital, weighted_flag=weighted_flag))
         setattr(self, "gross", accountCurveSingleElement(gross_returns, capital, weighted_flag=weighted_flag))
         setattr(self, "costs", accountCurveSingleElement(costs,  capital, weighted_flag=weighted_flag))
-
-    def __repr__(self):
-        return super().__repr__()+"\n Use object.curve_type.freq.method() (freq=net, gross, costs) default: net"
-                
-    def to_ncg_frame(self):
-        """
-        View net gross and costs together
-        
-        :returns: Tx3 pd.DataFrame
-        """
-        
-        ans=pd.concat([self.net.as_ts(), self.gross.as_ts(), self.costs.as_ts()], axis=1)
-        ans.columns=["net", "gross", "costs"]
-        
-        return ans
 
 
 class accountCurve(accountCurveSingle):
