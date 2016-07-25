@@ -36,21 +36,12 @@ def pandl_with_data(price, trades=None, marktomarket=True, positions=None,
                                              value_of_price_point,
                                              daily_risk_capital)
 
-    use_positions = copy(positions)
-
-    use_positions = use_positions.shift(1)
-
-    cum_trades = use_positions.ffill()
-    trades_to_use=cum_trades.diff()
-        
-
+    cum_trades = positions.shift(1).ffill()
+    trades_to_use=cum_trades.diff()        
     price_returns = prices_to_use.diff()
-
-    instr_ccy_returns = cum_trades.shift(1)* price_returns * value_of_price_point
-    
+    instr_ccy_returns = cum_trades.shift(1)* price_returns * value_of_price_point    
     instr_ccy_returns=instr_ccy_returns.cumsum().ffill().reindex(price.index).diff()
-    base_ccy_returns = instr_ccy_returns * use_fx
-    
+    base_ccy_returns = instr_ccy_returns * use_fx    
     return (cum_trades, trades_to_use, instr_ccy_returns,
             base_ccy_returns, use_fx, value_of_price_point)
 
