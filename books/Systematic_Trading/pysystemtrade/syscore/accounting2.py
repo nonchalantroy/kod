@@ -161,9 +161,10 @@ class accountCurve(accountCurveSingle):
     
         (cum_trades, trades_to_use, instr_ccy_returns,
          base_ccy_returns, use_fx, value_of_price_point)=returns_data
-                
-        (costs_base_ccy, costs_instr_ccy)=calc_costs(returns_data, cash_costs, SR_cost, ann_risk)
-            
+        
+        costs_base_ccy=pd.Series([0.0]*len(cum_trades), index=cum_trades.index)
+        costs_instr_ccy=pd.Series([0.0]*len(cum_trades), index=cum_trades.index)
+        
         self._calc_and_set_returns(base_ccy_returns, costs_base_ccy, base_capital, 
                                     weighted_flag=weighted_flag, weighting=weighting,
                                     apply_weight_to_costs_only=apply_weight_to_costs_only)
@@ -190,26 +191,6 @@ class accountCurve(accountCurveSingle):
         ## have to do this after super() call
         setattr(self, "weighted_flag", weighted_flag)
         setattr(self, "weighting", use_weighting)
-
-    def __repr__(self):
-        return super().__repr__()+ "\n Use object.calc_data() to see calculation details"
-
-
-def calc_costs(returns_data, cash_costs, SR_cost, ann_risk):
-
-    (cum_trades, trades_to_use, instr_ccy_returns,
-        base_ccy_returns, use_fx, value_of_price_point)=returns_data
-
-    costs_instr_ccy=pd.Series([0.0]*len(use_fx), index=use_fx.index)
-
-    ## fx is on master (price timestamp)
-    ## costs_instr_ccy needs downsampling
-    costs_instr_ccy=costs_instr_ccy.cumsum().ffill().reindex(use_fx.index).diff()
-    
-    costs_base_ccy=costs_instr_ccy *  use_fx.ffill()
-    costs_base_ccy[np.isnan(costs_base_ccy)]=0.0
-
-    return (costs_base_ccy, costs_instr_ccy)
 
 def resolve_capital(ts_to_scale_to, capital=None, ann_risk_target=None):
     if capital is None:
