@@ -38,7 +38,7 @@ def pandl_with_data(price,
             base_ccy_returns, use_fx, value_of_price_point)
     
 class accountCurveSingleElementOneFreq(pd.Series):
-    def __init__(self, returns_df, capital, weighted_flag=False, frequency="D"):
+    def __init__(self, returns_df, capital, frequency="D"):
         super().__init__(returns_df)
         
         returns_scalar=dict(D=BUSINESS_DAYS_IN_YEAR, W=WEEKS_IN_YEAR,
@@ -62,13 +62,13 @@ class accountCurveSingleElementOneFreq(pd.Series):
 
     def percent(self):        
         perc_returns=self.as_percent()
-        new_curve=accountCurveSingleElementOneFreq(perc_returns, 100.0, self.weighted_flag, self.frequency)
+        new_curve=accountCurveSingleElementOneFreq(perc_returns, 100.0, self.frequency)
         print("accounting percent" + str(new_curve.tail())) 
         return new_curve
 
     def cumulative(self):        
         cum_returns = self.as_cumulative()
-        new_curve = accountCurveSingleElementOneFreq(cum_returns, self.capital, self.weighted_flag, self.frequency)        
+        new_curve = accountCurveSingleElementOneFreq(cum_returns, self.capital, self.frequency)        
         return new_curve
 
     def as_percent(self):
@@ -78,45 +78,50 @@ class accountCurveSingleElementOneFreq(pd.Series):
         return skew(self.values[pd.isnull(self.values) == False])
 
 class accountCurveSingleElement(accountCurveSingleElementOneFreq):
-    def __init__(self, returns_df, capital, weighted_flag=False):
+    def __init__(self, returns_df, capital):
         daily_returns = returns_df.resample("1B", how="sum")
-        super().__init__(daily_returns, capital, frequency="D",  weighted_flag=weighted_flag)
+        super().__init__(daily_returns, capital, frequency="D")
 
 class accountCurveSingle(accountCurveSingleElement):
-    def __init__(self, gross_returns, net_returns, capital, weighted_flag=False):        
-        super().__init__(net_returns,  capital, weighted_flag=weighted_flag)        
-        setattr(self, "net", accountCurveSingleElement(net_returns, capital, weighted_flag=weighted_flag))
-        setattr(self, "gross", accountCurveSingleElement(gross_returns, capital, weighted_flag=weighted_flag))
+    def __init__(self, gross_returns, net_returns, capital): 
+        super().__init__(net_returns,  capital)        
+        setattr(self, "net", accountCurveSingleElement(net_returns, capital))
+        setattr(self, "gross", accountCurveSingleElement(gross_returns, capital))
 
 class accountCurve(accountCurveSingle):
 
-    def __init__(self, price=None,   cash_costs=None, SR_cost=None, 
-                 capital=None, ann_risk_target=None, pre_calc_data=None,
-                 weighted_flag = False, weighting=None, 
-                apply_weight_to_costs_only=False,
-                 **kwargs):
+    def __init__(self, price, forecast):
 
         
         base_capital = DEFAULT_CAPITAL
         daily_risk_capital = DEFAULT_CAPITAL * DEFAULT_ANN_RISK_TARGET / ROOT_BDAYS_INYEAR
-        returns_data=pandl_with_data(price, daily_risk_capital=daily_risk_capital,  **kwargs)
-        (cum_trades, trades_to_use, instr_ccy_returns,base_ccy_returns, use_fx, value_of_price_point)=returns_data
+#        returns_data=pandl_with_data(price, daily_risk_capital=daily_risk_capital,  **kwargs)
+#        (cum_trades, trades_to_use, instr_ccy_returns,base_ccy_returns, use_fx, value_of_price_point)=returns_data
+
+        use_fx = pd.Series([1.0] * len(price.index),index=price.index)
+        get_daily_returns_volatility = robust_vol_calc(price.diff())
+        multiplier = daily_risk_capital * 1.0 * 1.0 / 10.0
+        denominator = get_daily_returns_volatility* use_fx
+        numerator = forecast *  multiplier
+        positions = numerator.ffill() /  denominator.ffill()
+        cum_trades = positions.shift(1).ffill()
+        trades_to_use=cum_trades.diff()        
+        price_returns = price.diff()
+        instr_ccy_returns = cum_trades.shift(1)* price_returns 
+        instr_ccy_returns=instr_ccy_returns.cumsum().ffill().reindex(price.index).diff()
+        base_ccy_returns = instr_ccy_returns * use_fx    
+
+
         self._calc_and_set_returns(base_ccy_returns,
-                                   base_capital, 
-                                    weighted_flag=weighted_flag,
-                                   weighting=weighting)
+                                   base_capital)
         
         setattr(self, "cum_trades", cum_trades)
         setattr(self, "trades_to_use", trades_to_use)
         setattr(self, "capital", base_capital)
         setattr(self, "fx", use_fx)
-        setattr(self, "value_of_price_point", value_of_price_point)
 
-    def _calc_and_set_returns(self, base_ccy_returns,  base_capital, 
-                              weighted_flag=False, weighting=None):
+    def _calc_and_set_returns(self, base_ccy_returns,  base_capital):
         use_weighting = None
         net_base_returns=base_ccy_returns         
-        super().__init__(base_ccy_returns, net_base_returns, base_capital, weighted_flag=weighted_flag)  
-        setattr(self, "weighted_flag", weighted_flag)
-        setattr(self, "weighting", use_weighting)
+        super().__init__(base_ccy_returns, net_base_returns, base_capital)  
 
