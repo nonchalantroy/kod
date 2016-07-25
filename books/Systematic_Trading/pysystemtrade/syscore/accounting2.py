@@ -1,6 +1,5 @@
 import inspect
 from copy import copy, deepcopy
-import pandas as pd
 from pandas.tseries.offsets import BDay
 from scipy.stats import skew, ttest_rel, ttest_1samp
 from syscore.algos import robust_vol_calc
@@ -8,12 +7,10 @@ from syscore.pdutils import  drawdown
 from syscore.dateutils import BUSINESS_DAYS_IN_YEAR, ROOT_BDAYS_INYEAR, WEEKS_IN_YEAR, ROOT_WEEKS_IN_YEAR
 from syscore.dateutils import MONTHS_IN_YEAR, ROOT_MONTHS_IN_YEAR
 import scipy.stats as stats
+import pandas as pd
 import random
 import numpy as np
 
-"""
-some defaults
-"""
 DEFAULT_CAPITAL = 10000000.0
 DEFAULT_ANN_RISK_TARGET = 0.16
 DEFAULT_DAILY_CAPITAL=DEFAULT_CAPITAL * DEFAULT_ANN_RISK_TARGET / ROOT_BDAYS_INYEAR
@@ -25,8 +22,7 @@ def pandl_with_data(price, trades=None, marktomarket=True, positions=None,
           daily_risk_capital=None, 
           value_of_price_point=1.0):
     
-    use_fx = pd.Series([1.0] * len(price.index),
-                       index=price.index)
+    use_fx = pd.Series([1.0] * len(price.index),index=price.index)
     positions = get_positions_from_forecasts(price,
                                              get_daily_returns_volatility,
                                              forecast,
@@ -46,26 +42,14 @@ def pandl_with_data(price, trades=None, marktomarket=True, positions=None,
 def get_positions_from_forecasts(price, get_daily_returns_volatility, forecast,
                                  use_fx, value_of_price_point, daily_risk_capital,
                                   **kwargs):
+    
     get_daily_returns_volatility = robust_vol_calc(price.diff(), **kwargs)
-
-    if daily_risk_capital is None:
-        daily_risk_capital=DEFAULT_DAILY_CAPITAL
-        
     multiplier = daily_risk_capital * 1.0 * 1.0 / 10.0
     denominator = (value_of_price_point * get_daily_returns_volatility* use_fx)
     numerator = forecast *  multiplier
     positions = numerator.ffill() /  denominator.ffill()
     return positions
-
     
-def percent(accurve):
-    """
-    Takes any account curve object
-    
-    Returns accountCurveSingleElementOneFreq - anything else is lost
-    """
-    pass
-
 class accountCurveSingleElementOneFreq(pd.Series):
     def __init__(self, returns_df, capital, weighted_flag=False, frequency="D"):
         super().__init__(returns_df)
