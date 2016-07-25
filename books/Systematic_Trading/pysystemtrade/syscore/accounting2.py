@@ -680,37 +680,7 @@ def calc_costs(returns_data, cash_costs, SR_cost, ann_risk):
     (cum_trades, trades_to_use, instr_ccy_returns,
         base_ccy_returns, use_fx, value_of_price_point)=returns_data
 
-    if SR_cost is not None:
-        ## use SR_cost
-        ann_cost = -SR_cost*ann_risk
-        
-        costs_instr_ccy = ann_cost/BUSINESS_DAYS_IN_YEAR
-    
-    elif cash_costs is not None:
-        ## use cost per blocks
-        
-        (value_total_per_block, value_of_pertrade_commission, percentage_cost)=cash_costs
-
-        trades_in_blocks=trades_to_use.abs()
-        costs_blocks = - trades_in_blocks*value_total_per_block
-
-        value_of_trades=trades_in_blocks * value_of_price_point
-        costs_percentage = percentage_cost * value_of_trades
-        
-        traded=trades_to_use[trades_to_use>0]
-        
-        if len(traded)==0:
-            costs_pertrade = pd.Series([0.0]*len(cum_trades.index), cum_trades.index)
-        else:
-            costs_pertrade = pd.Series([value_of_pertrade_commission]*len(traded.index), traded.index)
-            costs_pertrade = costs_pertrade.reindex(trades_to_use.index)
-
-        ## everything on the trades index, so can do this:s        
-        costs_instr_ccy = costs_blocks+costs_percentage+costs_pertrade
-
-    else:
-        ## set costs to zero
-        costs_instr_ccy=pd.Series([0.0]*len(use_fx), index=use_fx.index)
+    costs_instr_ccy=pd.Series([0.0]*len(use_fx), index=use_fx.index)
 
     ## fx is on master (price timestamp)
     ## costs_instr_ccy needs downsampling
