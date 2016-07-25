@@ -106,63 +106,8 @@ def pandl_with_data(price, trades=None, marktomarket=True, positions=None,
 def get_positions_from_forecasts(price, get_daily_returns_volatility, forecast,
                                  use_fx, value_of_price_point, daily_risk_capital,
                                   **kwargs):
-    """
-    Work out position using forecast, volatility, use_fx, value_of_price_point
-    (this will be for an arbitrary daily risk target)
+    get_daily_returns_volatility = robust_vol_calc(price.diff(), **kwargs)
 
-    If volatility is not provided, work out from price (uses a standard method
-    so may differ from precise system p&l)
-
-    :param price: price series
-    :type price: Tx1 pd.Series
-
-    :param get_daily_returns_volatility: series of volatility estimates. NOT %
-    volatility, price difference vol ALWAYS matched to price
-    :type get_daily_returns_volatility: Tx1 pd.Series  or None
-
-    :param forecast: series of forecasts, needed to work out positions, MATCHED to price
-    :type forecast: Tx1 pd.Series
-
-    :param use_fx: series of fx rates from instrument currency to base currency, to
-    work out p&l in base currency, MATCHED to price
-    :type use_fx: Tx1 pd.Series
-
-    :param value_of_price_point: value of one unit movement in price
-    :type value_of_price_point: float
-
-    :param daily_risk_capital: Capital at risk 
-    :type capital: float or None or pd.Series aligned to forecast
-
-
-    **kwargs: passed to vol calculation
-
-    :returns: Tx1 pd dataframe of positions
-
-    """
-    if forecast is None:
-        raise Exception(
-            "If you don't provide a series of trades or positions, I need a "
-            "forecast")
-
-    if get_daily_returns_volatility is None:
-        get_daily_returns_volatility = robust_vol_calc(price.diff(), **kwargs)
-
-    """
-    Herein the proof why this position calculation is correct (see chapters
-    5-11 of 'systematic trading' book)
-
-    Position = forecast x instrument weight x instrument_div_mult x vol_scalar / 10.0
-             = forecast x instrument weight x instrument_div_mult x daily cash vol target / (10.0 x instr value volatility)
-             = forecast x instrument weight x instrument_div_mult x daily cash vol target / (10.0 x instr ccy volatility x fx rate)
-             = forecast x instrument weight x instrument_div_mult x daily cash vol target / (10.0 x block value x % price volatility x fx rate)
-             = forecast x instrument weight x instrument_div_mult x daily cash vol target / (10.0 x underlying price x 0.01 x value of price move x 100 x price change volatility/(underlying price) x fx rate)
-             = forecast x instrument weight x instrument_div_mult x daily cash vol target / (10.0 x value of price move x price change volatility x fx rate)
-
-    Making some arbitrary assumptions (one instrument, 100% of capital, daily target DAILY_CAPITAL):
-
-             = forecast x 1.0 x 1.0 x DAILY_CAPITAL / (10.0 x value of price move x price diff volatility x fx rate)
-             = forecast x  multiplier / (value of price move x price change volatility x fx rate)
-    """
     if daily_risk_capital is None:
         daily_risk_capital=DEFAULT_DAILY_CAPITAL
         
