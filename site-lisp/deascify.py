@@ -36,7 +36,7 @@ def convert():
               ("kismi", u'kısmi'),("integral",),("oldugu",u'olduğu'),
               ("acilimi",u'açılımı'),("acilim",u'açılım'),("aci",u'açı'),
               ("minimize",),("gayri",u'gayrı'),("Pandas",),("algoritma",),
-              ("gayri",u'gayrı'),("sigma",),("volatility",)]
+              ("gayri",u'gayrı'),("sigma",),("volatility",),("matris",)]
               
     r_list_coded = []
     for x in r_list: r_list_coded.append((x[0],str(int(random.random() * 1000000))))

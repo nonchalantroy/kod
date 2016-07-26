@@ -17,11 +17,11 @@ f = '../sysdata/legacycsv/CORN_price.csv'
 price = pd.read_csv(f,index_col=0,parse_dates=True).PRICE
 ewmac = calc_ewmac_forecast(price, 32, 128)
 ewmac.columns=['forecast']
-print(ewmac.tail(5))
-ewmac.to_csv("out.csv")
-from syscore.accounting2 import skew
-#from syscore.accounting import accountCurve
-#account = accountCurve(price, forecast=ewmac)
-#print(tmp.skew())
-print (skew(price, forecast=ewmac))
-# -8.45
+from syscore.accounting import accountCurve
+account = accountCurve(price, forecast=ewmac)
+print(account.skew())
+
+#df = pd.DataFrame(index=price.index)
+#df['price'] = price
+#df['forecast'] = ewmac
+#df.to_csv("out.csv")
