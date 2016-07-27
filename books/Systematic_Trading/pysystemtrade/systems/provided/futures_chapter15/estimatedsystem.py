@@ -11,7 +11,7 @@ from sysdata.configdata import Config
 from systems.forecasting import Rules
 from systems.basesystem import System
 from systems.forecast_combine import ForecastCombine
-from systems.forecast_scale_cap import ForecastScaleCap
+from systems.forecast_scale_cap2 import ForecastScaleCap
 from systems.futures.rawdata import FuturesRawData
 from systems.positionsizing import PositionSizing
 from systems.portfolio import Portfolios

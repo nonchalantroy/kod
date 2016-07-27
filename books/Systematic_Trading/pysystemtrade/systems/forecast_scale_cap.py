@@ -376,7 +376,8 @@ class ForecastScaleCapEstimated(ForecastScaleCapFixed):
                    for instrument_code in instrument_list]
             
             cs_forecasts=pd.concat(forecast_list, axis=1)
-            
+
+            print ("scalar_function=" + str(scalar_function))
             scaling_factor=scalar_function(cs_forecasts, **forecast_scalar_config)
             
             return scaling_factor
