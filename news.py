@@ -29,15 +29,14 @@ def decode(key, enc):
 def show():
 
     feeds = [
+        ("Reuters (UK World)",'http://feeds.reuters.com/reuters/UKWorldNews',-1),
         ("The Guardian","http://www.theguardian.com/world/rss",10),
         ("Diken","http://www.diken.com.tr/feed/",-1),
         ("Cumhuriyet","http://www.cumhuriyet.com.tr/rss/son_dakika.xml",10),
         (u"Hürriyet", "http://www.hurriyet.com.tr/rss/gundem",10),
         ("Al-Jazeera","http://aljazeera.com.tr/rss.xml",-1),
-        (u"Açık Gazete","https://www.acikgazete.com/feed",-1),
         ("T24","https://twitrss.me/twitter_user_to_rss/?user=t24comtr",-1),
         ("Reuters (Top News)",'http://feeds.reuters.com/reuters/topNews',-1),
-        ("Reuters (UK World)",'http://feeds.reuters.com/reuters/UKWorldNews',-1),
         ("Reuters (World)",'http://feeds.reuters.com/reuters/worldNews',-1),
         ("Reuters (Business)", "http://feeds.reuters.com/reuters/businessNews",-1),
         ("Bloomberg","https://twitrss.me/twitter_user_to_rss/?user=business",-1),
@@ -45,7 +44,7 @@ def show():
         ('BBC','http://newsrss.bbc.co.uk/rss/newsonline_world_edition/front_page/rss.xml',20),
         ("Sputnik News","http://tr.sputniknews.com/export/rss2/archive/index.xml",15),
         ("The Atlantic", "http://www.theatlantic.com/feed/all/",-1),
-        ("","http://www.dunya.com/service/rss.php",-1),
+        ("Dunya Finans","http://www.dunya.com/service/rss.php",-1),
         ("EB",decode('1234', "maanpKRsYmOlqZyoo6WmYp6XYqiom6eolqSSqaSXpZOloZKmpKVic6almKZul5WVk5OblZ8="),-1),
         ("FA",decode('1234', "maanpKRsYmOlqZyoo6WmYp6XYqiom6eolqSSqaSXpZOloZKmpKVic6almKZumKiVpZOpopqRmQ=="),-1),
         ("Taraf","http://www.taraf.com.tr/feed",-1),
@@ -60,7 +59,7 @@ def show():
         d = feedparser.parse(url)
         for i,post in enumerate(d.entries):
             link = post.link; title = post.title
-            if len(re.findall(r"Erdo.an", title)) > 0: continue
+            if len(re.findall(r"Erdo.an", title, re.IGNORECASE)) > 0: continue
             print("[[%s][%s]]" % (link,unicode(title)))
             if lim > 0 and i==int(lim):
                 break
