@@ -47,10 +47,13 @@ def show():
         ("Dunya Finans","http://www.dunya.com/service/rss.php",-1),
         ("EB",decode('1234', "maanpKRsYmOlqZyoo6WmYp6XYqiom6eolqSSqaSXpZOloZKmpKVic6almKZul5WVk5OblZ8="),-1),
         ("FA",decode('1234', "maanpKRsYmOlqZyoo6WmYp6XYqiom6eolqSSqaSXpZOloZKmpKVic6almKZumKiVpZOpopqRmQ=="),-1),
+        (u"Açık Gazete","https://www.acikgazete.com/feed",-1),
         ("Taraf","http://www.taraf.com.tr/feed",-1),
-        ("O",decode('1234', "maanpGthYqOVk6eqX5WioWCkpqdfopuk"),-1),
-        ("A", decode('1234', "maanpGthYpWfmJSekqCmYpShoGOjpaY="),-1)
+        ("O",decode('1234', "maanpGthYqOVk6eqX5WioWCkpqdfopuk"),10),
+        ("A", decode('1234', "maanpGthYpWfmJSekqCmYpShoGOjpaY="),10)
     ]
+
+    #feeds = [   ]
 
     for name,url,lim in feeds:
         print("\n")
