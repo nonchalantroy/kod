@@ -44,11 +44,10 @@ def show():
         ('BBC','http://newsrss.bbc.co.uk/rss/newsonline_world_edition/front_page/rss.xml',20),
         ("Sputnik News","http://tr.sputniknews.com/export/rss2/archive/index.xml",15),
         ("The Atlantic", "http://www.theatlantic.com/feed/all/",-1),
-        ("Dunya Finans","http://www.dunya.com/service/rss.php",-1),
+        ("Dunya Finans","http://www.dunya.com/service/rss.php",10),
         ("EB",decode('1234', "maanpKRsYmOlqZyoo6WmYp6XYqiom6eolqSSqaSXpZOloZKmpKVic6almKZul5WVk5OblZ8="),-1),
         ("FA",decode('1234', "maanpKRsYmOlqZyoo6WmYp6XYqiom6eolqSSqaSXpZOloZKmpKVic6almKZumKiVpZOpopqRmQ=="),-1),
         (u"Açık Gazete","https://www.acikgazete.com/feed",-1),
-        ("Taraf","http://www.taraf.com.tr/feed",-1),
         ("O",decode('1234', "maanpGthYqOVk6eqX5WioWCkpqdfopuk"),10),
         ("A", decode('1234', "maanpGthYpWfmJSekqCmYpShoGOjpaY="),10)
     ]
@@ -61,9 +60,9 @@ def show():
         print("\n")
         d = feedparser.parse(url)
         for i,post in enumerate(d.entries):
+            if lim > 0 and i==int(lim): break
             link = post.link; title = post.title
             if len(re.findall(r"Erdo.an", title, re.IGNORECASE)) > 0: continue
+            if len(re.findall(r"top.u", title, re.IGNORECASE)) > 0: continue            
             print("[[%s][%s]]" % (link,unicode(title)))
-            if lim > 0 and i==int(lim):
-                break
 show()
