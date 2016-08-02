@@ -82,9 +82,9 @@ plt.savefig('test_03.png')
 
 Processing the images below:
 
-![Alcatraz1](alcatraz1s.pgm)
+[Alcatraz1](alcatraz1s.pgm)
 
-![Alcatraz2](alcatraz2s.pgm)
+[Alcatraz2](alcatraz2s.pgm)
 
 
 ![](test_03.png)
