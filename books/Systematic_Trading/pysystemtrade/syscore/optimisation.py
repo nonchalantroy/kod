@@ -589,7 +589,7 @@ def markosolver(period_subset_data, moments_estimator,
 
     """
 
-    print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" + "markosolver")
+    #print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" + "markosolver")
     
     rawmoments=moments_estimator.moments(period_subset_data)    
     (mean_list, corrmatrix, stdev_list)=copy(rawmoments)

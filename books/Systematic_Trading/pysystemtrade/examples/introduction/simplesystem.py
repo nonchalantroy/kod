@@ -1,3 +1,4 @@
+import sys; sys.path.append('../..')
 import inspect
 """
 Let's recap:

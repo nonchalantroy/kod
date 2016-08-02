@@ -26,7 +26,9 @@ my_config.trading_rules = dict(ewmac8=ewmac_8, ewmac32=ewmac_32)
 
 #my_config.instruments=[ "US20", "NASDAQ", "SP500"]
 my_config.instruments=[ "SP500"]
-my_config.forecast_weight_estimate=dict(method="one_period")
+#my_config.forecast_weight_estimate=dict(method="one_period")
+my_config.forecast_weight_estimate=dict(method="bootstrap")
+my_config.forecast_weight_estimate['monte_runs']=50
 my_config.use_forecast_weight_estimates=True
 my_account = Account()
 combiner = ForecastCombine()
