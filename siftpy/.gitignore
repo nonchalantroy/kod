@@ -1,4 +1,4 @@
 build
 *.so
-*.pgm
-*.jpg
+crans*.pgm
+crans*.jpg
