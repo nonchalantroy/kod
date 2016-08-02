@@ -46,7 +46,6 @@ def show():
         ("The Atlantic", "http://www.theatlantic.com/feed/all/",-1),
         ("Dunya Finans","http://www.dunya.com/service/rss.php",10),
         ("EB",decode('1234', "maanpKRsYmOlqZyoo6WmYp6XYqiom6eolqSSqaSXpZOloZKmpKVic6almKZul5WVk5OblZ8="),-1),
-        ("FA",decode('1234', "maanpKRsYmOlqZyoo6WmYp6XYqiom6eolqSSqaSXpZOloZKmpKVic6almKZumKiVpZOpopqRmQ=="),-1),
         (u"Açık Gazete","https://www.acikgazete.com/feed",-1),
         ("O",decode('1234', "maanpGthYqOVk6eqX5WioWCkpqdfopuk"),10),
         ("A", decode('1234', "maanpGthYpWfmJSekqCmYpShoGOjpaY="),10)
