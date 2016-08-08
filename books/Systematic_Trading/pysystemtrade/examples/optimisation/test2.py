@@ -13,3 +13,4 @@ system.config.instrument_weight_estimate["monte_runs"]=200
 system.config.instrument_weight_estimate["bootstrap_length"]=104
 
 print(system.portfolio.get_instrument_correlation_matrix().corr_list[16])
+

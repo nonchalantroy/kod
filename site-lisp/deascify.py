@@ -33,7 +33,7 @@ def convert():
     # ("kelime","degisim") olarak bir tuple eklenir. 
     r_list = [("verisi",),("Calculus",),("AIC",),("estimator",),(" ise",),
               ("kontur",),("ODE",),("Oklit",u'Öklit'),("karekok",u'karekök'),
-              ("kismi", u'kısmi'),("integral",),("oldugu",u'olduğu'),
+              ("kismi", u'kısmi'),("integral",),("oldugu",u'olduğu'),("parcaci",u"parçacı"),
               ("acilimi",u'açılımı'),("acilim",u'açılım'),("aci",u'açı'),
               ("minimize",),("gayri",u'gayrı'),("Pandas",),("algoritma",),
               ("gayri",u'gayrı'),("sigma",),("volatility",),("matris",)]
