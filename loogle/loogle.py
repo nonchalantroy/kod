@@ -134,7 +134,7 @@ def search(s, index_dir):
 if __name__ == "__main__":
 
     if sys.argv[1] == '--index':
-        index(crawl_dir="e:/kitaplar",
+        index(crawl_dir="d:/archive/kitaplar",
               index_dir="c:/Users/burak/Documents/book_idx",
               get_first_N=800) # up this for incremental processing
         

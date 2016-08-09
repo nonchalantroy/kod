@@ -33,10 +33,12 @@ def convert():
     # ("kelime","degisim") olarak bir tuple eklenir. 
     r_list = [("verisi",),("Calculus",),("AIC",),("estimator",),(" ise",),
               ("kontur",),("ODE",),("Oklit",u'Öklit'),("karekok",u'karekök'),
-              ("kismi", u'kısmi'),("integral",),("oldugu",u'olduğu'),("parcaci",u"parçacı"),
-              ("acilimi",u'açılımı'),("acilim",u'açılım'),("aci",u'açı'),
-              ("minimize",),("gayri",u'gayrı'),("Pandas",),("algoritma",),
-              ("gayri",u'gayrı'),("sigma",),("volatility",),("matris",)]
+              ("kismi", u'kısmi'),("integral",),("oldugu",u'olduğu'),
+              ("parcaci",u"parçacı"),("acilimi",u'açılımı'),("acilim",u'açılım'),
+              ("aci",u'açı'),("minimize",),("gayri",u'gayrı'),("Pandas",),
+              ("algoritma",),("gayri",u'gayrı'),("sigma",),("volatility",),
+              ("matris",),("frac","frac")
+    ]
               
     r_list_coded = []
     for x in r_list: r_list_coded.append((x[0],str(int(random.random() * 1000000))))
