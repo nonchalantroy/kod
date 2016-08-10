@@ -62,8 +62,9 @@ def show():
             if lim > 0 and i==int(lim): break
             link = post.link; title = post.title
             if len(re.findall(r"Erdo.an", title, re.IGNORECASE)) > 0: continue
-            if len(re.findall(r"top.u k", title, re.IGNORECASE)) > 0: continue
+            if len(re.findall(r"top.u k..las", title, re.IGNORECASE)) > 0: continue
             if len(re.findall(r"Engin Ard", title, re.IGNORECASE)) > 0: continue
             if len(re.findall(r" .ld.rd.", title, re.IGNORECASE)) > 0: continue
+            if len(re.findall(r"umhurba.kan", title, re.IGNORECASE)) > 0: continue
             print("[[%s][%s]]" % (link,unicode(title)))
 show()
