@@ -21,7 +21,7 @@ class Runner(threading.Thread):
 
 if __name__ == "__main__": 
          
-    base_dir = "d:/shows"
+    base_dir = "e:/shows"
 
     dirs,files = ls(base_dir)
 

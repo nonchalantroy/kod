@@ -140,7 +140,6 @@ class Rules(SystemStage):
 
             result = trading_rule.call(system, instrument_code)
             result.columns = [rule_variation_name]
-
             return result
 
         forecast = self.parent.calc_or_cache_nested("get_raw_forecast",
