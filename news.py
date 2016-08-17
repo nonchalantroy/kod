@@ -48,7 +48,11 @@ def show():
         ("EB",decode('1234', "maanpKRsYmOlqZyoo6WmYp6XYqiom6eolqSSqaSXpZOloZKmpKVic6almKZul5WVk5OblZ8="),-1),
         (u"Açık Gazete","https://www.acikgazete.com/feed",-1),
         ("O",decode('1234', "maanpGthYqOVk6eqX5WioWCkpqdfopuk"),10),
-        ("A", decode('1234', "maanpGthYpWfmJSekqCmYpShoGOjpaY="),10)
+        ("A", decode('1234', "maanpGthYpWfmJSekqCmYpShoGOjpaY="),10),
+        ("Deusche Welle (World)", "http://rss.dw.de/rdf/rss-en-all", 15),
+        ("Deusche Welle (Europe)", "http://rss.dw.de/rdf/rss-en-eu", 15),
+        ("Die Welt", "http://www.welt.de/?service=Rss", 20),
+        ("ARD", "http://www.ard.de/home/ard/ARD_Startseite/21920/index.xml", 20)
     ]
 
     #feeds = [   ]
