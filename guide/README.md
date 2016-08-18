@@ -90,15 +90,14 @@ means you are a secretor.
 Now some implementation details; There are some reference files
 `mindmeld` uses from the subproject `jlewi`; No need to copy anything
 back and forth, bcz `mindmeld` folder as-is already has a recently
-updated / working Lewi file copied from this subproject - so no
-copying is necessary. If you want to *regenerate* the lewi file
-though, everything required is in the `jlewi` subfolder. This is a
-Java project, see its README for further info. The calculation of Lewi
-numbers and "decans" data is the most beneficial part of this package,
-doing the same calculation by hand was extremely time consuming (the
-decan information required for the calculation is through the
-`SwissEph` package which we wrapped with the Java code found under
-`jlewi` directory, whose output is already under `data` folder).
+updated / working Lewi file copied from this subproject. If you want
+to regenerate the lewi file however, all required files are under the
+`jlewi` subfolder. This is a Java project, see its README for further
+info. The calculation of Lewi numbers and "decans" is the most
+beneficial part of this package, doing the same calculation by hand
+was extremely time consuming (the decan information required for the
+calculation is through the `SwissEph` package which we wrapped with
+the Java code found under `jlewi`).
 
 ## Summary
 
