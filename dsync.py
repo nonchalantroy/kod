@@ -7,13 +7,13 @@ if sys.argv[1] == "hd":
     os.system("python rsync.py c:\\Users\\burak\\Documents\\Dropbox e:\\archive\\Dropbox --delete")
     os.system("python rsync.py c:\\Users\\burak\\Documents\\classnotes e:\\archive\\classnotes --delete")
     os.system("python rsync.py c:\\Users\\burak\\Documents\\kod e:\\archive\\kod --delete")
-    os.system("python rsync.py c:\\Users\\burak\\Documents\\book_idx e:\\archive\\book_idx --delete")
+    #os.system("python rsync.py c:\\Users\\burak\\Documents\\book_idx e:\\archive\\book_idx --delete")
 
 if sys.argv[1] == "flash":
     os.system("python rsync.py c:\\Users\\burak\\Documents\\quant_at d:\\quant_at --delete")
     os.system("python rsync.py c:\\Users\\burak\\Documents\\classnotes d:\\classnotes --delete")
     os.system("python rsync.py c:\\Users\\burak\\Documents\\kod d:\\kod --delete")
-    os.system("python rsync.py c:\\Users\\burak\\Documents\\book_idx d:\\book_idx --delete")
+    #os.system("python rsync.py c:\\Users\\burak\\Documents\\book_idx d:\\book_idx --delete")
     
 if sys.argv[1] == "de":
     os.system("python rsync.py D:\\kitaplar E:\\archive\\kitaplar")
