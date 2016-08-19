@@ -8,15 +8,3 @@ system=futures_system()
 #system.config.forecast_scalar_estimate['pool_instruments']=False
 res = system.forecastScaleCap.get_forecast_scalar("US10", "carry") 
 print (res.tail())
-
-
-
-
-
-
-
-
-
-
-
-

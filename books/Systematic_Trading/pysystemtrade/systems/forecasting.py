@@ -139,6 +139,9 @@ class Rules(SystemStage):
             trading_rule = rules_stage.trading_rules()[rule_variation_name]
 
             result = trading_rule.call(system, instrument_code)
+#            if instrument_code=="CORN" and rule_variation_name=="carry":
+#                result.to_csv("out-corn-carry.csv")
+#                exit()
             result.columns = [rule_variation_name]
             return result
 

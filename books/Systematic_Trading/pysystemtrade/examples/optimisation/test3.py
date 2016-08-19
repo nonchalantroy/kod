@@ -1,8 +1,7 @@
-import inspect
-import logging
-import pandas as pd
 import sys; sys.path.append('../..')
-import numpy as np
+from syscore.algos import robust_vol_calc
+from syscore.accounting import accountCurve
+import pandas as pd, numpy as np
 
 def carry(daily_ann_roll, vol, smooth_days=90):
     ann_stdev = vol * 256
@@ -10,17 +9,25 @@ def carry(daily_ann_roll, vol, smooth_days=90):
     smooth_carry = pd.ewma(raw_carry, smooth_days)
     return smooth_carry
 
-from syscore.algos import robust_vol_calc
 
-#f = '../../sysdata/legacycsv/MXP_price.csv'
-f = '../../sysdata/legacycsv/CORN_price.csv'
+#inst = "MXP"; carryoffset = 3 
+inst = "CORN"; carryoffset = -3 # SR 0.06
+#inst = "EDOLLAR"; carryoffset = -3 # SR -0.67
+
+carry_multiplier = 20.
+
+f = '../../sysdata/legacycsv/%s_price.csv' % inst
 df = pd.read_csv(f,index_col=0,parse_dates=True)
-vol = robust_vol_calc(df.PRICE.diff())
-#f = '../../sysdata/legacycsv/MXP_carrydata.csv'
-f = '../../sysdata/legacycsv/CORN_carrydata.csv'
+f = '../../sysdata/legacycsv/%s_carrydata.csv' % inst
 df2 = pd.read_csv(f,index_col=0,parse_dates=True)
-carryoffset = -3
-forecast2 = carry(np.sign(carryoffset)*(df2.CARRY-df2.PRICE)/(carryoffset/12.), vol) * 30.
-from syscore.accounting import accountCurve
+
+vol = robust_vol_calc(df.PRICE.diff())
+
+#forecast2 = np.sign(carryoffset)*(df2.CARRY-df2.PRICE)
+forecast2 = df2.PRICE-df2.CARRY/(carryoffset/12.)
+forecast2 = carry(forecast2, vol) * carry_multiplier
+forecast2.loc[forecast2 > 20] = 20
+forecast2.loc[forecast2 < -20] = -20
+
 account = accountCurve(df.PRICE, forecast=forecast2)
 print (account.sharpe())
