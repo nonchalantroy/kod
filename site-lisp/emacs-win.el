@@ -915,6 +915,7 @@ This command does not push erased text to kill-ring."
 (find-file-other-window "c:/Users/burak/Documents/kod/books/Systematic_Trading/pysystemtrade")
 (find-file-other-window "c:/Users/burak/Documents/quant_at/data")
 (find-file-other-window "c:/Users/burak/Documents/quant_at/alg/priv")
+(find-file-other-window "c:/Users/burak/Documents/Dropbox/resmi/newbusiness")
 
 (switch-to-buffer "*scratch*")
 (delete-other-windows)
