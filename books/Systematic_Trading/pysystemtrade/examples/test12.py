@@ -400,7 +400,6 @@ class PortfoliosEstimated(SystemStage):
         insts = ['EDOLLAR','US10','EUROSTX','V2X','MXP','CORN']
         for c in insts:
             df = pd.read_csv("c:/Users/burak/Documents/kod/books/Systematic_Trading/pysystemtrade/examples/out-%s.csv" % c,index_col=0,parse_dates=True)
-            df = df.resample("W", how="sum")
             dfs.append(df)
         pandl = pd.concat(dfs,axis=1)        
         frequency=corr_params['frequency']
@@ -424,7 +423,10 @@ if __name__ == "__main__":
     my_system = System([Account(), PortfoliosEstimated(), PositionSizing(), ForecastScaleCap(), my_rules, ForecastCombine()], data, my_config)
     my_system.config.forecast_weight_estimate['method']="equal_weights"
     my_system.config.instrument_weight_estimate['method']="bootstrap"
-    my_system.config.instrument_weight_estimate["monte_runs"]=1
+    my_system.config.instrument_weight_estimate["monte_runs"]=50
     my_system.config.instrument_weight_estimate["bootstrap_length"]=250
-    print(my_system.portfolio.get_instrument_correlation_matrix(my_system).corr_list[-1])
-
+    res = my_system.portfolio.get_instrument_correlation_matrix(my_system).corr_list[-1]
+    insts = ['EDOLLAR','US10','EUROSTX','V2X','MXP','CORN']
+    res = pd.DataFrame(res, index=insts)
+    res.columns = insts
+    print (res)
