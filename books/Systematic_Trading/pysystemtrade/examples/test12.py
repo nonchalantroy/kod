@@ -43,11 +43,12 @@ def get_avg_corr(sigma):
 
 
 def correlation_single_period(data_for_estimate, 
-                              using_exponent=True, min_periods=20, ew_lookback=250,
+                              using_exponent=True,
+                              min_periods=20,
+                              ew_lookback=250,
                               floor_at_zero=True):
 
-    using_exponent=str2Bool(using_exponent)
-            
+    using_exponent=str2Bool(using_exponent)            
     if using_exponent:
         dindex=data_for_estimate.index
         dlenadj=float(len(dindex))/len(set(list(dindex)))
@@ -111,28 +112,18 @@ class CorrelationEstimator(CorrelationList):
                  date_method="expanding", rollyears=20, 
                  dict_group=dict(), boring_offdiag=0.99, cleaning=True, **kwargs):
         cleaning=str2Bool(cleaning)
-    
-        ## grouping dictionary, convert to faster, algo friendly, form
         group_dict=group_dict_from_natural(dict_group)
-
         data=df_from_list(data)    
         column_names=list(data.columns)
-
         data=data.resample(frequency, how="last")
-            
-        ### Generate time periods
         fit_dates = generate_fitting_dates(data, date_method=date_method, rollyears=rollyears)
         size=len(column_names)
         corr_with_no_data=boring_corr_matrix(size, offdiag=boring_offdiag)        
-        ## create a list of correlation matrices
         corr_list=[]        
         print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" +"Correlation estimate")
-        
-        ## Now for each time period, estimate correlation
         for fit_period in fit_dates:
             print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" +"Estimating from %s to %s" % (fit_period.period_start, fit_period.period_end))            
             if fit_period.no_data:
-                ## no data to fit with
                 corr_with_nan=boring_corr_matrix(size, offdiag=np.nan, diag=np.nan)
                 corrmat=corr_with_nan                
             else:                
@@ -142,8 +133,6 @@ class CorrelationEstimator(CorrelationList):
             if cleaning:
                 current_period_data=data[fit_period.fit_start:fit_period.fit_end] 
                 must_haves=must_have_item(current_period_data)
-
-                # means we can use earlier correlations with sensible values
                 corrmat=clean_correlation(corrmat, corr_with_no_data, must_haves) 
 
             corr_list.append(corrmat)
@@ -205,28 +194,6 @@ class fit_dates_object(object):
         else:
             return "Fit from %s to %s, use in %s to %s" % (self.fit_start, self.fit_end, self.period_start, self.period_end)
         
-class PortfoliosEstimated(SystemStage):
-    
-    def __init__(self): setattr(self, "name", "portfolio")
-        
-    def get_instrument_correlation_matrix(self, system):
-        #pandl=system.accounts.pandl_across_subsystems().to_frame()
-        #pandl.to_csv("out.csv")
-        dfs = []
-        insts = ['EDOLLAR','US10','EUROSTX','V2X','MXP','CORN']
-        for c in insts:
-            df = pd.read_csv("c:/Users/burak/Documents/kod/books/Systematic_Trading/pysystemtrade/examples/out-%s.csv" % c,index_col=0,parse_dates=True)
-            dfs.append(df)
-        pandl = pd.concat(dfs,axis=1)        
-        frequency="W"
-        print ("frequency=" + str(frequency))
-        pandl=pandl.cumsum().resample(frequency).diff()
-        return CorrelationEstimator(pandl, frequency=frequency,
-                                    ew_lookback=500, floor_at_zero=True,
-                                    min_periods=20,
-                                    cleaning=True,using_exponent=True,
-                                    date_method='expanding', rollyears=20)
-    
 if __name__ == "__main__": 
 
     dfs = []
