@@ -252,7 +252,6 @@ class PortfoliosEstimated(SystemStage):
             df = pd.read_csv("c:/Users/burak/Documents/kod/books/Systematic_Trading/pysystemtrade/examples/out-%s.csv" % c,index_col=0,parse_dates=True)
             dfs.append(df)
         pandl = pd.concat(dfs,axis=1)        
-        #frequency=corr_params['frequency']
         frequency="W"
         print ("frequency=" + str(frequency))
         pandl=pandl.cumsum().resample(frequency).diff()
@@ -263,19 +262,22 @@ class PortfoliosEstimated(SystemStage):
                                     date_method='expanding', rollyears=20)
     
 if __name__ == "__main__": 
-     
-    random.seed(0)
-    np.random.seed(0)
-    data = csvFuturesData()
-    my_config = Config()
-    insts = ['EDOLLAR','US10','EUROSTX','V2X','MXP','CORN']
-    my_config.instruments=insts
-    ewmac_8 = TradingRule((ewmac, [], dict(Lfast=8, Lslow=32)))
-    ewmac_32 = TradingRule(dict(function=ewmac, other_args=dict(Lfast=32, Lslow=128)))
-    my_rules = Rules(dict(ewmac8=ewmac_8, ewmac32=ewmac_32))
 
-    my_system = System([Account(), PortfoliosEstimated(), PositionSizing(), ForecastScaleCap(), my_rules, ForecastCombine()], data, my_config)
-    res = my_system.portfolio.get_instrument_correlation_matrix(my_system).corr_list[-1]
-    res = pd.DataFrame(res, index=insts)
+    dfs = []
+    insts = ['EDOLLAR','US10','EUROSTX','V2X','MXP','CORN']
+    for c in insts:
+        df = pd.read_csv("c:/Users/burak/Documents/kod/books/Systematic_Trading/pysystemtrade/examples/out-%s.csv" % c,index_col=0,parse_dates=True)
+        dfs.append(df)
+    pandl = pd.concat(dfs,axis=1)        
+    frequency="W"
+    print ("frequency=" + str(frequency))
+    pandl=pandl.cumsum().resample(frequency).diff()
+    res = CorrelationEstimator(pandl, frequency=frequency,
+                               ew_lookback=500, floor_at_zero=True,
+                               min_periods=100,
+                               cleaning=True,
+                               using_exponent=True,
+                               date_method='expanding', rollyears=20)
+    res = pd.DataFrame(res.corr_list[-1], index=insts)
     res.columns = insts
     print (res)
