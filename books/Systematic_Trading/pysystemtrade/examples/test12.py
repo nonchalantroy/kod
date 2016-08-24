@@ -107,8 +107,8 @@ class CorrelationList(object):
     
 class CorrelationEstimator(CorrelationList):
 
-    def __init__(self, data, log=logtoscreen("optimiser"), frequency="W", date_method="expanding", 
-                 rollyears=20, 
+    def __init__(self, data, log=logtoscreen("optimiser"), frequency="W",
+                 date_method="expanding", rollyears=20, 
                  dict_group=dict(), boring_offdiag=0.99, cleaning=True, **kwargs):
         cleaning=str2Bool(cleaning)
     
@@ -122,30 +122,22 @@ class CorrelationEstimator(CorrelationList):
             
         ### Generate time periods
         fit_dates = generate_fitting_dates(data, date_method=date_method, rollyears=rollyears)
-
         size=len(column_names)
-        corr_with_no_data=boring_corr_matrix(size, offdiag=boring_offdiag)
-        
+        corr_with_no_data=boring_corr_matrix(size, offdiag=boring_offdiag)        
         ## create a list of correlation matrices
-        corr_list=[]
-        
+        corr_list=[]        
         print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" +"Correlation estimate")
         
         ## Now for each time period, estimate correlation
         for fit_period in fit_dates:
-            print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" +"Estimating from %s to %s" % (fit_period.period_start, fit_period.period_end))
-            
+            print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" +"Estimating from %s to %s" % (fit_period.period_start, fit_period.period_end))            
             if fit_period.no_data:
                 ## no data to fit with
                 corr_with_nan=boring_corr_matrix(size, offdiag=np.nan, diag=np.nan)
-                corrmat=corr_with_nan
-                
-            else:
-                
-                data_for_estimate=data[fit_period.fit_start:fit_period.fit_end] 
-                
-                corrmat=correlation_single_period(data_for_estimate, 
-                                                     **kwargs)
+                corrmat=corr_with_nan                
+            else:                
+                data_for_estimate=data[fit_period.fit_start:fit_period.fit_end]  
+                corrmat=correlation_single_period(data_for_estimate, **kwargs)
 
             if cleaning:
                 current_period_data=data[fit_period.fit_start:fit_period.fit_end] 
@@ -232,144 +224,6 @@ def un_fix_weights(mean_list, weights):
             return xweight    
     fixed_weights=[_unfixit(xmean, xweight) for (xmean, xweight) in zip(mean_list, weights)]    
     return fixed_weights
-
-
-def variance(weights, sigma):
-    return (weights*sigma*weights.transpose())[0,0]
-
-def neg_SR(weights, sigma, mus):
-    weights=np.matrix(weights)
-    estreturn=(weights*mus)[0,0]
-    std_dev=(variance(weights,sigma)**.5)    
-    return -estreturn/std_dev
-
-def addem(weights):
-    return 1.0 - sum(weights)
-
-def fix_sigma(sigma):    
-    def _fixit(x):
-        if np.isnan(x): return 0.0
-        else: return x    
-    sigma=[[_fixit(x) for x in sigma_row] for sigma_row in sigma]    
-    sigma=np.array(sigma)    
-    return sigma
-
-def fix_mus(mean_list):
-    def _fixit(x):
-        if np.isnan(x): return FLAG_BAD_RETURN
-        else: return x    
-    mean_list=[_fixit(x) for x in mean_list]    
-    return mean_list
-
-def sigma_from_corr_and_std(stdev_list, corrmatrix):
-    stdev=np.array(stdev_list, ndmin=2).transpose()
-    sigma=stdev*corrmatrix*stdev
-    return sigma
-
-def SR_equaliser(stdev_list, target_SR):
-    return [target_SR * asset_stdev for asset_stdev in stdev_list]
-
-def vol_equaliser(mean_list, stdev_list):
-    if np.all(np.isnan(stdev_list)):
-        return (([np.nan]*len(mean_list), [np.nan]*len(stdev_list)))
-    avg_stdev=np.nanmean(stdev_list)
-    norm_factor=[asset_stdev/avg_stdev for asset_stdev in stdev_list]    
-    norm_means=[mean_list[i]/norm_factor[i] for (i, notUsed) in enumerate(mean_list)]
-    norm_stdev=[stdev_list[i]/norm_factor[i] for (i, notUsed) in enumerate(stdev_list)]    
-    return (norm_means, norm_stdev)
-
-def equal_weights(period_subset_data, moments_estimator,
-                cleaning, must_haves, **other_opt_args_ignored):
-    asset_count = period_subset_data.shape[1]
-    weights= [1.0 / asset_count for i in range(asset_count)]    
-    diag=dict(raw=None, sigma=None, mean_list=None, 
-              unclean=weights, weights=weights)    
-    return (weights, diag)
-
-def bs_one_time(subset_data, moments_estimator, cleaning, must_haves,
-                bootstrap_length,**other_opt_args):
-    bs_idx=[int(random.uniform(0,1)*len(subset_data)) for notUsed in range(bootstrap_length)]    
-    returns=subset_data.iloc[bs_idx,:]     
-    (weights, diag)=markosolver(returns, moments_estimator, cleaning, must_haves, 
-                       **other_opt_args)
-    return (weights, diag)
-
-        
-def clean_weights(weights,  must_haves=None, fraction=0.5):
-    if must_haves is None:
-        must_haves=[True]*len(weights)    
-    if not any(must_haves):
-        return [0.0]*len(weights)    
-    needs_replacing=[(np.isnan(x) or x==0.0) and must_haves[i] for (i,x) in enumerate(weights)]
-    keep_empty=[(np.isnan(x) or x==0.0) and not must_haves[i] for (i,x) in enumerate(weights)]
-    no_replacement_needed=[(not keep_empty[i]) and (not needs_replacing[i]) for (i,x) in enumerate(weights)]
-    if not any(needs_replacing):
-        return weights    
-    missing_weights=sum(needs_replacing)
-    total_for_missing_weights=fraction*missing_weights/(
-        float(np.nansum(no_replacement_needed)+np.nansum(missing_weights)))
-    
-    adjustment_on_rest=(1.0-total_for_missing_weights)    
-    each_missing_weight=total_for_missing_weights/missing_weights    
-    def _good_weight(value, idx, needs_replacing, keep_empty, 
-                     each_missing_weight, adjustment_on_rest):        
-        if needs_replacing[idx]:
-            return each_missing_weight
-        if keep_empty[idx]:
-            return 0.0
-        else:
-            return value*adjustment_on_rest
-
-    weights=[_good_weight(value, idx, needs_replacing, keep_empty, 
-                          each_missing_weight, adjustment_on_rest) 
-             for (idx, value) in enumerate(weights)]    
-    xsum=sum(weights)
-    weights=[x/xsum for x in weights]    
-    return weights
-        
-def work_out_net(data_gross, data_costs, annualisation=BUSINESS_DAYS_IN_YEAR,   
-                 equalise_gross=False, cost_multiplier=1.0,
-                 period_target_SR=TARGET_ANN_SR/(BUSINESS_DAYS_IN_YEAR**.5)):
-    
-    use_gross = data_gross    
-    use_costs = data_costs * cost_multiplier 
-    net = use_gross + use_costs ## costs are negative    
-    return net
-
-def bootstrap_portfolio(subset_data, moments_estimator,cleaning,must_haves,
-                        monte_runs=100, bootstrap_length=50,**other_opt_args):
-    print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" + "bootstrap_length=" + str(bootstrap_length))
-    print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" + "bootstrap_length=" + str(type(moments_estimator)))
-
-    all_results=[bs_one_time(subset_data, moments_estimator,
-                            cleaning, must_haves, 
-                            bootstrap_length,
-                            **other_opt_args)
-                                for unused_index in range(monte_runs)]
-        
-    weightlist=np.array([x[0] for x in all_results], ndmin=2)
-    diaglist=[x[1] for x in all_results]         
-    theweights_mean=list(np.mean(weightlist, axis=0))    
-    diag=dict(bootstraps=diaglist)    
-    return (theweights_mean, diag)
-
-
-def fix_weights_vs_pdm(weights, pdm):
-    pdm_ffill = pdm.ffill()
-    adj_weights = weights.reindex(pdm_ffill.index, method='ffill')
-    adj_weights = adj_weights[pdm.columns]
-    adj_weights[np.isnan(pdm_ffill)] = 0.0
-    def _sum_row_fix(weight_row):
-        swr = sum(weight_row)
-        if swr == 0.0: return weight_row
-        new_weights = weight_row / swr
-        return new_weights
-    adj_weights = adj_weights.apply(_sum_row_fix, 1)
-    return adj_weights
-
-
-def decompose_group_pandl(pandl_list, pandl_this_code=None, pool_costs=True, backfillavgcosts=True):
-    return ([pandl_list[0].gross.to_frame()], [pandl_list[0].costs.to_frame()])    
 
 
 class fit_dates_object(object):
