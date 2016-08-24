@@ -2,24 +2,13 @@ import inspect
 from copy import copy
 import sys; sys.path.append('..')
 import pandas as pd, numpy as np, random
-from sysdata.configdata import Config
-from systems.account import Account
-from systems.forecast_combine import ForecastCombine
-from systems.forecast_scale_cap import ForecastScaleCap
-from systems.basesystem import System
 from sysdata.csvdata import csvFuturesData
-from systems.forecasting import Rules
-from systems.forecasting import TradingRule
-from systems.positionsizing import PositionSizing
 from systems.stage import SystemStage
 from systems.basesystem import ALL_KEYNAME
 from syscore.objects import update_recalc, resolve_function
 from syscore.genutils import str2Bool
 from syscore.genutils import str2Bool, group_dict_from_natural
-
-from syslogdiag.log import logtoscreen
 from syscore.pdutils import df_from_list, must_have_item
-from scipy.optimize import minimize
 import datetime
 
 CALENDAR_DAYS_IN_YEAR = 365.25
@@ -108,7 +97,7 @@ class CorrelationList(object):
     
 class CorrelationEstimator(CorrelationList):
 
-    def __init__(self, data, log=logtoscreen("optimiser"), frequency="W",
+    def __init__(self, data, frequency="W",
                  date_method="expanding", rollyears=20, 
                  dict_group=dict(), boring_offdiag=0.99, cleaning=True, **kwargs):
         cleaning=str2Bool(cleaning)
