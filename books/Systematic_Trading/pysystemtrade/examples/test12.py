@@ -2,9 +2,6 @@ import inspect
 from copy import copy
 import sys; sys.path.append('..')
 import pandas as pd, numpy as np, random
-from sysdata.csvdata import csvFuturesData
-from systems.stage import SystemStage
-from systems.basesystem import ALL_KEYNAME
 from syscore.objects import update_recalc, resolve_function
 from syscore.genutils import str2Bool
 from syscore.genutils import str2Bool, group_dict_from_natural
@@ -29,7 +26,6 @@ def get_avg_corr(sigma):
         return np.nan    
     avg_corr=np.nanmean(new_sigma)
     return avg_corr
-
 
 def correlation_single_period(data_for_estimate, 
                               using_exponent=True,
@@ -196,7 +192,7 @@ if __name__ == "__main__":
     pandl=pandl.cumsum().resample(frequency).diff()
     res = CorrelationEstimator(pandl, frequency=frequency,
                                ew_lookback=500, floor_at_zero=True,
-                               min_periods=100,
+                               min_periods=20,
                                cleaning=True,
                                using_exponent=True,
                                date_method='expanding', rollyears=20)
