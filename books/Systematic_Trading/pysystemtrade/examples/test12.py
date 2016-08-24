@@ -192,40 +192,6 @@ def generate_fitting_dates(data, date_method, rollyears=20):
 
     return periods
 
-def robust_vol_calc(x, days=35, min_periods=10, vol_abs_min=0.0000000001, vol_floor=True,
-                    floor_min_quant=0.05, floor_min_periods=100,
-                    floor_days=500):
-    vol = pd.ewmstd(x, span=days, min_periods=min_periods)
-    vol[vol < vol_abs_min] = vol_abs_min
-    if vol_floor:
-        vol_min = pd.rolling_quantile(
-            vol, floor_days, floor_min_quant, floor_min_periods)
-        vol_min.set_value(vol_min.index[0], 0.0)
-        vol_min = vol_min.ffill()
-        vol_with_min = pd.concat([vol, vol_min], axis=1)
-        vol_floored = vol_with_min.max(axis=1, skipna=False)
-    else:
-        vol_floored = vol
-
-    return vol_floored
-
-def ewmac(price, Lfast=32, Lslow=128):
-    fast_ewma = pd.ewma(price, span=Lfast)
-    slow_ewma = pd.ewma(price, span=Lslow)
-    raw_ewmac = fast_ewma - slow_ewma
-    vol = robust_vol_calc(price.diff())
-    return raw_ewmac / vol
-
-def un_fix_weights(mean_list, weights):
-    def _unfixit(xmean, xweight):
-        if xmean==FLAG_BAD_RETURN:
-            return np.nan
-        else:
-            return xweight    
-    fixed_weights=[_unfixit(xmean, xweight) for (xmean, xweight) in zip(mean_list, weights)]    
-    return fixed_weights
-
-
 class fit_dates_object(object):
     def __init__(self, fit_start, fit_end, period_start, period_end, no_data=False):
         setattr(self, "fit_start", fit_start)
