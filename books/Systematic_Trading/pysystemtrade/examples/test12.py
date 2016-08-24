@@ -239,15 +239,11 @@ class fit_dates_object(object):
         else:
             return "Fit from %s to %s, use in %s to %s" % (self.fit_start, self.fit_end, self.period_start, self.period_end)
         
-    
 class PortfoliosEstimated(SystemStage):
     
     def __init__(self): setattr(self, "name", "portfolio")
         
     def get_instrument_correlation_matrix(self, system):
-        corr_params=copy(system.config.instrument_correlation_estimate)
-        tmp = corr_params.pop("func") # pop the function, leave the args
-        instrument_codes=system.get_instrument_list()
         #pandl=system.accounts.pandl_across_subsystems().to_frame()
         #pandl.to_csv("out.csv")
         dfs = []
@@ -256,31 +252,30 @@ class PortfoliosEstimated(SystemStage):
             df = pd.read_csv("c:/Users/burak/Documents/kod/books/Systematic_Trading/pysystemtrade/examples/out-%s.csv" % c,index_col=0,parse_dates=True)
             dfs.append(df)
         pandl = pd.concat(dfs,axis=1)        
-        frequency=corr_params['frequency']
+        #frequency=corr_params['frequency']
+        frequency="W"
         print ("frequency=" + str(frequency))
         pandl=pandl.cumsum().resample(frequency).diff()
-        return CorrelationEstimator(pandl, log=self.log.setup(call="correlation"), **corr_params)
+        return CorrelationEstimator(pandl, frequency=frequency,
+                                    ew_lookback=500, floor_at_zero=True,
+                                    min_periods=20,
+                                    cleaning=True,using_exponent=True,
+                                    date_method='expanding', rollyears=20)
     
 if __name__ == "__main__": 
      
     random.seed(0)
     np.random.seed(0)
-
     data = csvFuturesData()
     my_config = Config()
-    my_config.instruments=["US20", "SP500"]
-
+    insts = ['EDOLLAR','US10','EUROSTX','V2X','MXP','CORN']
+    my_config.instruments=insts
     ewmac_8 = TradingRule((ewmac, [], dict(Lfast=8, Lslow=32)))
     ewmac_32 = TradingRule(dict(function=ewmac, other_args=dict(Lfast=32, Lslow=128)))
     my_rules = Rules(dict(ewmac8=ewmac_8, ewmac32=ewmac_32))
 
     my_system = System([Account(), PortfoliosEstimated(), PositionSizing(), ForecastScaleCap(), my_rules, ForecastCombine()], data, my_config)
-    my_system.config.forecast_weight_estimate['method']="equal_weights"
-    my_system.config.instrument_weight_estimate['method']="bootstrap"
-    my_system.config.instrument_weight_estimate["monte_runs"]=50
-    my_system.config.instrument_weight_estimate["bootstrap_length"]=250
     res = my_system.portfolio.get_instrument_correlation_matrix(my_system).corr_list[-1]
-    insts = ['EDOLLAR','US10','EUROSTX','V2X','MXP','CORN']
     res = pd.DataFrame(res, index=insts)
     res.columns = insts
     print (res)
