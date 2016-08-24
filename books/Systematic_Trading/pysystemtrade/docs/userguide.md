@@ -797,7 +797,18 @@ In certain places you can change the function used to do a particular calculatio
 
 When added to a system the config class fills in parameters that are missing from the original config object, but are present in the default .yaml file. For example if forecast_scalar is missing from the config, then the default value of 1.0 will be used. This works in a similar way for top level config items that are lists, str, int and float. 
 
-This will also happen if you miss anything from a dict within the config (eg if `config.forecast_div_mult_estimate` is a dict, then any keys present in this dict in the default .yaml, but not in the config will be added). Finally it will work for nested dicts, eg if any keys are missing from `config.instrument_weight_estimate['correlation_estimate']` then they'll filled in from the default file. If something is a dict, or a nested dict, in the config but not in the default (or vice versa) then values won't be replaced and bad things could happen. It's better to keep your config files, and the default file, with matching structures. Again this is a good argument for adding new parameters, and retaining the original ones.
+This will also happen if you miss anything from a dict within the
+config (eg if `config.forecast_div_mult_estimate` is a dict, then any
+keys present in this dict in the default .yaml, but not in the config
+will be added). Finally it will work for nested dicts, eg if any keys
+are missing from
+`config.instrument_weight_estimate['correlation_estimate']` then
+they'll filled in from the default file. If something is a dict, or a
+nested dict, in the config but not in the default (or vice versa) then
+values won't be replaced and bad things could happen. It's better to
+keep your config files, and the default file, with matching
+structures. Again this is a good argument for adding new parameters,
+and retaining the original ones.
 
 This stops at two levels, and only works for dicts and nested dicts.
 
@@ -824,7 +835,7 @@ print(my_config) ## same object
 ```
 
 ```
- Config with elements: average_absolute_forecast, base_currency, buffer_method, buffer_size, buffer_trade_to_edge, forecast_cap, forecast_correlation_estimate, forecast_div_mult_estimate, forecast_div_multiplier, forecast_scalar, forecast_scalar_estimate, forecast_weight_estimate, instrument_correlation_estimate, instrument_div_mult_estimate, instrument_div_multiplier, instrument_weight_estimate, notional_trading_capital, percentage_vol_target, use_SR_costs, use_forecast_scale_estimates, use_forecast_weight_estimates, use_instrument_weight_estimates, volatility_calculation
+ Config with elements: average_absolute_forecast, base_currency, buffer_method, buffer_size, buffer_trade_to_edge, forecast_cap, forecast_correlation_estimate, forecast_div_mult_estimate, forecast_div_multiplier, forecast_scalar, forecast_scalar_estimate, forecast_weight_estimate, instrument_correlation_estimate, instrument_div_mult_estimate, instrument_div_multiplier, instrument_weight_estimate, notional_trading_capital, percentage_vol_target, use_SR_costs, use_forecast_scale_estimates, use_forecast_weight_estimates, use_instrument_weight_estimates, volatility_calculation 
 ```
 
 Note this isn't enough for a working trading system as trading rules aren't populated by the defaults:
@@ -4383,7 +4394,11 @@ To calculate the diversification multiplier we need to have correlations.
 Represented as: dict of str, float and int. Keywords: parameter names
 Default: see below
 
-The method used to estimate instrument correlations on a rolling out of sample basis. Compulsory arguments are func (str function pointer to use for estimation). The remaining arguments are passed to the estimation function. Any missing items will be pulled from the project defaults file.
+The method used to estimate instrument correlations on a rolling out
+of sample basis. Compulsory arguments are func (str function pointer
+to use for estimation). The remaining arguments are passed to the
+estimation function. Any missing items will be pulled from the project
+defaults file.
 
 See [estimating correlations](#divmult).
 

@@ -15,7 +15,8 @@ from systems.stage import SystemStage
 from systems.basesystem import ALL_KEYNAME
 from syscore.objects import update_recalc, resolve_function
 from syscore.genutils import str2Bool
-from syscore.correlations import CorrelationEstimator
+from syscore.genutils import str2Bool, group_dict_from_natural
+#from syscore.correlations import CorrelationEstimator
 from syslogdiag.log import logtoscreen
 from syscore.pdutils import df_from_list, must_have_item
 from scipy.optimize import minimize
@@ -31,6 +32,133 @@ ROOT_MONTHS_IN_YEAR = MONTHS_IN_YEAR**.5
 ARBITRARY_START=pd.datetime(1900,1,1)
 TARGET_ANN_SR=0.5
 FLAG_BAD_RETURN=-9999999.9
+
+def get_avg_corr(sigma):
+    new_sigma=copy(sigma)
+    np.fill_diagonal(new_sigma,np.nan)
+    if np.all(np.isnan(new_sigma)):
+        return np.nan    
+    avg_corr=np.nanmean(new_sigma)
+    return avg_corr
+
+
+def correlation_single_period(data_for_estimate, 
+                              using_exponent=True, min_periods=20, ew_lookback=250,
+                              floor_at_zero=True):
+
+    using_exponent=str2Bool(using_exponent)
+            
+    if using_exponent:
+        dindex=data_for_estimate.index
+        dlenadj=float(len(dindex))/len(set(list(dindex)))
+        corrmat=pd.ewmcorr(data_for_estimate, span=int(ew_lookback*dlenadj), min_periods=min_periods)
+        corrmat=corrmat.values[-1]
+    else:
+        corrmat=data_for_estimate.corr(min_periods=min_periods)
+        corrmat=corrmat.values
+    if floor_at_zero:
+        corrmat[corrmat<0]=0.0
+    return corrmat
+
+def clean_correlation(corrmat, corr_with_no_data, must_haves=None):
+    if must_haves is None:
+        must_haves=[True]*corrmat.shape[0]
+    if not np.any(np.isnan(corrmat)):
+        return corrmat
+    if np.all(np.isnan(corrmat)):
+        return corr_with_no_data
+    size_range=range(corrmat.shape[0])
+    avgcorr=get_avg_corr(corrmat)
+    def _good_correlation(i,j,corrmat, avgcorr, must_haves, corr_with_no_data):
+        value=corrmat[i][j]
+        must_have_value=must_haves[i] and must_haves[j]
+        
+        if np.isnan(value):
+            if must_have_value:
+                return avgcorr
+            else:
+                return corr_with_no_data[i][j]
+        else:
+            return value
+
+    corrmat=np.array([[_good_correlation(i,j, corrmat, avgcorr, must_haves,corr_with_no_data) 
+                       for i in size_range] for j in size_range], ndmin=2)
+    np.fill_diagonal(corrmat,1.0)    
+    return corrmat
+
+def boring_corr_matrix(size, offdiag=0.99, diag=1.0):
+    size_index=range(size)
+    def _od(offdag, i, j):
+        if i==j:
+            return diag
+        else:
+            return offdiag
+    m= [[_od(offdiag, i,j) for i in size_index] for j in size_index]
+    m=np.array(m)
+    return m
+
+class CorrelationList(object):
+    def __init__(self, corr_list, column_names, fit_dates):
+        setattr(self, "corr_list", corr_list)
+        setattr(self, "columns", column_names)
+        setattr(self, "fit_dates", fit_dates)
+    def __repr__(self):
+        return "%d correlation estimates for %s" % (len(self.corr_list), ",".join(self.columns))
+    
+class CorrelationEstimator(CorrelationList):
+
+    def __init__(self, data, log=logtoscreen("optimiser"), frequency="W", date_method="expanding", 
+                 rollyears=20, 
+                 dict_group=dict(), boring_offdiag=0.99, cleaning=True, **kwargs):
+        cleaning=str2Bool(cleaning)
+    
+        ## grouping dictionary, convert to faster, algo friendly, form
+        group_dict=group_dict_from_natural(dict_group)
+
+        data=df_from_list(data)    
+        column_names=list(data.columns)
+
+        data=data.resample(frequency, how="last")
+            
+        ### Generate time periods
+        fit_dates = generate_fitting_dates(data, date_method=date_method, rollyears=rollyears)
+
+        size=len(column_names)
+        corr_with_no_data=boring_corr_matrix(size, offdiag=boring_offdiag)
+        
+        ## create a list of correlation matrices
+        corr_list=[]
+        
+        print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" +"Correlation estimate")
+        
+        ## Now for each time period, estimate correlation
+        for fit_period in fit_dates:
+            print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" +"Estimating from %s to %s" % (fit_period.period_start, fit_period.period_end))
+            
+            if fit_period.no_data:
+                ## no data to fit with
+                corr_with_nan=boring_corr_matrix(size, offdiag=np.nan, diag=np.nan)
+                corrmat=corr_with_nan
+                
+            else:
+                
+                data_for_estimate=data[fit_period.fit_start:fit_period.fit_end] 
+                
+                corrmat=correlation_single_period(data_for_estimate, 
+                                                     **kwargs)
+
+            if cleaning:
+                current_period_data=data[fit_period.fit_start:fit_period.fit_end] 
+                must_haves=must_have_item(current_period_data)
+
+                # means we can use earlier correlations with sensible values
+                corrmat=clean_correlation(corrmat, corr_with_no_data, must_haves) 
+
+            corr_list.append(corrmat)
+        
+        setattr(self, "corr_list", corr_list)
+        setattr(self, "columns", column_names)
+        setattr(self, "fit_dates", fit_dates)
 
 def generate_fitting_dates(data, date_method, rollyears=20):
 
@@ -501,8 +629,10 @@ class PortfoliosEstimated(SystemStage):
         corr_params=copy(system.config.instrument_correlation_estimate)
         tmp = corr_params.pop("func") # pop the function, leave the args
         instrument_codes=system.get_instrument_list()
-        pandl=system.accounts.pandl_across_subsystems().to_frame()            
+        pandl=system.accounts.pandl_across_subsystems().to_frame()
+        pandl.to_csv("out.csv")
         frequency=corr_params['frequency']
+        print ("frequency=" + str(frequency))
         pandl=pandl.cumsum().resample(frequency).diff()
         return CorrelationEstimator(pandl, log=self.log.setup(call="correlation"), **corr_params)
 
@@ -560,7 +690,8 @@ if __name__ == "__main__":
     my_system.config.instrument_weight_estimate['method']="bootstrap"
     my_system.config.instrument_weight_estimate["monte_runs"]=1
     my_system.config.instrument_weight_estimate["bootstrap_length"]=250
-    print(my_system.portfolio.get_instrument_diversification_multiplier(my_system))
+    #print(my_system.portfolio.get_instrument_diversification_multiplier(my_system))
+    print(my_system.portfolio.get_instrument_correlation_matrix(my_system).corr_list)
 
     # 10,250 weights=0.75,0.25 idm=1.26
     # 30,250 weights=0.75,0.25 

@@ -191,11 +191,8 @@ def boring_corr_matrix(size, offdiag=0.99, diag=1.0):
 
 class CorrelationList(object):
     '''
-    A correlation list is a list of correlations, packed in with date information about them
-    
+    A correlation list is a list of correlations, packed in with date information about them     
     '''
-
-
     def __init__(self, corr_list, column_names, fit_dates):
         """
         Returns a time series of forecasts for a particular instrument
@@ -223,15 +220,9 @@ class CorrelationEstimator(CorrelationList):
     '''
     
     We generate a correlation list from eithier a pd.DataFrame, or a list of them if we're pooling
-    
-    The default is to generate correlations annually, from weekly
-    
+    The default is to generate correlations annually, from weekly    
     It's important that forward filling, or index / ffill / diff has been done before we begin
-
-    
     '''
-
-
     def __init__(self, data, log=logtoscreen("optimiser"), frequency="W", date_method="expanding", 
                  rollyears=20, 
                  dict_group=dict(), boring_offdiag=0.99, cleaning=True, **kwargs):
