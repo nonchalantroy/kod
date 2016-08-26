@@ -1,7 +1,7 @@
-import inspect
+import sys; sys.path.append('../..')
+
 '''
 Created on 20 Jan 2016
-
 
 
 @author: rob
@@ -29,6 +29,8 @@ class Test(unittest.TestCase):
         instrument_code="EDOLLAR"
         
         ans=self.system.combForecast.get_forecast_correlation_matrices(instrument_code)
+        print (ans.corr_list[0])
+        print (ans.corr_list[-1])
         self.assertAlmostEqual(ans.corr_list[0][0][1], 0.99, places=5)
         print(ans.columns)
 
