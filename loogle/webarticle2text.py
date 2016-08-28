@@ -1,53 +1,10 @@
 #!/usr/bin/env python
-"""
-File: webarticle2text.py
-
-Copyright (C) 2008 Chris Spencer (chrisspen at gmail dot com)
-
-Attempts to locate and extract the largest cluster of text in a
-webpage. It does this by walking the DOM-tree, identifying all text
-segments and their depth inside the DOM, appends all text at roughly
-the same depth, and then returns the chunk with the largest total
-length.
-
-This library is free software; you can redistribute it and/or
-modify it under the terms of the GNU Lesser General Public
-License as published by the Free Software Foundation; either
-version 3 of the License, or (at your option) any later version.
-
-This library is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-Lesser General Public License for more details.
-
-You should have received a copy of the GNU Lesser General Public
-License along with this library; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
-"""
-
 VERSION = (2, 0, 4)
 __version__ = '.'.join(map(str, VERSION))
 
-import os
-import sys
-import time
-import formatter
-#import htmlentitydefs
-#import htmllib
-#import httplib
-#import HTMLParser
-import mimetypes
-import re
-#import StringIO
-#import urllib2
-import hashlib
-import requests
-#import robotparser
-
-# http://pythonhosted.org/six/
-# Note, you may need to install pip for python3 via:
-# sudo apt-get install python3-pip
-import six
+import os, sys, time, six
+import formatter, mimetypes, re
+import hashlib, requests
 from six.moves import html_entities as htmlentitydefs
 from six.moves.html_parser import HTMLParser
 from six.moves import http_client as httplib
