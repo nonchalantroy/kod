@@ -37,7 +37,8 @@ def convert():
               ("parcaci",u"parçacı"),("acilimi",u'açılımı'),("acilim",u'açılım'),
               ("aci",u'açı'),("minimize",),("gayri",u'gayrı'),("Pandas",),
               ("algoritma",),("gayri",u'gayrı'),("sigma",),("volatility",),
-              ("matris",),("frac","frac"),("sonum",u"sönüm")
+              ("matris",),("frac","frac"),("sonum",u"sönüm"),("eksen",),
+              ("sonusur",u"sonuşur"),("amacimiz",u"amacımız"),
     ]
               
     r_list_coded = []
