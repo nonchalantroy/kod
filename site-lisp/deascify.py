@@ -38,7 +38,7 @@ def convert():
               ("aci",u'açı'),("minimize",),("gayri",u'gayrı'),("Pandas",),
               ("algoritma",),("gayri",u'gayrı'),("sigma",),("volatility",),
               ("matris",),("frac","frac"),("sonum",u"sönüm"),("eksen",),
-              ("sonusur",u"sonuşur"),("amacimiz",u"amacımız"),
+              ("sonusur",u"sonuşur"),("amacimiz",u"amacımız"),("sarsim",u"sarsım"),
     ]
               
     r_list_coded = []
