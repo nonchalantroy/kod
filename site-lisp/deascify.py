@@ -35,10 +35,12 @@ def convert():
               ("kontur",),("ODE",),("Oklit",u'Öklit'),("karekok",u'karekök'),
               ("kismi", u'kısmi'),("integral",),("oldugu",u'olduğu'),
               ("parcaci",u"parçacı"),("acilimi",u'açılımı'),("acilim",u'açılım'),
-              ("aci",u'açı'),("minimize",),("gayri",u'gayrı'),("Pandas",),
-              ("algoritma",),("gayri",u'gayrı'),("sigma",),("volatility",),
-              ("matris",),("frac","frac"),("sonum",u"sönüm"),("eksen",),
-              ("sonusur",u"sonuşur"),("amacimiz",u"amacımız"),("sarsim",u"sarsım"),
+              ("acisini",u'açısını'),("acisi",u'açısı'),("aci",u'açı'),("minimize",),
+              ("gayri",u'gayrı'),("Pandas",),("algoritma",),("gayri",u'gayrı'),
+              ("sigma",),("volatility",),("matris",),("frac","frac"),
+              ("sonum",u"sönüm"),("eksen",),("sonusur",u"sonuşur"),
+              ("amacimiz",u"amacımız"),("sarsim",u"sarsım"),("Sarsim",u"Sarsım"),
+              (u"olduğu",)
     ]
               
     r_list_coded = []
