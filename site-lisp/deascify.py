@@ -38,7 +38,7 @@ def convert():
               ("acisini",u'açısını'),("acisi",u'açısı'),("aci",u'açı'),("minimize",),
               ("gayri",u'gayrı'),("Pandas",),("algoritma",),("gayri",u'gayrı'),
               ("sigma",),("volatility",),("matris",),("frac","frac"),
-              ("sonum",u"sönüm"),("eksen",),("sonusur",u"sonuşur"),
+              ("sonum",u"sönüm"),("eksen",),("sonusur",u"sonuşur"), ("amaci",u"amacı"),
               ("amacimiz",u"amacımız"),("sarsim",u"sarsım"),("Sarsim",u"Sarsım"),
               (u"olduğu",)
     ]
