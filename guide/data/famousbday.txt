@@ -39688,3 +39688,4 @@ Wil Smith:Actor:25/9/1968
 Carlo Rovelli:Scientist:3/5/1956
 Aziz Yildirim:Soccer Club Owner:2/11/1952
 Gabriel Macht:Harvey from Suits:22/1/1972
+Can Dundar:Journalist:16/6/1961

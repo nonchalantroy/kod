@@ -43,8 +43,6 @@ def show():
         ("Sputnik News","http://tr.sputniknews.com/export/rss2/archive/index.xml",15),
         ("The Atlantic", "http://www.theatlantic.com/feed/all/",10),
         (u"Açık Gazete","https://www.acikgazete.com/feed",-1),
-        ("O",decode('1234', "maanpGthYqOVk6eqX5WioWCkpqdfopuk"),10),
-        ("A", decode('1234', "maanpGthYpWfmJSekqCmYpShoGOjpaY="),10),
         ("Deusche Welle (World)", "http://rss.dw.de/rdf/rss-en-all", 15),
         ("Deusche Welle (Europe)", "http://rss.dw.de/rdf/rss-en-eu", 15),
         ("Die Welt", "http://www.welt.de/?service=Rss", 20),
