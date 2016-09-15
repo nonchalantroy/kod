@@ -10,6 +10,7 @@ if sys.argv[1] == "hd":
     #os.system("python rsync.py c:\\Users\\burak\\Documents\\book_idx e:\\archive\\book_idx --delete")
 
 if sys.argv[1] == "flash":
+    os.system("python rsync.py c:\\Users\\burak\\Documents\\Dropbox\\resmi\\newbusiness d:\\newbusiness")
     os.system("python rsync.py c:\\Users\\burak\\Documents\\quant_at d:\\quant_at --delete")
     os.system("python rsync.py c:\\Users\\burak\\Documents\\classnotes d:\\classnotes --delete")
     os.system("python rsync.py c:\\Users\\burak\\Documents\\kod d:\\kod --delete")
