@@ -1,4 +1,6 @@
-import sys; sys.path.append('..')
+import inspect
+import inspect
+import sys; sys.path.append('../..')
 
 import numpy as np
 from systems.basesystem import System

@@ -18,7 +18,7 @@ content = content.replace("this_stage.print","print")
 content = content.replace("self.print","print")
 content = content.replace("rules_stage.print","print")
 content = re.sub("print(.*?),\n(.*?)\n","print\\1)\n",content,re.DOTALL)
-content = content.replace(", instrument_code=instrument_code","")
+#content = content.replace(", instrument_code=instrument_code","")
 
 fout.write(content)
 fout.close()
