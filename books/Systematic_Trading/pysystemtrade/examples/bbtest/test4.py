@@ -1,6 +1,5 @@
 import inspect
-import inspect
-import sys; sys.path.append('..')
+import sys; sys.path.append('../..')
 import matplotlib.pyplot as plt
 
 from systems.provided.futures_chapter15.basesystem import futures_system

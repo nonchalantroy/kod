@@ -1,6 +1,4 @@
-import inspect
-import inspect
-import sys; sys.path.append('..')
+import sys; sys.path.append('../..')
 import matplotlib.pyplot as plt
 import pandas as pd
 

@@ -1,8 +1,5 @@
 import inspect
-import inspect
-import inspect
-import inspect
-import sys; sys.path.append('..')
+import sys; sys.path.append('../..')
 from syscore.algos import robust_vol_calc
 import pandas as pd
 

@@ -1,8 +1,6 @@
 import inspect
-import inspect
-import inspect
 from copy import copy
-import sys; sys.path.append('..')
+import sys; sys.path.append('../..')
 import pandas as pd, numpy as np, random
 from sysdata.configdata import Config
 from systems.account import Account

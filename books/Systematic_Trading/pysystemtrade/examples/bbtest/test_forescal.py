@@ -1,6 +1,5 @@
 import inspect
-import inspect
-import sys; sys.path.append('..')
+import sys; sys.path.append('../..')
 import inspect
 from copy import copy
 from systems.provided.futures_chapter15.estimatedsystem import futures_system

@@ -1,5 +1,4 @@
 import inspect
-import inspect
 import sys; sys.path.append('../..')
 
 from systems.provided.example.rules import ewmac_forecast_with_defaults as ewmac
@@ -28,16 +27,9 @@ my_config.use_forecast_weight_estimates=True
 my_system = System([Account(), ForecastScaleCap(), my_rules, ForecastCombine()], data, my_config)
 print(my_system.combForecast.get_forecast_weights("SP500").tail(5))
 
-# DEBUG:root:             ewmac32    ewmac8
-# 2015-12-07  0.632792  0.367208
-# 2015-12-08  0.632930  0.367070
-# 2015-12-09  0.633066  0.366934
-# 2015-12-10  0.633201  0.366799
-# 2015-12-11  0.633335  0.366665
-
-#              ewmac32    ewmac8
-# 2016-05-05  0.499339  0.500661
-# 2016-05-06  0.499339  0.500661
-# 2016-05-09  0.499339  0.500661
-# 2016-05-10  0.499339  0.500661
-# 2016-05-11  0.499339  0.500661
+#              ewmac16   ewmac32    ewmac8
+# 2016-07-04  0.199582  0.545313  0.255106
+# 2016-07-05  0.199625  0.545273  0.255103
+# 2016-07-06  0.199668  0.545233  0.255100
+# 2016-07-07  0.199710  0.545193  0.255097
+# 2016-07-08  0.199752  0.545154  0.255094
