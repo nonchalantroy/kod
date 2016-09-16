@@ -1,4 +1,3 @@
-import inspect
 import os
 import sys
 import syscore
@@ -6,6 +5,7 @@ import sysdata
 import systems
 import examples
 import private
+
 
 def get_filename_for_package(name_with_dots):
     """

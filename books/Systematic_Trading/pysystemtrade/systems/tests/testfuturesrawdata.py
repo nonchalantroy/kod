@@ -1,4 +1,3 @@
-import inspect
 
 from systems.rawdata import RawData
 from sysdata.csvdata import csvFuturesData
@@ -10,7 +9,7 @@ def get_test_object():
     Returns some standard test data
     """
     data = csvFuturesData("sysdata.tests")
-    rawdata=RawData()
+    rawdata = RawData()
     config = Config("systems.provided.example.exampleconfig.yaml")
     return (rawdata, data, config)
 
@@ -21,4 +20,4 @@ def get_test_object_futures():
     """
     data = csvFuturesData("sysdata.tests")
     config = Config("systems.provided.example.exampleconfig.yaml")
-    return ( data, config)
+    return (data, config)

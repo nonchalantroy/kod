@@ -1,4 +1,3 @@
-import inspect
 import pandas as pd
 from syslogdiag.log import logtoscreen
 from syscore.objects import get_methods
@@ -6,9 +5,10 @@ from syscore.objects import get_methods
 DEFAULT_CURRENCY = "USD"
 
 DEFAULT_DATES = pd.date_range(start=pd.datetime(
-    1970, 1, 1), freq="B", end=pd.datetime(2015, 12, 10))
+    1970, 1, 1), freq="B", end=pd.datetime(2040, 12, 10))
 DEFAULT_RATE_SERIES = pd.Series(
     [1.0] * len(DEFAULT_DATES), index=DEFAULT_DATES)
+
 
 class Data(object):
 
@@ -34,8 +34,8 @@ class Data(object):
         """
         Data socket base class
         """
-        ## this will normally be overriden by the base system
-        setattr(self, "log", logtoscreen( stage="data"))
+        # this will normally be overriden by the base system
+        setattr(self, "log", logtoscreen(stage="data"))
 
     def __repr__(self):
         return "Data object with %d instruments" % len(
@@ -70,9 +70,8 @@ class Data(object):
         :returns: pd.Series
 
         """
-        error_msg="You have created a Data() object; you might need to use a more specific data object" % instrument_code
+        error_msg = "You have created a Data() object; you might need to use a more specific data object" % instrument_code
         self.log.critical(error_msg)
-
 
     def __getitem__(self, keyname):
         """
@@ -125,24 +124,23 @@ class Data(object):
     def get_raw_cost_data(self, instrument_code):
         """
         Get cost data
-        
+
         Execution slippage [half spread] price units
         Commission (local currency) per block
         Commission - percentage of value (0.01 is 1%)
-        Commission (local currency) per block    
-        
+        Commission (local currency) per block
+
         :param instrument_code: instrument to value for
         :type instrument_code: str
 
         :returns: dict of floats
 
         """
-        
+
         return dict(price_slippage=0.0,
                     value_of_block_commission=0.0,
                     percentage_cost=0.0,
                     value_of_pertrade_commission=0.0)
-
 
     def _get_default_currency(self):
         """
@@ -244,10 +242,10 @@ class Data(object):
             currency2_vs_default = self._get_fx_data(
                 currency2, default_currency)
 
-            (aligned_c1, aligned_c2)=currency1_vs_default.align(currency2_vs_default, join="outer") 
+            (aligned_c1, aligned_c2) = currency1_vs_default.align(
+                currency2_vs_default, join="outer")
 
             fx_rate_series = aligned_c1.ffill() / aligned_c2.ffill()
-            
 
         return fx_rate_series
 

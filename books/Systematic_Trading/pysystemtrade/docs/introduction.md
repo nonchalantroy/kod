@@ -6,10 +6,7 @@ Here is a whistlestop tour of what pysystemtrade can currently do. You'll probab
 
 (code is [here](/examples/introduction/asimpletradingrule.py) )
 
-As systematic traders we believe that the future will be at least a
-bit like the past. So first of all we need some past data. In
-principle past data can come from many places, but to begin with we'll
-get it from some pre-baked .csv files:
+As systematic traders we believe that the future will be at least a bit like the past. So first of all we need some past data. In principle past data can come from many places, but to begin with we'll get it from some pre-baked .csv files: 
 
 ```python
 from sysdata.csvdata import csvFuturesData
@@ -57,8 +54,7 @@ data.keys() ## equivalent to data.get_instrument_list
 data['SP500'] ## equivalent to data.get_instrument_price
 ```
 
-Price data is useful, but is there any other data available? For
-futures, yes, we can get the data we need to implement a carry rule:
+Price data is useful, but is there any other data available? For futures, yes, we can get the data we need to implement a carry rule:
 
 ```python
 data.get_instrument_raw_carry_data("EDOLLAR").tail(6)
@@ -396,10 +392,7 @@ Freq: B, dtype: float64
 
 *We didn't have to pass the forecast cap of 20.0, since the system was happy to use the default value (this is defined in the system defaults file, which the full [users guide](userguide.md) will tell you more about).*
 
-Since we have two trading rule variations we're naturally going to
-want to combine them (chapter 8 of my book). For a very quick and
-dirty exercise running this code will use equal forecast weights
-across instruments, and use no diversification multiplier:
+Since we have two trading rule variations we're naturally going to want to combine them (chapter 8 of my book). For a very quick and dirty exercise running this code will use equal forecast weights across instruments, and use no diversification multiplier:
 
 ```python
 from systems.forecast_combine import ForecastCombine
@@ -431,8 +424,7 @@ Freq: B, dtype: float64
 
 Alternatively you can estimate div. multipliers, and weights. 
 
-Note: Since we need to know the performance of different trading
-rules, we need to include an Accounts stage to calculate these:
+Note: Since we need to know the performance of different trading rules, we need to include an Accounts stage to calculate these:
 
 ```python
 from systems.account import Account
@@ -472,8 +464,7 @@ Freq: B, dtype: float64
 ```
 
 
-A little extreme, I feel. Let's use some arbitrary fixed forecast
-weights and diversification multiplier for now:
+A little extreme, I feel. Let's use some arbitrary fixed forecast weights and diversification multiplier for now:
 
 
 ```python
@@ -494,9 +485,8 @@ Freq: B, dtype: float64
 
 ```
 
-If you're working through my book you'd know the next stage is
-deciding what level of risk to target (chapter 9) and position sizing
-(chapter 10).  Let's do the position scaling:
+If you're working through my book you'd know the next stage is deciding what level of risk to target (chapter 9) and position sizing (chapter 10). 
+Let's do the position scaling:
 
 ```python
 from systems.positionsizing import PositionSizing
@@ -512,6 +502,8 @@ my_system.positionSize.get_subsystem_position("EDOLLAR").tail(5)
 ```
 
 
+
+
 ```
 2016-05-05     76.093317
 2016-05-06     81.825564
@@ -521,8 +513,7 @@ my_system.positionSize.get_subsystem_position("EDOLLAR").tail(5)
 Freq: B, dtype: float64
 ```
 
-We're almost there. The final stage we need to get positions is to
-combine everything into a portfolio (chapter 11).
+We're almost there. The final stage we need to get positions is to combine everything into a portfolio (chapter 11). 
 
 We can estimate these:
 

@@ -1,4 +1,3 @@
-import inspect
 
 from systems.account import Account
 from systems.portfolio import PortfoliosFixed, PortfoliosEstimated
@@ -108,8 +107,9 @@ def get_test_object_futures_with_rules_and_capping_estimate():
     rules = Rules()
     config = Config("systems.provided.example.estimateexampleconfig.yaml")
     capobject = ForecastScaleCapEstimated()
-    account=Account()
+    account = Account()
     return (account, capobject, rules, rawdata, data, config)
+
 
 def get_test_object_futures_with_pos_sizing_estimates():
     """
@@ -122,6 +122,6 @@ def get_test_object_futures_with_pos_sizing_estimates():
     capobject = ForecastScaleCapEstimated()
     combobject = ForecastCombineEstimated()
     posobject = PositionSizing()
-    account=Account()
-    return (account, posobject, combobject, capobject, rules, rawdata, data, config)
-
+    account = Account()
+    return (account, posobject, combobject,
+            capobject, rules, rawdata, data, config)

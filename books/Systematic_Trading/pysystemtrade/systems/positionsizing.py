@@ -1,4 +1,3 @@
-import inspect
 from systems.defaults import system_defaults
 from systems.stage import SystemStage
 from systems.basesystem import ALL_KEYNAME
@@ -48,9 +47,8 @@ class PositionSizing(SystemStage):
         setattr(self, "description", "")
 
     def _system_init(self, system):
-        ## method called once we have a system
+        # method called once we have a system
         setattr(self, "parent", system)
-
 
     def get_combined_forecast(self, instrument_code):
         """
@@ -207,12 +205,12 @@ class PositionSizing(SystemStage):
         """
 
         def _get_vol_target(system, an_ignored_variable, this_stage):
-            print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" +"Getting vol target")
+            this_stage.log.msg("Getting vol target")
 
             percentage_vol_target = float(system.config.percentage_vol_target)
 
             notional_trading_capital = float(
-                    system.config.notional_trading_capital)
+                system.config.notional_trading_capital)
 
             base_currency = system.config.base_currency
 
@@ -253,7 +251,8 @@ class PositionSizing(SystemStage):
         """
 
         def _get_fx_rate(system, instrument_code, this_stage):
-            print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" +"Getting fx rates for %s" % instrument_code)
+            this_stage.log.msg("Getting fx rates for %s" % instrument_code,
+                               instrument_code=instrument_code)
 
             base_currency = this_stage.get_daily_cash_vol_target()[
                 'base_currency']
@@ -294,7 +293,8 @@ class PositionSizing(SystemStage):
 
         """
         def _get_block_value(system, instrument_code, this_stage):
-            print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" +"Getting block value for %s" % instrument_code)
+            this_stage.log.msg("Getting block value for %s" % instrument_code,
+                               instrument_code=instrument_code)
 
             (underlying_price, value_of_price_move) = this_stage.get_instrument_sizing_data(
                 instrument_code)
@@ -335,14 +335,16 @@ class PositionSizing(SystemStage):
         """
         def _get_instrument_currency_vol(system, instrument_code, this_stage):
 
-            print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" +"Calculating instrument currency vol for %s" % instrument_code)
+            this_stage.log.msg("Calculating instrument currency vol for %s" % instrument_code,
+                               instrument_code=instrument_code)
 
             block_value = this_stage.get_block_value(instrument_code)
             daily_perc_vol = this_stage.get_price_volatility(instrument_code)
-            
-            (block_value, daily_perc_vol) = block_value.align(daily_perc_vol, join="inner")
 
-            instr_ccy_vol =  block_value * daily_perc_vol
+            (block_value, daily_perc_vol) = block_value.align(
+                daily_perc_vol, join="inner")
+
+            instr_ccy_vol = block_value * daily_perc_vol
 
             return instr_ccy_vol
 
@@ -378,15 +380,16 @@ class PositionSizing(SystemStage):
         """
         def _get_instrument_value_vol(system, instrument_code, this_stage):
 
-            print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" +"Calculating instrument value vol for %s" % instrument_code)
+            this_stage.log.msg("Calculating instrument value vol for %s" % instrument_code,
+                               instrument_code=instrument_code)
 
             instr_ccy_vol = this_stage.get_instrument_currency_vol(
                 instrument_code)
             fx_rate = this_stage.get_fx_rate(instrument_code)
-            
+
             (instr_ccy_vol, fx_rate) = instr_ccy_vol.align(fx_rate)
 
-            instr_value_vol = instr_ccy_vol *  fx_rate
+            instr_value_vol = instr_ccy_vol * fx_rate
 
             return instr_value_vol
 
@@ -422,7 +425,8 @@ class PositionSizing(SystemStage):
         """
         def _get_volatility_scalar(system, instrument_code, this_stage):
 
-            print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" +"Calculating volatility scalar for %s" % instrument_code)
+            this_stage.log.msg("Calculating volatility scalar for %s" % instrument_code,
+                               instrument_code=instrument_code)
 
             instr_value_vol = this_stage.get_instrument_value_vol(
                 instrument_code)
@@ -436,7 +440,6 @@ class PositionSizing(SystemStage):
         vol_scalar = self.parent.calc_or_cache(
             'get_volatility_scalar', instrument_code, _get_volatility_scalar, self)
         return vol_scalar
-
 
     def get_subsystem_position(self, instrument_code):
         """
@@ -468,7 +471,8 @@ class PositionSizing(SystemStage):
         """
         def _get_subsystem_position(system, instrument_code, this_stage):
 
-            print(__file__ + ":" + str(inspect.getframeinfo(inspect.currentframe())[:3][1]) + ":" +"Calculating subsystem position for %s" % instrument_code)
+            this_stage.log.msg("Calculating subsystem position for %s" % instrument_code,
+                               instrument_code=instrument_code)
 
             """
             We don't allow this to be changed in config
@@ -480,7 +484,7 @@ class PositionSizing(SystemStage):
 
             vol_scalar = vol_scalar.reindex(forecast.index).ffill()
 
-            subsystem_position =  vol_scalar *  forecast / avg_abs_forecast
+            subsystem_position = vol_scalar * forecast / avg_abs_forecast
 
             return subsystem_position
 
