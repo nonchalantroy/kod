@@ -1,1 +1,1 @@
-sh -c 'find . -name "%1" 
+sh -c 'find . -name "%1" '

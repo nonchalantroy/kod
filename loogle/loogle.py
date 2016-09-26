@@ -134,9 +134,9 @@ def search(s, index_dir):
 if __name__ == "__main__":
 
     if sys.argv[1] == '--index':
-        index(crawl_dir="d:/archive/kitaplar",
-              index_dir="c:/Users/burak/Documents/book_idx",
-              get_first_N=800) # up this for incremental processing
+        index(crawl_dir="d:/kitaplar",
+              index_dir="d:/book_idx",
+              get_first_N=1000) # up this for incremental processing
         
     if sys.argv[1] == '--find': 
         res = search(sys.argv[2], index_dir="c:/Users/burak/Documents/book_idx")
