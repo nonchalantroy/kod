@@ -21,11 +21,8 @@ if sys.argv[1] == "flash":
     os.system("python rsync.py c:\\Users\\burak\\Documents\\kod d:\\kod --delete")
 
 if sys.argv[1] == "kitaplar":
-    os.system("python rsync.py E:\\archive\\kitaplar D:\\kitaplar")
-    
-if sys.argv[1] == "ed":
-    os.system("python rsync.py E:\\archive\\kitaplar D:\\archive\\kitaplar --delete")
-    
+    os.system("python rsync.py d:\\kitaplar e:\\archive\\kitaplar --delete")
+        
 if sys.argv[1] == "systematic":
     os.system("python rsync.py c:\\Users\\burak\\Downloads\\pysystemtrade c:\\Users\\burak\\Documents\\kod\\books\\Systematic_Trading\\pysystemtrade")
     rsync.deleteDir("c:\\Users\\burak\\Documents\\kod\\books\\Systematic_Trading\\pysystemtrade\\.git")
