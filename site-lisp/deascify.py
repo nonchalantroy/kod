@@ -40,7 +40,7 @@ def convert():
               ("sigma",),("volatility",),("matris",),("frac","frac"),
               ("sonum",u"sönüm"),("eksen",),("sonusur",u"sonuşur"), ("amaci",u"amacı"),
               ("amacimiz",u"amacımız"),("sarsim",u"sarsım"),("Sarsim",u"Sarsım"),
-              (u"olduğu",),("oldu",),(" yani ",),(" Yani ",),("entegrali","")
+              (u"olduğu",),("oldu",),(" yani ",),(" Yani ",),("entegrali",)
     ]
               
     r_list_coded = []
