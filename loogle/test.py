@@ -19,7 +19,7 @@ def create_delete_me():
 def test_simple():
     prepare_dir()
 
-    loogle.index(crawl_dir="sub",index_dir=idx,get_first_N=5)
+    loogle.index(crawl_dir="sub",index_dir=idx,get_first_N=10)
 
     res = loogle.search("scientist", index_dir=idx)
     print res
@@ -33,13 +33,17 @@ def test_simple():
     print res
     assert 'b2' in res[0]
 
-    res = loogle.search("interest rate cash flow", index_dir=idx)
-    print res
-    assert 'veryveryimpo.txt' in res[0]
-
     res = loogle.search("amaranth", index_dir=idx)
     print res
     assert '2006_10_01_archive.html' in res[0]
+
+    res = loogle.search("quadratic form", index_dir=idx)
+    print res
+    assert 'tmp.pdf' in res[0]
+
+    res = loogle.search("interest rate cash flow", index_dir=idx)
+    print res
+    assert 'veryveryimpo.txt' in res[0]
 
     res = loogle.search("veryveryimpo", index_dir=idx)
     print res

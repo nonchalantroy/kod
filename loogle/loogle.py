@@ -71,7 +71,6 @@ def index(crawl_dir,index_dir,get_first_N=None):
     file_indexed_dict = tmp
                 
     if get_first_N: files = files[:get_first_N]
-        
     for i,(file,size) in enumerate(files):
         try:
             if file in file_indexed_dict:
@@ -112,7 +111,9 @@ def index(crawl_dir,index_dir,get_first_N=None):
                                 text = unicode(content))
             df_files.append([file, size])
             
-        except: continue
+        except:
+            print 'error detected', e
+            continue
     writer.commit() 
     df_files = pd.DataFrame(df_files,columns=['file','size'])
     df_files.to_csv(index_dir + "/loogle_files.csv",index=None)
@@ -133,13 +134,15 @@ def search(s, index_dir):
     
 if __name__ == "__main__":
 
+    index_dir = "c:/Users/burak/Downloads/book_idx"
+    
     if sys.argv[1] == '--index':
         index(crawl_dir="d:/kitaplar",
-              index_dir="d:/book_idx",
-              get_first_N=500) # up this for incremental processing
+              index_dir=index_dir,
+              get_first_N=2500) # up this for incremental processing
         
     if sys.argv[1] == '--find': 
-        res = search(sys.argv[2], index_dir="d:/book_idx")
+        res = search(sys.argv[2], index_dir=index_dir)
         for x in res:
             # produce emacs friendly output here, file:line_no:content
             # allows emacs find-grep to make the output clickable, C-c C-c
