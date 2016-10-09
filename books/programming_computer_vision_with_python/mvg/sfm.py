@@ -7,6 +7,8 @@ def compute_P(x,X):
     """    Compute camera matrix from pairs of
         2D-3D correspondences (in homog. coordinates). """
 
+    print x
+    print X
     n = x.shape[1]
     if X.shape[1] != n:
         raise ValueError("Number of points don't match.")

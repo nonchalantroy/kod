@@ -46,8 +46,7 @@ def show():
         ("Deusche Welle (World)", "http://rss.dw.de/rdf/rss-en-all", 15),
         ("Deusche Welle (Europe)", "http://rss.dw.de/rdf/rss-en-eu", 15),
         ("Die Welt", "http://www.welt.de/?service=Rss", 20),
-        ("ARD", "http://www.ard.de/home/ard/ARD_Startseite/21920/index.xml", 20),
-        ("A", decode("123","maanoaVtYGGUn5iYn5mfmqWbX5WinmGlpKU="), 20)
+        ("ARD", "http://www.ard.de/home/ard/ARD_Startseite/21920/index.xml", 20)
     ]
 
     #feeds = [   ]
