@@ -25,4 +25,10 @@ x1 = np.vstack( (x1,np.ones(x1.shape[1])) )
 x2 = points2D[1][:,corr[ndx,1]]
 x2 = np.vstack( (x2,np.ones(x2.shape[1])) )
 # compute F
+print x1
+print x2
 F = sfm.compute_fundamental(x1,x2)
+print 'F', F
+
+print 'P', sfm.compute_P_from_fundamental(F)
+
