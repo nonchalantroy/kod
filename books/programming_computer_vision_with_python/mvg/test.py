@@ -16,3 +16,13 @@ X = np.vstack( (X,np.ones(X.shape[1])) )
 # estimate P
 print sfm.compute_P(x,X)
 
+corr = np.genfromtxt('2D/nview-corners',dtype='int',missing_values='*')
+# index for points in first two views
+ndx = (corr[:,0]>=0) & (corr[:,1]>=0)
+# get coordinates and make homogeneous
+x1 = points2D[0][:,corr[ndx,0]]
+x1 = np.vstack( (x1,np.ones(x1.shape[1])) )
+x2 = points2D[1][:,corr[ndx,1]]
+x2 = np.vstack( (x2,np.ones(x2.shape[1])) )
+# compute F
+F = sfm.compute_fundamental(x1,x2)
