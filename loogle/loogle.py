@@ -135,7 +135,9 @@ def search(s, index_dir):
 if __name__ == "__main__":
 
     index_dir = "c:/Users/burak/Downloads/book_idx"
+    flip_drive = False
     
+    if len(sys.argv) == 4 and sys.argv[3] == "de": flip_drive = True
     if sys.argv[1] == '--index':
         index(crawl_dir="d:/kitaplar",
               index_dir=index_dir,
@@ -147,5 +149,5 @@ if __name__ == "__main__":
             # produce emacs friendly output here, file:line_no:content
             # allows emacs find-grep to make the output clickable, C-c C-c
             # will take you to the file
-            print "%s:1:-" % x
+            print "%s:1:-" % x.replace("d:","e:/archive")
         
