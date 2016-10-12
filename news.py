@@ -64,5 +64,5 @@ def show():
             if len(re.findall(r"Engin Ard", title, re.IGNORECASE)) > 0: continue
             if len(re.findall(r" .ld.rd.", title, re.IGNORECASE)) > 0: continue
             if len(re.findall(r"umhurba.kan", title, re.IGNORECASE)) > 0: continue
-            print("[[%s][%s]]" % (link,unicode(title)))
+            print("[[%s](%s)]\n" % (unicode(title), link))
 show()
