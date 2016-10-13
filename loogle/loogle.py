@@ -149,5 +149,6 @@ if __name__ == "__main__":
             # produce emacs friendly output here, file:line_no:content
             # allows emacs find-grep to make the output clickable, C-c C-c
             # will take you to the file
-            print "%s:1:-" % x.replace("d:","e:/archive")
+            if not flip_drive: print "%s:1:-" % x
+            else: print "%s:1:-" % x.replace("d:","e:/archive")
         

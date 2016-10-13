@@ -3,6 +3,7 @@
 Python replacement for newsbeuter, an RSS based news reader. 
 """
 import feedparser, sys, codecs
+import re, requests, random, os
 import re, time, os
 
 sys.stdout = codecs.getwriter('utf8')(sys.stdout)
@@ -43,6 +44,7 @@ def show():
         ("Sputnik News","http://tr.sputniknews.com/export/rss2/archive/index.xml",15),
         ("The Atlantic", "http://www.theatlantic.com/feed/all/",10),
         (u"Açık Gazete","https://www.acikgazete.com/feed",-1),
+        ("Bloomberg", "https://twitrss.me/twitter_user_to_rss/?user=business",15),
         ("Deusche Welle (World)", "http://rss.dw.de/rdf/rss-en-all", 15),
         ("Deusche Welle (Europe)", "http://rss.dw.de/rdf/rss-en-eu", 15),
         ("Die Welt", "http://www.welt.de/?service=Rss", 20),
@@ -65,4 +67,20 @@ def show():
             if len(re.findall(r" .ld.rd.", title, re.IGNORECASE)) > 0: continue
             if len(re.findall(r"umhurba.kan", title, re.IGNORECASE)) > 0: continue
             print("[[%s](%s)]\n" % (unicode(title), link))
+
+    print("\n")
+    print("## Marmara")
+    print("\n")
+    for link, title in marmara():
+        print("[[%s](%s)]\n" % (unicode(title, 'utf-8'), link))
+
+            
+def marmara():
+    url = "http://m.marmarayerelhaber.com/yazar.asp"
+    response = requests.get(url)
+    response_body = response.content
+    regex = "<p><a href=\"(.*?)\">(.*?)</a></p>"
+    arts = re.findall(regex, response_body, re.DOTALL)
+    return arts
+
 show()
