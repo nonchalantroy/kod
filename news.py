@@ -71,15 +71,18 @@ def show():
     print("\n")
     print("## Marmara")
     print("\n")
-    for link, title in marmara():
-        print("[[%s](%s)]\n" % (unicode(title, 'utf-8'), link))
+    for author, link, title in marmara():
+        if len(author) > 20: author = "____"
+        print("[[%s - %s](%s)]\n" % (unicode(title, 'utf-8'),
+                                     unicode(author, 'utf-8'),
+                                     link))
 
             
 def marmara():
     url = "http://m.marmarayerelhaber.com/yazar.asp"
     response = requests.get(url)
     response_body = response.content
-    regex = "<p><a href=\"(.*?)\">(.*?)</a></p>"
+    regex = "<h1 class=\"title\">.*?\">(.*?)</a></h1>.*?<p><a href=\"(.*?)\">(.*?)</a></p>"
     arts = re.findall(regex, response_body, re.DOTALL)
     return arts
 
