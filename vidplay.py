@@ -1,4 +1,9 @@
-import mp3play, glob, random, twister, time, sys, os, subprocess
+"""
+Plays random mp3 songs that are picked from the directory given as
+a parameter in the command line
+"""
+
+import mp3play, glob, random, time, sys, os, subprocess
 import msvcrt, threading
 from rsync import ls
 from rndplay import sleep, anykeyevent
@@ -20,17 +25,16 @@ class Runner(threading.Thread):
         os.system("kill -f %d" % self.p.pid)
 
 if __name__ == "__main__": 
-         
+
     base_dir = "e:/shows"
 
     dirs,files = ls(base_dir)
-
+    
     files = [x[0] for x in files if ".avi" in x[0] or "mkv" in x[0] or "mp4" in x[0]]
 
     fout = open("%s/%s" % (os.environ['TEMP'],logfile), "a")
-    while (True):
-        seed = random.choice(range(10000))
-        rnd = twister.get_random_numbers(seed, 1)
+    while (True):        
+        rnd = random.choice(range(len(files)))
         print len(files), 'files'
         rnd = rnd[0] % len(files)
         file = files[rnd]

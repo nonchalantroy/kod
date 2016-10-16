@@ -2,7 +2,7 @@
 # any directory it will play the files underneath randomly. Use 'n'
 # for next, 'SPACE' for pause, 'SPACE' for resume, left/right arrows
 # to skip back/forward 3 secs.
-import mp3play, glob, random, twister, time, sys, os, subprocess
+import mp3play, glob, random, time, sys, os, subprocess
 import msvcrt, threading, datetime as dt
 
 exe = 'c:/Users/burak/Downloads/ffmpeg/bin/ffplay'
@@ -88,9 +88,8 @@ if __name__ == "__main__":
     print len(files), 'files'
     fout = open("%s/%s" % (os.environ['TEMP'],logfile), "a")
     while (True):
-        seed = random.choice(range(1000))
-        rnd = twister.get_random_numbers(seed, 1)
-        rnd = rnd[0] % len(files)
+        
+        rnd = random.choice(range(len(files)))
         file = files[rnd]
         file = file.replace('/','\\')
         fout.write(file)
