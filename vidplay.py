@@ -36,7 +36,6 @@ if __name__ == "__main__":
     while (True):        
         rnd = random.choice(range(len(files)))
         print len(files), 'files'
-        rnd = rnd[0] % len(files)
         file = files[rnd]
         file = file.replace('/','\\')
         fout.write(file)
