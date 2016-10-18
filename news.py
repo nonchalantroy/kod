@@ -30,7 +30,6 @@ def decode(key, enc):
 def show():
 
     feeds = [
-        ("Reuters (UK World)",'http://feeds.reuters.com/reuters/UKWorldNews',-1),
         ("The Guardian","http://www.theguardian.com/world/rss",10),
         ("Diken","http://www.diken.com.tr/feed/",-1),
         ("Cumhuriyet","http://www.cumhuriyet.com.tr/rss/son_dakika.xml",10),
@@ -66,6 +65,7 @@ def show():
             if len(re.findall(r"Engin Ard", title, re.IGNORECASE)) > 0: continue
             if len(re.findall(r" .ld.rd.", title, re.IGNORECASE)) > 0: continue
             if len(re.findall(r"umhurba.kan", title, re.IGNORECASE)) > 0: continue
+            if len(re.findall(r"tecav.z", title, re.IGNORECASE)) > 0: continue
             print("[[%s](%s)]\n" % (unicode(title), link))
 
     print("\n")
