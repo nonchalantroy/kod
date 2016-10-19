@@ -322,7 +322,8 @@ This command does not push erased text to kill-ring."
   (local-set-key "\M-s" 'isearch-forward) 
   (local-set-key "\C-v" 'scroll-up)
   (local-set-key "\C-c\C-t" 'open-file-evince)
-  (setq fill-column 80) 
+  (setq fill-column 80)
+  (electric-indent-mode -1)
   )
 (add-hook 'tex-mode-hook 'my-tex-mode-hook)
 (defun my-text-mode-hook ()
@@ -912,6 +913,7 @@ This command does not push erased text to kill-ring."
 (find-file-other-window "c:/Users/burak/Documents")
 (find-file-other-window "c:/Users/burak/Documents/kod")
 (find-file-other-window "c:/Users/burak/Downloads")
+(find-file-other-window "c:/Users/burak/Documents/bass")
 
 (switch-to-buffer "*scratch*")
 (delete-other-windows)

@@ -49,10 +49,10 @@ def ls(d):
     for root, directories, filenames in os.walk(d):
         for directory in directories:
             path = os.path.join(root, directory)
-            dirs.append(path)
+            if ".git" not in path: dirs.append(path)
         for filename in filenames: 
             path = os.path.join(root,filename)
-            files.append((path, os.path.getsize(path)))
+            if ".git" not in path: files.append((path, os.path.getsize(path)))
     return dirs, files
 
 def purge(dir, pattern, inclusive=True):
@@ -64,10 +64,10 @@ def purge(dir, pattern, inclusive=True):
                 os.remove(path)
                 
 def copy_files_and_dirs(fr,to):    
-    frdirs,frfiles =  ls(fr)
+    frdirs,frfiles =  ls(fr)    
     todirs,tofiles = ls(to)
     tofilesdict = dict(tofiles)
-
+    
     print 'create dirs'
     todirs_tmp = dict([(x.replace(fr,to),0) for x in todirs])
     diff = [x for x in frdirs if x.replace(fr,to) not in todirs_tmp]
